@@ -71,6 +71,7 @@ export function HapticButton({
   const triggerHaptic = useCallback(() => {
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const Haptics = require('expo-haptics');
         Haptics?.selectionAsync?.();
       } catch {
