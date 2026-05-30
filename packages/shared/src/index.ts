@@ -35,6 +35,15 @@ export type {
   Recipe,
   CreateRecipeInput,
   UpdateRecipeInput,
+  RecipeInstruction,
+  RecipeTag,
+  RecipeDietaryInfo,
+  RecipeFull,
+  RecipeSearchFilters,
+  RecipeSearchParams,
+  RecipeSearchResult,
+  RecipeRecommendation,
+  RecipeCategory,
 } from './types/recipe';
 
 export type {

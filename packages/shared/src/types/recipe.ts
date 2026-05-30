@@ -167,3 +167,77 @@ export interface UpdateRecipeInput {
   cuisineType?: CuisineType;
   imageUrls?: string[];
 }
+
+// ── Recipe Search & Discovery Types (Supabase-backed) ──────────────────────
+
+/** A single instruction step for a Supabase-backed recipe. */
+export interface RecipeInstruction {
+  id: string;
+  recipe_id: string;
+  step_number: number;
+  instruction: string;
+  timer_minutes: number | null;
+}
+
+/** A tag associated with a recipe. */
+export interface RecipeTag {
+  id: string;
+  recipe_id: string;
+  tag: string;
+}
+
+/** Dietary compliance info for a recipe. */
+export interface RecipeDietaryInfo {
+  id: string;
+  recipe_id: string;
+  restriction: string;
+  is_compliant: boolean;
+}
+
+/** Full recipe with all nested relations from Supabase. */
+export interface RecipeFull extends Recipe {
+  ingredients: RecipeIngredient[];
+  instructions: RecipeInstruction[];
+  tags: RecipeTag[];
+  dietary_info: RecipeDietaryInfo[];
+}
+
+/** Filters for recipe search. */
+export interface RecipeSearchFilters {
+  cuisine?: string;
+  tags?: string[];
+  dietary_restrictions?: string[];
+  max_prep_minutes?: number;
+  max_cook_minutes?: number;
+  max_calories?: number;
+  min_servings?: number;
+}
+
+/** Parameters for recipe search. */
+export interface RecipeSearchParams {
+  query?: string;
+  filters?: RecipeSearchFilters;
+  limit?: number;
+  offset?: number;
+}
+
+/** Result of a recipe search. */
+export interface RecipeSearchResult {
+  recipes: RecipeFull[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/** A scored recipe recommendation. */
+export interface RecipeRecommendation {
+  recipe: RecipeFull;
+  score: number;
+  reasons: string[];
+}
+
+/** A recipe category (cuisine type with count). */
+export interface RecipeCategory {
+  cuisine: string;
+  count: number;
+}
