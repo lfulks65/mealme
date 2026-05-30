@@ -17,7 +17,7 @@ import type {
  * Fetch all nested relations for a set of recipe IDs and attach them.
  * This avoids N+1 queries by batching the lookups.
  */
-async function attachRelations(
+export async function attachRelations(
   recipes: RecipeFull[]
 ): Promise<RecipeFull[]> {
   if (recipes.length === 0) return recipes;
