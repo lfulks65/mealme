@@ -145,3 +145,17 @@ export type { NativeCardProps } from './components/bna/NativeCard';
 
 export { SwipeableRow } from './components/bna/SwipeableRow';
 export type { SwipeableRowProps, SwipeAction } from './components/bna/SwipeableRow';
+
+// ─── Preference Components ──────────────────────────────────────────────────
+
+export { PreferenceOnboardingScreen } from './components/preferences/PreferenceOnboardingScreen';
+export type { OnboardingPreferences, PreferenceOnboardingScreenProps } from './components/preferences/PreferenceOnboardingScreen';
+
+export { PreferenceSettingsScreen } from './components/preferences/PreferenceSettingsScreen';
+export type { MemberWithPreferences, PreferenceSettingsScreenProps } from './components/preferences/PreferenceSettingsScreen';
+
+export { PreferenceSummaryCard } from './components/preferences/PreferenceSummaryCard';
+export type { PreferenceSummaryCardProps } from './components/preferences/PreferenceSummaryCard';
+
+export { usePreferences } from './components/preferences/usePreferences';
+export type { UsePreferencesConfig, UsePreferencesResult } from './components/preferences/usePreferences';
