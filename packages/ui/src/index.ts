@@ -199,3 +199,30 @@ export type { HEBCartScreenProps } from './components/heb/HEBCartScreen';
 
 export { HEBOrderStatusScreen } from './components/heb/HEBOrderStatusScreen';
 export type { HEBOrderStatusScreenProps } from './components/heb/HEBOrderStatusScreen';
+
+// ─── Recipe Discovery Screens ──────────────────────────────────────────────
+
+export {
+  RecipeSearchScreen,
+  RecipeDetailScreen,
+  RecipeBrowseScreen,
+  RecipeFilterModal,
+} from './screens';
+
+export type {
+  RecipeSearchScreenProps,
+  RecipeDetailScreenProps,
+  RecipeBrowseScreenProps,
+  RecipeFilterModalProps,
+} from './screens';
+
+// ─── Recipe Hooks ──────────────────────────────────────────────────────────
+
+export {
+  useRecipeSearch,
+  useRecipeDetail,
+  useRecipeCategories,
+  useRecipeRecommendations,
+  useQuickMeals,
+  useCategoryRecipes,
+} from './hooks';
