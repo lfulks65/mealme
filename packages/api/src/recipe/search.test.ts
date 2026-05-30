@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { RecipeFull, FamilyPreferences, RecipeSearchFilters } from '@mealme/shared';
+import type { RecipeFull, FamilyPreferences } from '@mealme/shared';
 
 // ── Mock Supabase ────────────────────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ function filterByDietaryRestrictions(
   restrictions: string[]
 ): RecipeFull[] {
   return recipes.filter((recipe) =>
-    restrictions.every((restriction) =>
+    restrictions.every((restriction: string) =>
       recipe.dietary_info.some(
         (di) => di.restriction === restriction && di.is_compliant
       )
@@ -38,7 +38,7 @@ function filterByTags(
   tags: string[]
 ): RecipeFull[] {
   return recipes.filter((recipe) =>
-    tags.every((tag) =>
+    tags.every((tag: string) =>
       recipe.tags.some((t) => t.tag.toLowerCase() === tag.toLowerCase())
     )
   );
@@ -50,7 +50,7 @@ function filterByAllergens(
 ): RecipeFull[] {
   return recipes.filter((recipe) => {
     const ingredientNames = recipe.ingredients.map((i) => i.name.toLowerCase());
-    return allergies.every((allergen) =>
+    return allergies.every((allergen: string) =>
       ingredientNames.every((name) => !name.includes(allergen.toLowerCase()))
     );
   });
@@ -62,7 +62,7 @@ function filterByExcludedIngredients(
 ): RecipeFull[] {
   return recipes.filter((recipe) => {
     const ingredientNames = recipe.ingredients.map((i) => i.name.toLowerCase());
-    return excluded.every((exc) =>
+    return excluded.every((exc: string) =>
       ingredientNames.every((name) => !name.includes(exc.toLowerCase()))
     );
   });
@@ -74,16 +74,12 @@ function applyAllPreferenceFilters(
 ): RecipeFull[] {
   let filtered = recipes;
 
-  if (preferences.dietary_restrictions.length > 0) {
-    filtered = filterByDietaryRestrictions(filtered, preferences.dietary_restrictions);
+  if (preferences.dietaryRestrictions.length > 0) {
+    filtered = filterByDietaryRestrictions(filtered, preferences.dietaryRestrictions as unknown as string[]);
   }
 
-  if (preferences.allergies.length > 0) {
-    filtered = filterByAllergens(filtered, preferences.allergies);
-  }
-
-  if (preferences.excluded_ingredients && preferences.excluded_ingredients.length > 0) {
-    filtered = filterByExcludedIngredients(filtered, preferences.excluded_ingredients);
+  if (preferences.excludedIngredients.length > 0) {
+    filtered = filterByAllergens(filtered, preferences.excludedIngredients);
   }
 
   return filtered;
@@ -96,20 +92,24 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
     id: 'recipe-1',
     title: 'Pasta Carbonara',
     description: 'Classic Italian pasta',
-    cuisine: 'Italian',
-    image_url: null,
-    prep_minutes: 10,
-    cook_minutes: 20,
+    familyId: undefined,
+    createdBy: undefined,
+    cuisineType: 'italian',
+    imageUrls: [],
+    prepTimeMinutes: 10,
+    cookTimeMinutes: 20,
     servings: 4,
-    calories: 500,
-    source_url: null,
-    created_by: null,
-    created_at: '2025-01-01T00:00:00Z',
+    difficulty: 'easy',
+    dietaryTags: [],
+    isLibrary: false,
+    createdAt: '2025-01-01T00:00:00Z',
+    updatedAt: '2025-01-01T00:00:00Z',
     ingredients: [
-      { id: 'i1', recipe_id: 'recipe-1', name: 'spaghetti', quantity: '1', unit: 'lb', optional: false },
-      { id: 'i2', recipe_id: 'recipe-1', name: 'parmesan cheese', quantity: '1', unit: 'cup', optional: false },
-      { id: 'i3', recipe_id: 'recipe-1', name: 'bacon', quantity: '6', unit: 'slices', optional: false },
+      { id: 'i1', name: 'spaghetti', quantity: 1, unit: 'lb' as const, optional: false },
+      { id: 'i2', name: 'parmesan cheese', quantity: 1, unit: 'cup' as const, optional: false },
+      { id: 'i3', name: 'bacon', quantity: 6, unit: 'slice' as const, optional: false },
     ],
+    steps: [],
     instructions: [],
     tags: [
       { id: 't1', recipe_id: 'recipe-1', tag: 'comfort-food' },
@@ -250,7 +250,7 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'peanut butter', quantity: '2', unit: 'tbsp', optional: false },
+          { id: 'i1', name: 'peanut butter', quantity: 2, unit: 'tbsp' as const, optional: false },
         ],
       }),
     ];
@@ -264,7 +264,7 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'chicken breast', quantity: '1', unit: 'lb', optional: false },
+          { id: 'i1', name: 'chicken breast', quantity: 1, unit: 'lb' as const, optional: false },
         ],
       }),
     ];
@@ -278,7 +278,7 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'Peanut Oil', quantity: '1', unit: 'tbsp', optional: false },
+          { id: 'i1', name: 'Peanut Oil', quantity: 1, unit: 'tbsp' as const, optional: false },
         ],
       }),
     ];
@@ -292,13 +292,13 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'peanut butter', quantity: '2', unit: 'tbsp', optional: false },
+          { id: 'i1', name: 'peanut butter', quantity: 2, unit: 'tbsp' as const, optional: false },
         ],
       }),
       makeRecipe({
         id: 'r2',
         ingredients: [
-          { id: 'i2', recipe_id: 'r2', name: 'chicken', quantity: '1', unit: 'lb', optional: false },
+          { id: 'i2', name: 'chicken', quantity: 1, unit: 'lb' as const, optional: false },
         ],
       }),
     ];
@@ -318,7 +318,7 @@ describe('filterByExcludedIngredients', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'cilantro', quantity: '1', unit: 'cup', optional: false },
+          { id: 'i1', name: 'cilantro', quantity: 1, unit: 'cup' as const, optional: false },
         ],
       }),
     ];
@@ -332,7 +332,7 @@ describe('filterByExcludedIngredients', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'parsley', quantity: '1', unit: 'cup', optional: false },
+          { id: 'i1', name: 'parsley', quantity: 1, unit: 'cup' as const, optional: false },
         ],
       }),
     ];
@@ -345,13 +345,13 @@ describe('filterByExcludedIngredients', () => {
 // ── Combined Preference Filter Tests ─────────────────────────────────────────
 
 describe('applyAllPreferenceFilters', () => {
-  it('applies dietary, allergen, and excluded ingredient filters together', () => {
+  it('applies dietary and excluded ingredient filters together', () => {
     const recipes = [
       // Recipe 1: gluten-free, dairy-free compliant, no allergens
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'rice', quantity: '1', unit: 'cup', optional: false },
+          { id: 'i1', name: 'rice', quantity: 1, unit: 'cup' as const, optional: false },
         ],
         dietary_info: [
           { id: 'd1', recipe_id: 'r1', restriction: 'gluten-free', is_compliant: true },
@@ -362,7 +362,7 @@ describe('applyAllPreferenceFilters', () => {
       makeRecipe({
         id: 'r2',
         ingredients: [
-          { id: 'i3', recipe_id: 'r2', name: 'peanut sauce', quantity: '2', unit: 'tbsp', optional: false },
+          { id: 'i3', name: 'peanut sauce', quantity: 2, unit: 'tbsp' as const, optional: false },
         ],
         dietary_info: [
           { id: 'd3', recipe_id: 'r2', restriction: 'gluten-free', is_compliant: true },
@@ -372,7 +372,7 @@ describe('applyAllPreferenceFilters', () => {
       makeRecipe({
         id: 'r3',
         ingredients: [
-          { id: 'i4', recipe_id: 'r3', name: 'chicken', quantity: '1', unit: 'lb', optional: false },
+          { id: 'i4', name: 'chicken', quantity: 1, unit: 'lb' as const, optional: false },
         ],
         dietary_info: [
           { id: 'd4', recipe_id: 'r3', restriction: 'gluten-free', is_compliant: false },
@@ -381,10 +381,15 @@ describe('applyAllPreferenceFilters', () => {
     ];
 
     const prefs: FamilyPreferences = {
-      family_id: 'f1',
-      dietary_restrictions: ['gluten-free'],
-      allergies: ['peanut'],
-      cuisine_preferences: [],
+      familyId: 'f1',
+      dietaryRestrictions: ['gluten-free'] as any,
+      preferredCuisines: [],
+      budgetTier: 'moderate',
+      maxServingsPerMeal: 4,
+      activeMealSlots: [],
+      includeLibraryRecipes: true,
+      excludedIngredients: ['peanut'],
+      updatedAt: '2025-01-01T00:00:00Z',
     };
 
     const result = applyAllPreferenceFilters(recipes, prefs);
@@ -398,10 +403,15 @@ describe('applyAllPreferenceFilters', () => {
     const recipes = [makeRecipe({ id: 'r1' }), makeRecipe({ id: 'r2' })];
 
     const prefs: FamilyPreferences = {
-      family_id: 'f1',
-      dietary_restrictions: [],
-      allergies: [],
-      cuisine_preferences: [],
+      familyId: 'f1',
+      dietaryRestrictions: [],
+      preferredCuisines: [],
+      budgetTier: 'moderate',
+      maxServingsPerMeal: 4,
+      activeMealSlots: [],
+      includeLibraryRecipes: true,
+      excludedIngredients: [],
+      updatedAt: '2025-01-01T00:00:00Z',
     };
 
     const result = applyAllPreferenceFilters(recipes, prefs);
@@ -417,9 +427,9 @@ describe('searchRecipes (integration)', () => {
   });
 
   it('calls Supabase with correct table and returns result structure', async () => {
-    // Build a minimal chainable mock
-    const chain: Record<string, ReturnType<typeof vi.fn>> = {};
-    const recipeData = { id: 'r1', title: 'Test', description: null, cuisine: null, image_url: null, prep_minutes: null, cook_minutes: null, servings: null, calories: null, source_url: null, created_by: null, created_at: '2025-01-01' };
+    // Build a minimal chainable mock using `any` to avoid complex Vitest mock typing
+    const chain: Record<string, any> = {};
+    const recipeData = { id: 'r1', title: 'Test' };
 
     chain.eq = vi.fn(() => chain);
     chain.ilike = vi.fn(() => chain);

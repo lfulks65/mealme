@@ -1,5 +1,5 @@
 import { getSupabaseClient } from '../lib/supabase';
-import { searchRecipes, attachRelations } from './search';
+import { attachRelations } from './search';
 import type {
   RecipeFull,
   RecipeRecommendation,
@@ -45,19 +45,28 @@ export async function getFamilyPreferences(
     // Return empty preferences — the recommendation engine will still work
     // but won't have preference-based scoring
     return {
-      family_id: familyId,
-      dietary_restrictions: [],
-      allergies: [],
-      cuisine_preferences: [],
+      familyId: familyId,
+      dietaryRestrictions: [],
+      preferredCuisines: [],
+      budgetTier: 'moderate',
+      maxServingsPerMeal: 4,
+      activeMealSlots: [],
+      includeLibraryRecipes: true,
+      excludedIngredients: [],
+      updatedAt: new Date().toISOString(),
     };
   }
 
   return {
-    family_id: familyId,
-    dietary_restrictions: data.dietary_restrictions ?? [],
-    allergies: data.allergies ?? [],
-    cuisine_preferences: data.cuisine_preferences ?? [],
-    excluded_ingredients: data.excluded_ingredients ?? [],
+    familyId: familyId,
+    dietaryRestrictions: data.dietary_restrictions ?? [],
+    preferredCuisines: data.cuisine_preferences ?? [],
+    budgetTier: data.budget_tier ?? 'moderate',
+    maxServingsPerMeal: data.household_size ?? 4,
+    activeMealSlots: [],
+    includeLibraryRecipes: true,
+    excludedIngredients: data.excluded_ingredients ?? [],
+    updatedAt: data.updated_at ?? new Date().toISOString(),
   };
 }
 
@@ -89,9 +98,9 @@ export function scoreRecipe(
   const reasons: string[] = [];
 
   // ── Dietary restriction scoring ──────────────────────────────────────────
-  if (preferences.dietary_restrictions.length > 0) {
-    const matchedRestrictions = preferences.dietary_restrictions.filter(
-      (restriction) =>
+  if (preferences.dietaryRestrictions.length > 0) {
+    const matchedRestrictions = preferences.dietaryRestrictions.filter(
+      (restriction: string) =>
         recipe.dietary_info.some(
           (di) => di.restriction === restriction && di.is_compliant
         )
@@ -107,8 +116,8 @@ export function scoreRecipe(
     }
 
     // Heavy penalty if recipe doesn't comply with a required restriction
-    const nonCompliant = preferences.dietary_restrictions.filter(
-      (restriction) =>
+    const nonCompliant = preferences.dietaryRestrictions.filter(
+      (restriction: string) =>
         !recipe.dietary_info.some(
           (di) => di.restriction === restriction && di.is_compliant
         )
@@ -123,24 +132,24 @@ export function scoreRecipe(
 
   // ── Cuisine preference scoring ───────────────────────────────────────────
   if (
-    preferences.cuisine_preferences.length > 0 &&
-    recipe.cuisine
+    preferences.preferredCuisines.length > 0 &&
+    recipe.cuisineType
   ) {
-    const cuisineMatch = preferences.cuisine_preferences.some(
-      (pref) => pref.toLowerCase() === recipe.cuisine!.toLowerCase()
+    const cuisineMatch = preferences.preferredCuisines.some(
+      (pref) => pref.toLowerCase() === recipe.cuisineType!.toLowerCase()
     );
     if (cuisineMatch) {
       cuisineScore = WEIGHTS.CUISINE_MATCH;
-      reasons.push(`Preferred cuisine: ${recipe.cuisine}`);
+      reasons.push(`Preferred cuisine: ${recipe.cuisineType}`);
     }
   }
 
   // ── Allergen scoring ─────────────────────────────────────────────────────
-  if (preferences.allergies.length > 0) {
+  if (preferences.excludedIngredients.length > 0) {
     const ingredientNames = recipe.ingredients.map((i) =>
       i.name.toLowerCase()
     );
-    const foundAllergens = preferences.allergies.filter((allergen) =>
+    const foundAllergens = preferences.excludedIngredients.filter((allergen: string) =>
       ingredientNames.some((name) =>
         name.includes(allergen.toLowerCase())
       )
@@ -156,13 +165,13 @@ export function scoreRecipe(
 
   // ── Excluded ingredients ─────────────────────────────────────────────────
   if (
-    preferences.excluded_ingredients &&
-    preferences.excluded_ingredients.length > 0
+    preferences.excludedIngredients &&
+    preferences.excludedIngredients.length > 0
   ) {
     const ingredientNames = recipe.ingredients.map((i) =>
       i.name.toLowerCase()
     );
-    const foundExcluded = preferences.excluded_ingredients.filter((exc) =>
+    const foundExcluded = preferences.excludedIngredients.filter((exc: string) =>
       ingredientNames.some((name) =>
         name.includes(exc.toLowerCase())
       )
@@ -178,10 +187,10 @@ export function scoreRecipe(
 
   // ── Tag scoring ──────────────────────────────────────────────────────────
   // Bonus for recipes with tags that match dietary preferences
-  if (recipe.tags.length > 0 && preferences.dietary_restrictions.length > 0) {
+  if (recipe.tags.length > 0 && preferences.dietaryRestrictions.length > 0) {
     const matchingTags = recipe.tags.filter((t) =>
-      preferences.dietary_restrictions.some(
-        (dr) => dr.toLowerCase() === t.tag.toLowerCase()
+      preferences.dietaryRestrictions.some(
+        (dr: string) => dr.toLowerCase() === t.tag.toLowerCase()
       )
     );
     tagScore = matchingTags.length * WEIGHTS.TAG_MATCH;
@@ -193,7 +202,7 @@ export function scoreRecipe(
   }
 
   // ── Quick meal bonus ─────────────────────────────────────────────────────
-  const totalTime = (recipe.prep_minutes ?? 0) + (recipe.cook_minutes ?? 0);
+  const totalTime = (recipe.prepTimeMinutes ?? 0) + (recipe.cookTimeMinutes ?? 0);
   if (totalTime > 0 && totalTime <= WEIGHTS.QUICK_MEAL_THRESHOLD) {
     quickMealScore = WEIGHTS.QUICK_MEAL_BONUS;
     reasons.push(`Quick meal: ${totalTime} min total`);

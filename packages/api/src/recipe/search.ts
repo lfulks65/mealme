@@ -64,7 +64,7 @@ export async function attachRelations(
   }));
 }
 
-function groupBy<T extends Record<string, unknown>>(
+function groupBy<T extends Record<string, any>>(
   items: T[],
   key: string
 ): Record<string, T[]> {
@@ -80,7 +80,7 @@ function groupBy<T extends Record<string, unknown>>(
  * Build a Supabase query with filter chain from RecipeSearchFilters.
  */
 function applyFilters(
-  query: ReturnType<ReturnType<typeof getSupabaseClient>['from']>['select'],
+  query: any,
   filters: RecipeSearchFilters
 ) {
   if (filters.cuisine) {
@@ -115,7 +115,7 @@ export async function searchRecipes(
 ): Promise<RecipeSearchResult> {
   const sb = getSupabaseClient();
 
-  let q = sb.from('recipes').select('*', { count: 'exact' });
+  let q: any = sb.from('recipes').select('*', { count: 'exact' });
 
   // Full-text search using the generated `fts` column
   if (query && query.trim().length > 0) {
@@ -150,7 +150,7 @@ export async function searchRecipes(
   let filtered = withRelations;
   if (filters?.dietary_restrictions && filters.dietary_restrictions.length > 0) {
     filtered = withRelations.filter((recipe) =>
-      filters.dietary_restrictions!.every((restriction) =>
+      filters.dietary_restrictions!.every((restriction: string) =>
         recipe.dietary_info.some(
           (di) => di.restriction === restriction && di.is_compliant
         )
@@ -161,7 +161,7 @@ export async function searchRecipes(
   // If tag filters are specified, further filter in-memory
   if (filters?.tags && filters.tags.length > 0) {
     filtered = filtered.filter((recipe) =>
-      filters.tags!.every((tag) =>
+      filters.tags!.every((tag: string) =>
         recipe.tags.some((t) => t.tag.toLowerCase() === tag.toLowerCase())
       )
     );
@@ -204,10 +204,10 @@ export async function getRecipesByPreferences(
   const sb = getSupabaseClient();
 
   // Start with all recipes, optionally filtered by preferred cuisines
-  let q = sb.from('recipes').select('*', { count: 'exact' });
+  let q: any = sb.from('recipes').select('*', { count: 'exact' });
 
-  if (preferences.cuisine_preferences.length > 0) {
-    q = q.in('cuisine', preferences.cuisine_preferences);
+  if (preferences.preferredCuisines.length > 0) {
+    q = q.in('cuisine', preferences.preferredCuisines);
   }
 
   q = q.range(offset, offset + limit - 1).order('created_at', { ascending: false });
@@ -220,9 +220,9 @@ export async function getRecipesByPreferences(
 
   // Filter OUT recipes that conflict with dietary restrictions
   // A recipe is excluded if any required dietary restriction is NOT compliant
-  if (preferences.dietary_restrictions.length > 0) {
+  if (preferences.dietaryRestrictions.length > 0) {
     withRelations = withRelations.filter((recipe) =>
-      preferences.dietary_restrictions.every((restriction) =>
+      preferences.dietaryRestrictions.every((restriction: string) =>
         recipe.dietary_info.some(
           (di) => di.restriction === restriction && di.is_compliant
         )
@@ -230,27 +230,13 @@ export async function getRecipesByPreferences(
     );
   }
 
-  // Filter OUT recipes containing allergen ingredients
-  if (preferences.allergies.length > 0) {
+  // Filter OUT recipes with excluded ingredients (allergies + explicitly excluded)
+  if (preferences.excludedIngredients.length > 0) {
     withRelations = withRelations.filter((recipe) => {
       const ingredientNames = recipe.ingredients.map((i) =>
         i.name.toLowerCase()
       );
-      return preferences.allergies.every((allergen) =>
-        ingredientNames.every(
-          (name) => !name.includes(allergen.toLowerCase())
-        )
-      );
-    });
-  }
-
-  // Filter OUT recipes with excluded ingredients
-  if (preferences.excluded_ingredients && preferences.excluded_ingredients.length > 0) {
-    withRelations = withRelations.filter((recipe) => {
-      const ingredientNames = recipe.ingredients.map((i) =>
-        i.name.toLowerCase()
-      );
-      return preferences.excluded_ingredients!.every((excluded) =>
+      return preferences.excludedIngredients.every((excluded: string) =>
         ingredientNames.every(
           (name) => !name.includes(excluded.toLowerCase())
         )
