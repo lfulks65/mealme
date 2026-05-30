@@ -33,6 +33,9 @@ export interface ApiClientConfig {
 // Supabase client (anon key + service-role admin)
 export { supabase, getSupabaseAdmin } from './supabase';
 
+// Preferences module
+export * from './preferences';
+
 // API client shell
 export function createApiClient(config: ApiClientConfig) {
   return {
