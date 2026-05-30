@@ -1,10 +1,11 @@
-import React from 'react';
 import { FamilyDetailScreen } from '@mealme/ui';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export default function FamilyDetailRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+
+  if (!id) return null;
 
   return (
     <FamilyDetailScreen
