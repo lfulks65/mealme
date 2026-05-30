@@ -1,30 +1,31 @@
 {
+  "cli": {
+    "appVersionSource": "remote"
+  },
   "expo": {
     "name": "MealMe",
     "slug": "mealme",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "orientation": "default",
     "scheme": "mealme",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mealme.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.mealme.app"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/favicon.png"
+      "output": "static"
     },
     "plugins": [
-      "expo-router",
-      "expo-apple-authentication"
+      "expo-router"
     ]
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "@mealme/api",
+  "name": "@mealme/heb",
   "version": "0.1.0",
-  "description": "API client and shared types for the MealMe platform",
+  "description": "HEB SDK integration shell for the MealMe platform",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -21,8 +21,9 @@
   },
   "keywords": [
     "mealme",
-    "api",
-    "client"
+    "heb",
+    "grocery",
+    "sdk"
   ],
   "license": "UNLICENSED",
   "dependencies": {

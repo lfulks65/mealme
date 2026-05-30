@@ -1,12 +1,19 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
     "jsx": "react-jsx",
-    "baseUrl": ".",
+    "lib": ["ES2020", "DOM"],
     "paths": {
-      "@mealme/ui": ["../../packages/ui/src"],
-      "@mealme/ui/*": ["../../packages/ui/src/*"]
+      "@/*": ["./*"]
     }
   },
-  "include": ["app", "src"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-router.d.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
 }
