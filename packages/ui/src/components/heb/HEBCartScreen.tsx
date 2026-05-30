@@ -18,7 +18,7 @@ import {
   type TextStyle,
 } from 'react-native';
 
-import type { StoreInfo, OrderStatusInfo, ProductMatch } from '@mealme/api';
+import type { StoreInfo, OrderStatusInfo } from '@mealme/api';
 import type { Cart, CartItem, FulfillmentSlot } from '@mealme/heb';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -251,7 +251,7 @@ export function HEBCartScreen({
   const loadCart = useCallback(async () => {
     setLoading(true);
     try {
-      const { getCart } = await import('@mealme/api/dist/heb/hebService');
+      const { getCart } = await import('@mealme/api');
       const result = await getCart(cartId, familyId, { storeId: store.id });
       setCart(result);
     } catch (err) {
@@ -270,7 +270,7 @@ export function HEBCartScreen({
   const loadSlots = useCallback(async () => {
     setSlotsLoading(true);
     try {
-      const { getFulfillmentSlots } = await import('@mealme/api/dist/heb/hebService');
+      const { getFulfillmentSlots } = await import('@mealme/api');
       const deliveryAddress = fulfillmentType === 'DELIVERY'
         ? {
             address1: '',
@@ -302,7 +302,7 @@ export function HEBCartScreen({
   const handleRemoveItem = useCallback(
     async (productId: string) => {
       try {
-        const { removeCartItem } = await import('@mealme/api/dist/heb/hebService');
+        const { removeCartItem } = await import('@mealme/api');
         await removeCartItem(cartId, productId, familyId, { storeId: store.id });
         await loadCart(); // Refresh
       } catch (err) {
@@ -324,7 +324,7 @@ export function HEBCartScreen({
     setError(null);
 
     try {
-      const { submitOrder } = await import('@mealme/api/dist/heb/hebService');
+      const { submitOrder } = await import('@mealme/api');
       const deliveryDetails = {
         address: {
           address1: '',

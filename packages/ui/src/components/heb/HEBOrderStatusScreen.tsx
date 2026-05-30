@@ -290,7 +290,7 @@ export function HEBOrderStatusScreen({
 
   const loadOrder = useCallback(async () => {
     try {
-      const { getOrderStatus } = await import('@mealme/api/dist/heb/hebService');
+      const { getOrderStatus } = await import('@mealme/api');
       const result = await getOrderStatus(orderId, familyId, { storeId: store.id });
       setOrder(result);
       setError(null);

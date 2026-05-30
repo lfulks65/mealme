@@ -65,7 +65,7 @@ export function HEBStoreSelectScreen({
 
     try {
       // Dynamic import to avoid bundling server code in client
-      const { searchStores } = await import('@mealme/api/dist/heb/hebService');
+      const { searchStores } = await import('@mealme/api');
       const results = await searchStores(trimmed, familyId);
       setStores(results);
 

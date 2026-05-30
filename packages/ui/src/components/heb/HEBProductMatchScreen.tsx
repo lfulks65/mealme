@@ -113,7 +113,7 @@ function ProductSwapModal({
     if (!query.trim()) return;
     setLoading(true);
     try {
-      const { searchProducts } = await import('@mealme/api/dist/heb/hebService');
+      const { searchProducts } = await import('@mealme/api');
       const products = await searchProducts(query.trim(), familyId, { storeId });
       setResults(
         products.map((p: { id: string; skuId: string; name: string; brand?: string; imageUrl?: string; price?: { amount: number; formatted: string }; unit?: string; inStock?: boolean }) => ({
@@ -464,7 +464,7 @@ export function HEBProductMatchScreen({
       setLoading(true);
       setError(null);
       try {
-        const { matchItemsToProducts } = await import('@mealme/api/dist/heb/hebService');
+        const { matchItemsToProducts } = await import('@mealme/api');
         const result = await matchItemsToProducts(shoppingListId, familyId, {
           storeId: store.id,
           zipCode: store.address.zip,
