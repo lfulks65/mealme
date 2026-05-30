@@ -159,3 +159,29 @@ export type { PreferenceSummaryCardProps } from './components/preferences/Prefer
 
 export { usePreferences } from './components/preferences/usePreferences';
 export type { UsePreferencesConfig, UsePreferencesResult } from './components/preferences/usePreferences';
+
+// ─── Shopping List Components ──────────────────────────────────────────────
+
+export { ShoppingListScreen } from './components/shopping-list/ShoppingListScreen';
+export type { ShoppingListScreenProps } from './components/shopping-list/ShoppingListScreen';
+
+export { ShoppingListDetailScreen } from './components/shopping-list/ShoppingListDetailScreen';
+export type { ShoppingListDetailScreenProps } from './components/shopping-list/ShoppingListDetailScreen';
+
+export { useShoppingList, CATEGORY_META, CATEGORY_ORDER } from './components/shopping-list/useShoppingList';
+export type {
+  ShoppingListState,
+  CategorizedItems,
+  UseShoppingListResult,
+} from './components/shopping-list/useShoppingList';
+
+// ─── Meal Prep Components ──────────────────────────────────────────────────
+
+export { MealPrepScreen } from './components/meal-prep/MealPrepScreen';
+export type { MealPrepScreenProps } from './components/meal-prep/MealPrepScreen';
+
+export { MealPrepTimerView } from './components/meal-prep/MealPrepTimerView';
+export type { MealPrepTimerViewProps } from './components/meal-prep/MealPrepTimerView';
+
+export { useMealPrep } from './components/meal-prep/useMealPrep';
+export type { TimerState, UseMealPrepResult } from './components/meal-prep/useMealPrep';
