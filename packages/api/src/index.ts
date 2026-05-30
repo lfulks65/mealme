@@ -36,6 +36,9 @@ export { supabase, getSupabaseAdmin } from './supabase';
 // Preferences module
 export * from './preferences';
 
+// Meal Plan module
+export * from './meal-plan';
+
 // API client shell
 export function createApiClient(config: ApiClientConfig) {
   return {
