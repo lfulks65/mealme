@@ -159,3 +159,30 @@ export type { PreferenceSummaryCardProps } from './components/preferences/Prefer
 
 export { usePreferences } from './components/preferences/usePreferences';
 export type { UsePreferencesConfig, UsePreferencesResult } from './components/preferences/usePreferences';
+
+// ─── Recipe Discovery Screens ──────────────────────────────────────────────
+
+export {
+  RecipeSearchScreen,
+  RecipeDetailScreen,
+  RecipeBrowseScreen,
+  RecipeFilterModal,
+} from './screens';
+
+export type {
+  RecipeSearchScreenProps,
+  RecipeDetailScreenProps,
+  RecipeBrowseScreenProps,
+  RecipeFilterModalProps,
+} from './screens';
+
+// ─── Recipe Hooks ──────────────────────────────────────────────────────────
+
+export {
+  useRecipeSearch,
+  useRecipeDetail,
+  useRecipeCategories,
+  useRecipeRecommendations,
+  useQuickMeals,
+  useCategoryRecipes,
+} from './hooks';

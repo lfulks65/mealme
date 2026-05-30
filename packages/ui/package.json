@@ -32,7 +32,6 @@
     "@mealme/api": "workspace:*",
     "@gluestack-ui/themed": "^1.1.0",
     "@gluestack-ui/config": "^1.1.0",
-    "@mealme/api": "workspace:*",
     "@supabase/supabase-js": "^2.42.0",
     "@gluestack-ui/nativewind-utils": "^1.0.28",
     "@legendapp/motion": "^2.0.0",
