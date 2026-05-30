@@ -24,6 +24,18 @@ export default function MainLayout() {
         name="home"
         options={{ title: 'MealMe', headerShown: false }}
       />
+      <Stack.Screen
+        name="families/index"
+        options={{ title: 'Families' }}
+      />
+      <Stack.Screen
+        name="families/[id]"
+        options={{ title: 'Family' }}
+      />
+      <Stack.Screen
+        name="families/[id]/settings"
+        options={{ title: 'Family Settings' }}
+      />
     </Stack>
   );
 }

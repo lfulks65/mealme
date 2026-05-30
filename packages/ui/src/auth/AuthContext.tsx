@@ -4,7 +4,6 @@ import {
   useAuth as useApiAuth,
   AuthProvider as ApiAuthProvider,
 } from '@mealme/api';
-import type { AuthContextType as ApiAuthContextType } from '@mealme/api';
 
 // ---------------------------------------------------------------------------
 // Public User type (exposed to consumers of @mealme/ui)

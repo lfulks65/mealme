@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Box } from '@gluestack-ui/themed';
 import { FormControl, FormControlLabel, FormControlError, FormControlErrorText } from '@gluestack-ui/themed';
 import { Input, InputField } from '@gluestack-ui/themed';

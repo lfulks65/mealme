@@ -2,10 +2,13 @@ import { View, StyleSheet } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { Button, ButtonText } from '@gluestack-ui/themed';
 import { VStack } from '@gluestack-ui/themed';
+import { HStack } from '@gluestack-ui/themed';
 import { useAuth } from '@mealme/ui';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
   const { user, signOut, isLoading } = useAuth();
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
@@ -18,15 +21,27 @@ export default function HomeScreen() {
             Hello, {user.name}!
           </Text>
         )}
-        <Button
-          size="md"
-          variant="outline"
-          action="secondary"
-          onPress={signOut}
-          isDisabled={isLoading}
-        >
-          <ButtonText>Sign Out</ButtonText>
-        </Button>
+
+        <HStack space="md" flexWrap="wrap" justifyContent="center">
+          <Button
+            size="md"
+            variant="solid"
+            action="primary"
+            onPress={() => router.push('/families/index')}
+          >
+            <ButtonText>Families</ButtonText>
+          </Button>
+
+          <Button
+            size="md"
+            variant="outline"
+            action="secondary"
+            onPress={signOut}
+            isDisabled={isLoading}
+          >
+            <ButtonText>Sign Out</ButtonText>
+          </Button>
+        </HStack>
       </VStack>
     </View>
   );

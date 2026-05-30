@@ -18,8 +18,10 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
+    "@mealme/api": "workspace:*",
     "@mealme/shared": "workspace:*",
     "@mealme/ui": "workspace:*",
+    "@supabase/supabase-js": "^2.42.0",
     "next": "^14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

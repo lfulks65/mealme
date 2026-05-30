@@ -11,6 +11,9 @@ export * from './auth';
 // Org module
 export * from './org';
 
+// Family module
+export * from './family';
+
 // Re-export shared types for convenience
 export type {
   User,

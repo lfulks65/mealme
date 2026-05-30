@@ -7,6 +7,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { Button, ButtonText, ButtonSpinner } from '@gluestack-ui/themed';
 import { VStack } from '@gluestack-ui/themed';
+import { HStack } from '@gluestack-ui/themed';
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
@@ -42,16 +43,26 @@ export default function DashboardPage() {
             Hello, {user.name}!
           </Text>
         )}
-        <Button
-          size="md"
-          variant="outline"
-          action="secondary"
-          onPress={signOut}
-          isDisabled={isLoading}
-        >
-          {isLoading && <ButtonSpinner mr="$2" />}
-          <ButtonText>Sign Out</ButtonText>
-        </Button>
+        <HStack space="md" flexWrap="wrap" justifyContent="center">
+          <Button
+            size="md"
+            variant="solid"
+            action="primary"
+            onPress={() => router.push('/families')}
+          >
+            <ButtonText>Families</ButtonText>
+          </Button>
+          <Button
+            size="md"
+            variant="outline"
+            action="secondary"
+            onPress={signOut}
+            isDisabled={isLoading}
+          >
+            {isLoading && <ButtonSpinner mr="$2" />}
+            <ButtonText>Sign Out</ButtonText>
+          </Button>
+        </HStack>
       </VStack>
     </View>
   );
