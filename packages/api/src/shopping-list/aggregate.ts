@@ -99,10 +99,17 @@ const UNIT_CONVERSIONS: UnitConversion[] = [
 
 /**
  * Groups of compatible units that can be combined together.
- * Within each group, we pick a "base" unit for aggregation.
+ * Within each group, units are ordered from **smallest to largest**
+ * so that `bestDisplayUnit` can find the best display unit.
+ *
+ * Note: `fl_oz` is kept separate from tsp/tbsp/cup because it's a
+ * US liquid measurement that is rarely used alongside cooking
+ * teaspoons/tablespoons for the same ingredient. The `convertUnit`
+ * function still handles fl_oz ↔ cup conversions via the graph.
  */
 const COMPATIBLE_UNIT_GROUPS: string[][] = [
-  ['tsp', 'tbsp', 'cup', 'fl_oz'],
+  ['tsp', 'tbsp', 'cup'],
+  ['fl_oz'],
   ['ml', 'l'],
   ['oz', 'lb'],
   ['g', 'kg'],
@@ -129,6 +136,10 @@ function findCompatibleGroup(canonicalUnit: string): string[] | null {
  * Convert a quantity from one unit to another within the same
  * compatible group.
  *
+ * Uses a breadth-first search over the conversion graph to find
+ * a path from `fromUnit` to `toUnit`, then applies the chain
+ * of conversion factors.
+ *
  * Returns the converted quantity, or null if conversion is not possible.
  */
 export function convertUnit(quantity: number, fromUnit: string, toUnit: string): number | null {
@@ -137,53 +148,41 @@ export function convertUnit(quantity: number, fromUnit: string, toUnit: string):
 
   if (fromCanonical === toCanonical) return quantity;
 
-  // Try direct conversion
+  // Build an adjacency list from the conversion table (bidirectional)
+  const graph = new Map<string, Array<{ neighbor: string; factor: number }>>();
+
   for (const conv of UNIT_CONVERSIONS) {
-    if (conv.fromUnit === fromCanonical && conv.toUnit === toCanonical) {
-      return quantity * conv.factor;
-    }
-    // Reverse direction
-    if (conv.fromUnit === toCanonical && conv.toUnit === fromCanonical) {
-      return quantity / conv.factor;
-    }
+    // fromUnit → toUnit: multiply by factor
+    if (!graph.has(conv.fromUnit)) graph.set(conv.fromUnit, []);
+    graph.get(conv.fromUnit)!.push({ neighbor: conv.toUnit, factor: conv.factor });
+
+    // toUnit → fromUnit: divide by factor (multiply by 1/factor)
+    if (!graph.has(conv.toUnit)) graph.set(conv.toUnit, []);
+    graph.get(conv.toUnit)!.push({ neighbor: conv.fromUnit, factor: 1 / conv.factor });
   }
 
-  // Try multi-step conversion (e.g., tsp → cup via tbsp)
-  const fromGroup = findCompatibleGroup(fromCanonical);
-  const toGroup = findCompatibleGroup(toCanonical);
+  // BFS to find shortest conversion path from fromCanonical to toCanonical
+  const visited = new Set<string>();
+  const queue: Array<{ unit: string; accumulatedFactor: number }> = [
+    { unit: fromCanonical, accumulatedFactor: 1 },
+  ];
+  visited.add(fromCanonical);
 
-  if (fromGroup && fromGroup === toGroup) {
-    // Convert from → base of group, then base → to
-    // Use the smallest unit as the intermediate
-    const smallestUnit = fromGroup[0];
+  while (queue.length > 0) {
+    const { unit, accumulatedFactor } = queue.shift()!;
 
-    // Convert fromUnit to smallest
-    let quantityInSmallest: number | null = null;
-    if (fromCanonical === smallestUnit) {
-      quantityInSmallest = quantity;
-    } else {
-      for (const conv of UNIT_CONVERSIONS) {
-        if (conv.fromUnit === smallestUnit && conv.toUnit === fromCanonical) {
-          quantityInSmallest = quantity / conv.factor;
-          break;
-        }
-        if (conv.fromUnit === fromCanonical && conv.toUnit === smallestUnit) {
-          quantityInSmallest = quantity * conv.factor;
-          break;
-        }
-      }
+    if (unit === toCanonical) {
+      return roundQuantity(quantity * accumulatedFactor);
     }
 
-    if (quantityInSmallest == null) return null;
-
-    // Convert smallest to toUnit
-    if (toCanonical === smallestUnit) return quantityInSmallest;
-    for (const conv of UNIT_CONVERSIONS) {
-      if (conv.fromUnit === smallestUnit && conv.toUnit === toCanonical) {
-        return quantityInSmallest * conv.factor;
-      }
-      if (conv.fromUnit === toCanonical && conv.toUnit === smallestUnit) {
-        return quantityInSmallest / conv.factor;
+    const neighbors = graph.get(unit) ?? [];
+    for (const { neighbor, factor } of neighbors) {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push({
+          unit: neighbor,
+          accumulatedFactor: accumulatedFactor * factor,
+        });
       }
     }
   }
@@ -194,17 +193,28 @@ export function convertUnit(quantity: number, fromUnit: string, toUnit: string):
 /**
  * Determine the best display unit for a combined quantity.
  * E.g., if we have 48 tsp, show as 1 cup.
+ *
+ * Tries every unit in the group and picks the **largest** unit
+ * whose converted quantity is >= 1. If no unit gives >= 1,
+ * falls back to the smallest unit (group[0]).
  */
 export function bestDisplayUnit(totalInSmallest: number, group: string[]): string {
-  // Walk from largest to smallest unit, pick the first that gives >= 1
-  for (let i = group.length - 1; i >= 1; i--) {
-    const targetUnit = group[i];
+  let bestUnit = group[0];
+  let bestConverted = totalInSmallest; // in smallest unit
+
+  for (const targetUnit of group) {
     const converted = convertUnit(totalInSmallest, group[0], targetUnit);
     if (converted !== null && converted >= 1) {
-      return targetUnit;
+      // Pick the unit that gives the smallest converted value >= 1
+      // (i.e., the largest unit that still shows >= 1)
+      if (bestUnit === group[0] || converted < bestConverted) {
+        bestUnit = targetUnit;
+        bestConverted = converted;
+      }
     }
   }
-  return group[0];
+
+  return bestUnit;
 }
 
 // ---------------------------------------------------------------------------
