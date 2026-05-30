@@ -1,0 +1,55 @@
+{
+  "name": "@mealme/ui",
+  "version": "0.1.0",
+  "description": "Shared component library for the MealMe platform",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "mealme",
+    "ui",
+    "components",
+    "gluestack",
+    "nativewind"
+  ],
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@mealme/shared": "workspace:*",
+    "@mealme/api": "workspace:*",
+    "@gluestack-ui/themed": "^1.1.0",
+    "@gluestack-ui/config": "^1.1.0",
+    "@gluestack-ui/nativewind-utils": "^1.0.28",
+    "@legendapp/motion": "^2.0.0",
+    "@expo/html-elements": "^0.4.0",
+    "nativewind": "^4.0.0",
+    "tailwindcss": "^3.4.0",
+    "tailwind-variants": "^0.1.20",
+    "react": "^18.2.0",
+    "react-native": "^0.73.0",
+    "react-native-safe-area-context": "^4.8.0",
+    "react-native-svg": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-native": "^0.73.0"
+  }
+}
