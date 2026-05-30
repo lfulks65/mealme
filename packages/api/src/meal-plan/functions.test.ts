@@ -190,7 +190,7 @@ const aggregatedPrefs = {
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   mockAuthGetUser.mockResolvedValue({
     data: { user: { id: USER_ID } },
   });
@@ -559,13 +559,14 @@ describe('generatePlanProposal', () => {
       error: null,
     });
 
-    // 2. No existing draft plan (supabase.from('meal_plans').select('id').eq().eq().eq().maybeSingle())
-    const existingChain = singleChain(null);
-    mockFrom.mockReturnValueOnce(existingChain); // check existing draft
-
-    // 3. Candidate recipes (supabase.from('recipes').select().limit().overlaps().in() → await)
+    // 2. Candidate recipes (supabase.from('recipes').select().limit().overlaps().in() → await)
+    //    fetchCandidateRecipes is called BEFORE the existing-draft check
     const recipeChain = recipeQueryChain(candidateRecipes);
     mockFrom.mockReturnValueOnce(recipeChain); // fetch candidate recipes
+
+    // 3. No existing draft plan (supabase.from('meal_plans').select('id').eq().eq().eq().maybeSingle())
+    const existingChain = singleChain(null);
+    mockFrom.mockReturnValueOnce(existingChain); // check existing draft
 
     // 4. Create new plan (supabase.from('meal_plans').insert().select().single())
     const createPlanChain = singleChain(mealPlanRow);
@@ -619,11 +620,7 @@ describe('generatePlanProposal', () => {
       error: null,
     });
 
-    // No existing draft plan
-    const existingChain = singleChain(null);
-    mockFrom.mockReturnValueOnce(existingChain);
-
-    // Primary recipe query returns empty
+    // Primary recipe query returns empty (fetchCandidateRecipes called first)
     const emptyRecipeChain = recipeQueryChain([]);
     mockFrom.mockReturnValueOnce(emptyRecipeChain);
 
@@ -643,22 +640,21 @@ describe('generatePlanProposal', () => {
       error: null,
     });
 
-    // Existing draft plan found
-    const existingPlan = { id: 'old-plan-001' };
-    const existingChain = singleChain(existingPlan);
-    // The delete chain: from('meal_plans').delete().eq('id', ...) → awaited
-    existingChain.delete = vi.fn().mockReturnValue(existingChain);
-    existingChain.eq = vi.fn().mockImplementation((col: string, _val: string) => {
-      if (col === 'id') {
-        return Promise.resolve({ error: null });
-      }
-      return existingChain;
-    });
-    mockFrom.mockReturnValueOnce(existingChain); // check existing draft
-
-    // Candidate recipes
+    // Candidate recipes (fetchCandidateRecipes called first)
     const recipeChain = recipeQueryChain(candidateRecipes);
     mockFrom.mockReturnValueOnce(recipeChain);
+
+    // Existing draft plan found (supabase.from('meal_plans').select('id').eq().eq().eq().maybeSingle())
+    const existingPlan = { id: 'old-plan-001' };
+    const existingChain = singleChain(existingPlan);
+    mockFrom.mockReturnValueOnce(existingChain); // check existing draft
+
+    // Delete existing draft (supabase.from('meal_plans').delete().eq('id', ...))
+    const deleteChain = singleChain(null);
+    // The delete chain: .delete().eq('id', ...) is awaited
+    deleteChain.delete = vi.fn().mockReturnValue(deleteChain);
+    deleteChain.eq = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValueOnce(deleteChain); // delete existing draft
 
     // Create new plan
     const createPlanChain = singleChain(mealPlanRow);
@@ -685,13 +681,13 @@ describe('generatePlanProposal', () => {
       error: null,
     });
 
+    // Candidate recipes (fetchCandidateRecipes called first)
+    const recipeChain = recipeQueryChain(candidateRecipes);
+    mockFrom.mockReturnValueOnce(recipeChain);
+
     // No existing draft
     const existingChain = singleChain(null);
     mockFrom.mockReturnValueOnce(existingChain);
-
-    // Candidate recipes
-    const recipeChain = recipeQueryChain(candidateRecipes);
-    mockFrom.mockReturnValueOnce(recipeChain);
 
     // Plan creation fails
     const createPlanChain = singleChain(null, { message: 'Unique violation' });
