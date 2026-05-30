@@ -1,5 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import type { RecipeFull, FamilyPreferences } from '@mealme/shared';
+
+// ── Mock Supabase ────────────────────────────────────────────────────────────
+
+// Mock the supabase client to avoid needing env vars / a real database.
+// vi.mock() is hoisted by Vitest so it runs before the static import below.
+const mockClient = {
+  from: vi.fn(),
+};
+
+vi.mock('../lib/supabase', () => ({
+  getSupabaseClient: () => mockClient,
+  resetSupabaseClient: vi.fn(),
+}));
+
 import { scoreRecipe } from './recommend';
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
@@ -130,7 +144,7 @@ describe('scoreRecipe', () => {
 
     expect(result.allergenScore).toBe(-50);
     expect(result.reasons).toContainEqual(
-      expect.stringContaining('Contains allergens: peanut')
+      expect.stringContaining('Contains excluded ingredients: peanut')
     );
   });
 

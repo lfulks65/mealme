@@ -6,6 +6,18 @@ import type {
   FamilyPreferences,
 } from '@mealme/shared';
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Convert a camelCase dietary restriction name (e.g. "glutenFree")
+ * to the kebab-case format used in recipe data (e.g. "gluten-free").
+ */
+function toKebabCase(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .toLowerCase();
+}
+
 // ── Scoring Weights ──────────────────────────────────────────────────────────
 
 const WEIGHTS = {
@@ -102,7 +114,7 @@ export function scoreRecipe(
     const matchedRestrictions = preferences.dietaryRestrictions.filter(
       (restriction: string) =>
         recipe.dietary_info.some(
-          (di) => di.restriction === restriction && di.is_compliant
+          (di) => toKebabCase(restriction) === di.restriction && di.is_compliant
         )
     );
 
@@ -119,7 +131,7 @@ export function scoreRecipe(
     const nonCompliant = preferences.dietaryRestrictions.filter(
       (restriction: string) =>
         !recipe.dietary_info.some(
-          (di) => di.restriction === restriction && di.is_compliant
+          (di) => toKebabCase(restriction) === di.restriction && di.is_compliant
         )
     );
     if (nonCompliant.length > 0) {
@@ -144,7 +156,7 @@ export function scoreRecipe(
     }
   }
 
-  // ── Allergen scoring ─────────────────────────────────────────────────────
+  // ── Allergen / excluded ingredient scoring ────────────────────────────────
   if (preferences.excludedIngredients.length > 0) {
     const ingredientNames = recipe.ingredients.map((i) =>
       i.name.toLowerCase()
@@ -157,31 +169,9 @@ export function scoreRecipe(
 
     if (foundAllergens.length > 0) {
       allergenScore = foundAllergens.length * WEIGHTS.ALLERGEN_PENALTY;
-      reasons.push(`Contains allergens: ${foundAllergens.join(', ')}`);
+      reasons.push(`Contains excluded ingredients: ${foundAllergens.join(', ')}`);
     } else {
       reasons.push('No allergens detected');
-    }
-  }
-
-  // ── Excluded ingredients ─────────────────────────────────────────────────
-  if (
-    preferences.excludedIngredients &&
-    preferences.excludedIngredients.length > 0
-  ) {
-    const ingredientNames = recipe.ingredients.map((i) =>
-      i.name.toLowerCase()
-    );
-    const foundExcluded = preferences.excludedIngredients.filter((exc: string) =>
-      ingredientNames.some((name) =>
-        name.includes(exc.toLowerCase())
-      )
-    );
-
-    if (foundExcluded.length > 0) {
-      allergenScore += foundExcluded.length * WEIGHTS.ALLERGEN_PENALTY;
-      reasons.push(
-        `Contains excluded ingredients: ${foundExcluded.join(', ')}`
-      );
     }
   }
 
@@ -190,7 +180,7 @@ export function scoreRecipe(
   if (recipe.tags.length > 0 && preferences.dietaryRestrictions.length > 0) {
     const matchingTags = recipe.tags.filter((t) =>
       preferences.dietaryRestrictions.some(
-        (dr: string) => dr.toLowerCase() === t.tag.toLowerCase()
+        (dr: string) => toKebabCase(dr) === t.tag.toLowerCase()
       )
     );
     tagScore = matchingTags.length * WEIGHTS.TAG_MATCH;
