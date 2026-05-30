@@ -8,7 +8,6 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import type { RecipeFull } from '@mealme/shared';
 import { useRecipeDetail } from '../hooks/useRecipeApi';
 
 // ── Dietary Badge ─────────────────────────────────────────────────────────────

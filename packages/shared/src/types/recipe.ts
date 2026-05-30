@@ -170,6 +170,18 @@ export interface UpdateRecipeInput {
 
 // ── Recipe Search & Discovery Types (Supabase-backed) ──────────────────────
 
+/** A single ingredient row from the recipe_ingredients Supabase table. */
+export interface RecipeIngredientDB {
+  id: string;
+  recipe_id: string;
+  name: string;
+  /** Quantity stored as TEXT in DB (e.g., "1", "0.5", "2 tbsp"). */
+  quantity: string;
+  /** Unit stored as TEXT in DB — arbitrary strings like "cup", "cups", "pint", "stalks". */
+  unit: string;
+  optional: boolean;
+}
+
 /** A single instruction step for a Supabase-backed recipe. */
 export interface RecipeInstruction {
   id: string;
@@ -194,9 +206,42 @@ export interface RecipeDietaryInfo {
   is_compliant: boolean;
 }
 
-/** Full recipe with all nested relations from Supabase. */
-export interface RecipeFull extends Recipe {
-  ingredients: RecipeIngredient[];
+/**
+ * Full recipe with all nested relations from Supabase.
+ *
+ * This is a standalone type that mirrors the actual Supabase schema
+ * (snake_case column names, nullable fields, TEXT quantities).
+ * It does NOT extend the application-layer `Recipe` type, which uses
+ * camelCase and stricter types for UI form handling.
+ */
+export interface RecipeFull {
+  /** UUID primary key. */
+  id: string;
+  /** Recipe title. */
+  title: string;
+  /** Description or subtitle (nullable). */
+  description: string | null;
+  /** Cuisine type as a plain string (nullable). */
+  cuisine: string | null;
+  /** URL to the recipe image (nullable, single string). */
+  image_url: string | null;
+  /** Preparation time in minutes (nullable). */
+  prep_minutes: number | null;
+  /** Cooking time in minutes (nullable). */
+  cook_minutes: number | null;
+  /** Number of servings (nullable). */
+  servings: number | null;
+  /** Calories per serving as a top-level column (nullable). */
+  calories: number | null;
+  /** Source URL for the recipe (nullable). */
+  source_url: string | null;
+  /** UUID of the user who created the recipe (nullable). */
+  created_by: string | null;
+  /** ISO-8601 timestamp when the recipe was created. */
+  created_at: string;
+
+  // ── Nested relations (attached by attachRelations) ─────────────────────
+  ingredients: RecipeIngredientDB[];
   instructions: RecipeInstruction[];
   tags: RecipeTag[];
   dietary_info: RecipeDietaryInfo[];

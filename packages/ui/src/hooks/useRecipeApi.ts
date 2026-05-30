@@ -5,7 +5,6 @@ import type {
   RecipeSearchResult,
   RecipeCategory,
   RecipeRecommendation,
-  FamilyPreferences,
 } from '@mealme/shared';
 
 // ── Placeholder API functions ─────────────────────────────────────────────────

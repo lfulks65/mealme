@@ -133,14 +133,14 @@ export function scoreRecipe(
   // ── Cuisine preference scoring ───────────────────────────────────────────
   if (
     preferences.preferredCuisines.length > 0 &&
-    recipe.cuisineType
+    recipe.cuisine
   ) {
     const cuisineMatch = preferences.preferredCuisines.some(
-      (pref) => pref.toLowerCase() === recipe.cuisineType!.toLowerCase()
+      (pref) => pref.toLowerCase() === recipe.cuisine!.toLowerCase()
     );
     if (cuisineMatch) {
       cuisineScore = WEIGHTS.CUISINE_MATCH;
-      reasons.push(`Preferred cuisine: ${recipe.cuisineType}`);
+      reasons.push(`Preferred cuisine: ${recipe.cuisine}`);
     }
   }
 
@@ -202,7 +202,7 @@ export function scoreRecipe(
   }
 
   // ── Quick meal bonus ─────────────────────────────────────────────────────
-  const totalTime = (recipe.prepTimeMinutes ?? 0) + (recipe.cookTimeMinutes ?? 0);
+  const totalTime = (recipe.prep_minutes ?? 0) + (recipe.cook_minutes ?? 0);
   if (totalTime > 0 && totalTime <= WEIGHTS.QUICK_MEAL_THRESHOLD) {
     quickMealScore = WEIGHTS.QUICK_MEAL_BONUS;
     reasons.push(`Quick meal: ${totalTime} min total`);

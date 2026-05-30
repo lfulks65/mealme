@@ -35,6 +35,7 @@ export type {
   Recipe,
   CreateRecipeInput,
   UpdateRecipeInput,
+  RecipeIngredientDB,
   RecipeInstruction,
   RecipeTag,
   RecipeDietaryInfo,

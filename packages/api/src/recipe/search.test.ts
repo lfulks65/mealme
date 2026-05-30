@@ -92,24 +92,20 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
     id: 'recipe-1',
     title: 'Pasta Carbonara',
     description: 'Classic Italian pasta',
-    familyId: undefined,
-    createdBy: undefined,
-    cuisineType: 'italian',
-    imageUrls: [],
-    prepTimeMinutes: 10,
-    cookTimeMinutes: 20,
+    cuisine: 'italian',
+    image_url: null,
+    prep_minutes: 10,
+    cook_minutes: 20,
     servings: 4,
-    difficulty: 'easy',
-    dietaryTags: [],
-    isLibrary: false,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
+    calories: null,
+    source_url: null,
+    created_by: null,
+    created_at: '2025-01-01T00:00:00Z',
     ingredients: [
-      { id: 'i1', name: 'spaghetti', quantity: 1, unit: 'lb' as const, optional: false },
-      { id: 'i2', name: 'parmesan cheese', quantity: 1, unit: 'cup' as const, optional: false },
-      { id: 'i3', name: 'bacon', quantity: 6, unit: 'slice' as const, optional: false },
+      { id: 'i1', recipe_id: 'recipe-1', name: 'spaghetti', quantity: '1', unit: 'lb', optional: false },
+      { id: 'i2', recipe_id: 'recipe-1', name: 'parmesan cheese', quantity: '1', unit: 'cup', optional: false },
+      { id: 'i3', recipe_id: 'recipe-1', name: 'bacon', quantity: '6', unit: 'slice', optional: false },
     ],
-    steps: [],
     instructions: [],
     tags: [
       { id: 't1', recipe_id: 'recipe-1', tag: 'comfort-food' },
@@ -250,7 +246,7 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', name: 'peanut butter', quantity: 2, unit: 'tbsp' as const, optional: false },
+          { id: 'i1', recipe_id: 'r1', name: 'peanut butter', quantity: '2', unit: 'tbsp', optional: false },
         ],
       }),
     ];
@@ -264,7 +260,7 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', name: 'chicken breast', quantity: 1, unit: 'lb' as const, optional: false },
+          { id: 'i1', recipe_id: 'r1', name: 'chicken breast', quantity: '1', unit: 'lb', optional: false },
         ],
       }),
     ];
@@ -278,7 +274,7 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', name: 'Peanut Oil', quantity: 1, unit: 'tbsp' as const, optional: false },
+          { id: 'i1', recipe_id: 'r1', name: 'Peanut Oil', quantity: '1', unit: 'tbsp', optional: false },
         ],
       }),
     ];
@@ -292,13 +288,13 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', name: 'peanut butter', quantity: 2, unit: 'tbsp' as const, optional: false },
+          { id: 'i1', recipe_id: 'r1', name: 'peanut butter', quantity: '2', unit: 'tbsp', optional: false },
         ],
       }),
       makeRecipe({
         id: 'r2',
         ingredients: [
-          { id: 'i2', name: 'chicken', quantity: 1, unit: 'lb' as const, optional: false },
+          { id: 'i2', recipe_id: 'r2', name: 'chicken', quantity: '1', unit: 'lb', optional: false },
         ],
       }),
     ];
@@ -318,7 +314,7 @@ describe('filterByExcludedIngredients', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', name: 'cilantro', quantity: 1, unit: 'cup' as const, optional: false },
+          { id: 'i1', recipe_id: 'r1', name: 'cilantro', quantity: '1', unit: 'cup', optional: false },
         ],
       }),
     ];
@@ -332,7 +328,7 @@ describe('filterByExcludedIngredients', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', name: 'parsley', quantity: 1, unit: 'cup' as const, optional: false },
+          { id: 'i1', recipe_id: 'r1', name: 'parsley', quantity: '1', unit: 'cup', optional: false },
         ],
       }),
     ];
@@ -351,7 +347,7 @@ describe('applyAllPreferenceFilters', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', name: 'rice', quantity: 1, unit: 'cup' as const, optional: false },
+          { id: 'i1', recipe_id: 'r1', name: 'rice', quantity: '1', unit: 'cup', optional: false },
         ],
         dietary_info: [
           { id: 'd1', recipe_id: 'r1', restriction: 'gluten-free', is_compliant: true },
@@ -362,7 +358,7 @@ describe('applyAllPreferenceFilters', () => {
       makeRecipe({
         id: 'r2',
         ingredients: [
-          { id: 'i3', name: 'peanut sauce', quantity: 2, unit: 'tbsp' as const, optional: false },
+          { id: 'i3', recipe_id: 'r2', name: 'peanut sauce', quantity: '2', unit: 'tbsp', optional: false },
         ],
         dietary_info: [
           { id: 'd3', recipe_id: 'r2', restriction: 'gluten-free', is_compliant: true },
@@ -372,7 +368,7 @@ describe('applyAllPreferenceFilters', () => {
       makeRecipe({
         id: 'r3',
         ingredients: [
-          { id: 'i4', name: 'chicken', quantity: 1, unit: 'lb' as const, optional: false },
+          { id: 'i4', recipe_id: 'r3', name: 'chicken', quantity: '1', unit: 'lb', optional: false },
         ],
         dietary_info: [
           { id: 'd4', recipe_id: 'r3', restriction: 'gluten-free', is_compliant: false },

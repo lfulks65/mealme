@@ -1,7 +1,7 @@
 import { getSupabaseClient } from '../lib/supabase';
 import type {
   RecipeFull,
-  RecipeIngredient,
+  RecipeIngredientDB,
   RecipeInstruction,
   RecipeTag,
   RecipeDietaryInfo,
@@ -41,7 +41,7 @@ export async function attachRelations(
   if (tags.error) throw tags.error;
   if (dietaryInfo.error) throw dietaryInfo.error;
 
-  const ingredientMap = groupBy<RecipeIngredient>(
+  const ingredientMap = groupBy<RecipeIngredientDB>(
     ingredients.data,
     'recipe_id'
   );

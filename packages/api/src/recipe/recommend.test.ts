@@ -9,26 +9,19 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
     id: 'recipe-1',
     title: 'Chicken Stir Fry',
     description: 'A delicious stir fry',
-    familyId: undefined,
-    createdBy: undefined,
-    cuisineType: 'chinese',
-    imageUrls: [],
-    prepTimeMinutes: 15,
-    cookTimeMinutes: 20,
+    cuisine: 'chinese',
+    image_url: null,
+    prep_minutes: 15,
+    cook_minutes: 20,
     servings: 4,
-    difficulty: 'easy',
-    dietaryTags: [],
-    isLibrary: false,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
+    calories: null,
+    source_url: null,
+    created_by: null,
+    created_at: '2025-01-01T00:00:00Z',
     ingredients: [
-      { id: 'i1', name: 'chicken breast', quantity: 1, unit: 'lb' as const, optional: false },
-      { id: 'i2', name: 'soy sauce', quantity: 2, unit: 'tbsp' as const, optional: false },
-      { id: 'i3', name: 'bell pepper', quantity: 1, unit: 'whole' as const, optional: false },
-    ],
-    steps: [
-      { step: 1, instruction: 'Cut chicken' },
-      { step: 2, instruction: 'Cook chicken', durationMinutes: 10 },
+      { id: 'i1', recipe_id: 'recipe-1', name: 'chicken breast', quantity: '1', unit: 'lb', optional: false },
+      { id: 'i2', recipe_id: 'recipe-1', name: 'soy sauce', quantity: '2', unit: 'tbsp', optional: false },
+      { id: 'i3', recipe_id: 'recipe-1', name: 'bell pepper', quantity: '1', unit: 'whole', optional: false },
     ],
     instructions: [
       { id: 's1', recipe_id: 'recipe-1', step_number: 1, instruction: 'Cut chicken', timer_minutes: null },
@@ -99,7 +92,7 @@ describe('scoreRecipe', () => {
   });
 
   it('gives a cuisine bonus for preferred cuisines', () => {
-    const recipe = makeRecipe({ cuisineType: 'italian' });
+    const recipe = makeRecipe({ cuisine: 'italian' });
     const prefs = makePreferences({
       preferredCuisines: ['italian', 'mexican'],
     });
@@ -108,12 +101,12 @@ describe('scoreRecipe', () => {
 
     expect(result.cuisineScore).toBe(15);
     expect(result.reasons).toContainEqual(
-      expect.stringContaining('Preferred cuisine: Italian')
+      expect.stringContaining('Preferred cuisine: italian')
     );
   });
 
   it('does not give cuisine bonus when cuisine does not match', () => {
-    const recipe = makeRecipe({ cuisineType: 'chinese' });
+    const recipe = makeRecipe({ cuisine: 'chinese' });
     const prefs = makePreferences({
       preferredCuisines: ['italian'],
     });
@@ -126,7 +119,7 @@ describe('scoreRecipe', () => {
   it('penalizes recipes containing allergens', () => {
     const recipe = makeRecipe({
       ingredients: [
-        { id: 'i1', name: 'peanut butter', quantity: 2, unit: 'tbsp' as const, optional: false },
+        { id: 'i1', recipe_id: 'recipe-1', name: 'peanut butter', quantity: '2', unit: 'tbsp', optional: false },
       ],
     });
     const prefs = makePreferences({
@@ -144,7 +137,7 @@ describe('scoreRecipe', () => {
   it('does not penalize when no allergens are found', () => {
     const recipe = makeRecipe({
       ingredients: [
-        { id: 'i1', name: 'chicken', quantity: 1, unit: 'lb' as const, optional: false },
+        { id: 'i1', recipe_id: 'recipe-1', name: 'chicken', quantity: '1', unit: 'lb', optional: false },
       ],
     });
     const prefs = makePreferences({
@@ -160,7 +153,7 @@ describe('scoreRecipe', () => {
   it('penalizes excluded ingredients', () => {
     const recipe = makeRecipe({
       ingredients: [
-        { id: 'i1', name: 'cilantro', quantity: 1, unit: 'cup' as const, optional: false },
+        { id: 'i1', recipe_id: 'recipe-1', name: 'cilantro', quantity: '1', unit: 'cup', optional: false },
       ],
     });
     const prefs = makePreferences({
@@ -177,8 +170,8 @@ describe('scoreRecipe', () => {
 
   it('gives quick meal bonus for recipes under 30 min total', () => {
     const recipe = makeRecipe({
-      prepTimeMinutes: 10,
-      cookTimeMinutes: 15,
+      prep_minutes: 10,
+      cook_minutes: 15,
     });
     const prefs = makePreferences();
 
@@ -192,8 +185,8 @@ describe('scoreRecipe', () => {
 
   it('does not give quick meal bonus for long recipes', () => {
     const recipe = makeRecipe({
-      prepTimeMinutes: 30,
-      cookTimeMinutes: 45,
+      prep_minutes: 30,
+      cook_minutes: 45,
     });
     const prefs = makePreferences();
 
@@ -229,8 +222,8 @@ describe('scoreRecipe', () => {
   it('handles multiple allergens correctly', () => {
     const recipe = makeRecipe({
       ingredients: [
-        { id: 'i1', name: 'peanut oil', quantity: 1, unit: 'tbsp' as const, optional: false },
-        { id: 'i2', name: 'milk', quantity: 1, unit: 'cup' as const, optional: false },
+        { id: 'i1', recipe_id: 'recipe-1', name: 'peanut oil', quantity: '1', unit: 'tbsp', optional: false },
+        { id: 'i2', recipe_id: 'recipe-1', name: 'milk', quantity: '1', unit: 'cup', optional: false },
       ],
     });
     const prefs = makePreferences({
@@ -245,7 +238,7 @@ describe('scoreRecipe', () => {
   it('performs case-insensitive allergen matching', () => {
     const recipe = makeRecipe({
       ingredients: [
-        { id: 'i1', name: 'Peanut Butter', quantity: 2, unit: 'tbsp' as const, optional: false },
+        { id: 'i1', recipe_id: 'recipe-1', name: 'Peanut Butter', quantity: '2', unit: 'tbsp', optional: false },
       ],
     });
     const prefs = makePreferences({
@@ -258,7 +251,7 @@ describe('scoreRecipe', () => {
   });
 
   it('performs case-insensitive cuisine matching', () => {
-    const recipe = makeRecipe({ cuisineType: 'italian' });
+    const recipe = makeRecipe({ cuisine: 'italian' });
     const prefs = makePreferences({
       preferredCuisines: ['italian'],
     });
@@ -270,11 +263,11 @@ describe('scoreRecipe', () => {
 
   it('computes correct total from all scoring components', () => {
     const recipe = makeRecipe({
-      cuisineType: 'italian',
-      prepTimeMinutes: 10,
-      cookTimeMinutes: 15,
+      cuisine: 'italian',
+      prep_minutes: 10,
+      cook_minutes: 15,
       ingredients: [
-        { id: 'i1', name: 'pasta', quantity: 1, unit: 'lb' as const, optional: false },
+        { id: 'i1', recipe_id: 'recipe-1', name: 'pasta', quantity: '1', unit: 'lb', optional: false },
       ],
       tags: [
         { id: 't1', recipe_id: 'recipe-1', tag: 'gluten-free' },

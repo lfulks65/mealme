@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  FlatList,
 } from 'react-native';
 import type { RecipeSearchFilters } from '@mealme/shared';
 
