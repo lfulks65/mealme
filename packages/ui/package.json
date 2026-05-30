@@ -4,6 +4,7 @@
   "main": "src/index.tsx",
   "types": "src/index.tsx",
   "dependencies": {
+    "@mealme/api": "*",
     "@gluestack-ui/themed": "^1.1.0",
     "@gluestack-ui/config": "^1.1.0",
     "@gluestack-style/react": "^1.0.57",

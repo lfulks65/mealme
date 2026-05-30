@@ -15,6 +15,8 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
+      "@mealme/api": ["./packages/api/src"],
+      "@mealme/api/*": ["./packages/api/src/*"],
       "@mealme/ui": ["./packages/ui/src"],
       "@mealme/ui/*": ["./packages/ui/src/*"]
     }

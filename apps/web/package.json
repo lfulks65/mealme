@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@mealme/api": "*",
     "@mealme/ui": "*",
     "@gluestack-ui/themed": "^1.1.0",
     "@gluestack-ui/config": "^1.1.0",
