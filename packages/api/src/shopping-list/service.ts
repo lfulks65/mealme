@@ -126,7 +126,7 @@ export async function generateFromMealPlan(
 
   if (!entries || entries.length === 0) {
     // Create an empty list for a plan with no entries
-    const listName = `Meal Plan - ${mealPlan.start_date ?? 'Untitled'}`;
+    const listName = `Meal Plan - ${mealPlan.week_start_date ?? 'Untitled'}`;
     const { data: listData, error: listError } = await supabase
       .from('shopping_lists')
       .insert({
@@ -166,7 +166,7 @@ export async function generateFromMealPlan(
   const aggregated = aggregateIngredients(allParsed);
 
   // 5. Create the shopping list
-  const listName = `Meal Plan - ${mealPlan.start_date ?? 'Untitled'}`;
+  const listName = `Meal Plan - ${mealPlan.week_start_date ?? 'Untitled'}`;
 
   const { data: listData, error: listError } = await supabase
     .from('shopping_lists')
