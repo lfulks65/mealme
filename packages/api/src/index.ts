@@ -48,6 +48,9 @@ export * from './preferences';
 // Meal Plan module
 export * from './meal-plan';
 
+// Shopping list module
+export * from './shopping-list';
+
 // API client shell
 export function createApiClient(config: ApiClientConfig) {
   return {
