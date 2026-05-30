@@ -36,6 +36,9 @@ export { supabase, getSupabaseAdmin } from './supabase';
 // Preferences module
 export * from './preferences';
 
+// Shopping list module
+export * from './shopping-list';
+
 // API client shell
 export function createApiClient(config: ApiClientConfig) {
   return {
