@@ -5,6 +5,15 @@
  * Re-exports shared types and provides API client utilities.
  */
 
+// Auth module
+export * from './auth';
+
+// Org module
+export * from './org';
+
+// Family module
+export * from './family';
+
 // Re-export shared types for convenience
 export type {
   User,
