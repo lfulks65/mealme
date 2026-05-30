@@ -25,6 +25,15 @@ import {
   updateOrg as apiUpdateOrg,
   deleteOrg as apiDeleteOrg,
 } from './functions';
+import {
+  inviteMember as apiInviteMember,
+  acceptInvite as apiAcceptInvite,
+  removeMember as apiRemoveMember,
+  updateMemberRole as apiUpdateMemberRole,
+  listMembers as apiListMembers,
+  listInvites as apiListInvites,
+  listPendingInvitesForUser as apiListPendingInvitesForUser,
+} from './members';
 import type {
   OrgWithRole,
   CreateOrgInput,
@@ -32,6 +41,14 @@ import type {
   OrgResult,
   OrgListResult,
   OrgDeleteResult,
+  OrgMember,
+  InviteRow,
+  InviteMemberInput,
+  UpdateMemberRoleInput,
+  OrgMemberResult,
+  InviteResult,
+  InviteListResult,
+  AcceptInviteResult,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -59,6 +76,30 @@ export interface OrgContextType {
   loading: boolean;
   /** Last error from an org operation. */
   error: string | null;
+
+  // ----- Member management -----
+
+  /** Members of the current org. */
+  members: OrgMember[];
+  /** Pending invites for the current org. */
+  invites: InviteRow[];
+  /** Whether the member list is loading. */
+  membersLoading: boolean;
+
+  /** Invite a member by email (admin+ only). */
+  inviteMember: (input: InviteMemberInput) => Promise<InviteResult>;
+  /** Accept a pending invite. */
+  acceptInvite: (inviteId: string) => Promise<AcceptInviteResult>;
+  /** Remove a member from the current org (owner cannot be removed). */
+  removeMember: (userId: string) => Promise<OrgMemberResult>;
+  /** Update a member's role (admin+ only). */
+  updateMemberRole: (input: UpdateMemberRoleInput) => Promise<OrgMemberResult>;
+  /** Refresh the member list for the current org. */
+  refreshMembers: () => Promise<void>;
+  /** Refresh the invite list for the current org. */
+  refreshInvites: () => Promise<void>;
+  /** List pending invites for the current user (across all orgs). */
+  listPendingInvitesForUser: () => Promise<InviteListResult>;
 }
 
 const OrgContext = createContext<OrgContextType | undefined>(undefined);
@@ -73,6 +114,11 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const initialLoadDone = useRef(false);
+
+  // ----- Member management state -----
+  const [members, setMembers] = useState<OrgMember[]>([]);
+  const [invites, setInvites] = useState<InviteRow[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
 
   // ----- Load orgs on mount -----
   useEffect(() => {
@@ -245,6 +291,193 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  // ----- Load members & invites when currentOrg changes -----
+  useEffect(() => {
+    if (!currentOrg) {
+      setMembers([]);
+      setInvites([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadMembersAndInvites() {
+      setMembersLoading(true);
+
+      // currentOrg is guaranteed non-null by the early return above,
+      // but TypeScript can't track that through closures.
+      const orgId = currentOrg!.id;
+
+      const [membersResult, invitesResult] = await Promise.all([
+        apiListMembers(orgId),
+        apiListInvites(orgId),
+      ]);
+
+      if (cancelled) return;
+
+      if (membersResult.error) {
+        setError(membersResult.error);
+      } else {
+        setMembers(membersResult.members);
+      }
+
+      if (invitesResult.error) {
+        setError(invitesResult.error);
+      } else {
+        setInvites(invitesResult.invites);
+      }
+
+      setMembersLoading(false);
+    }
+
+    loadMembersAndInvites();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentOrg]);
+
+  // ----- inviteMember -----
+  const handleInviteMember = useCallback(
+    async (input: InviteMemberInput): Promise<InviteResult> => {
+      setError(null);
+
+      const result = await apiInviteMember(input);
+
+      if (result.error) {
+        setError(result.error);
+        return result;
+      }
+
+      // Add the new invite to the local list
+      if (result.invite) {
+        setInvites((prev) => [result.invite!, ...prev]);
+      }
+
+      return result;
+    },
+    [],
+  );
+
+  // ----- acceptInvite -----
+  const handleAcceptInvite = useCallback(
+    async (inviteId: string): Promise<AcceptInviteResult> => {
+      setError(null);
+
+      const result = await apiAcceptInvite(inviteId);
+
+      if (result.error) {
+        setError(result.error);
+        return result;
+      }
+
+      // Refresh orgs and members since membership changed
+      await refreshOrgs();
+
+      return result;
+    },
+    [refreshOrgs],
+  );
+
+  // ----- removeMember -----
+  const handleRemoveMember = useCallback(
+    async (userId: string): Promise<OrgMemberResult> => {
+      if (!currentOrg) {
+        return { success: false, error: 'No organization selected' };
+      }
+
+      setError(null);
+
+      const result = await apiRemoveMember(currentOrg.id, userId);
+
+      if (result.error) {
+        setError(result.error);
+        return result;
+      }
+
+      // Remove the member from the local list
+      setMembers((prev) => prev.filter((m) => m.userId !== userId));
+
+      return result;
+    },
+    [currentOrg],
+  );
+
+  // ----- updateMemberRole -----
+  const handleUpdateMemberRole = useCallback(
+    async (input: UpdateMemberRoleInput): Promise<OrgMemberResult> => {
+      if (!currentOrg) {
+        return { success: false, error: 'No organization selected' };
+      }
+
+      setError(null);
+
+      const result = await apiUpdateMemberRole({
+        ...input,
+        orgId: currentOrg.id,
+      });
+
+      if (result.error) {
+        setError(result.error);
+        return result;
+      }
+
+      // Update the member's role in the local list
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.userId === input.userId ? { ...m, role: input.role } : m,
+        ),
+      );
+
+      return result;
+    },
+    [currentOrg],
+  );
+
+  // ----- refreshMembers -----
+  const refreshMembers = useCallback(async () => {
+    if (!currentOrg) {
+      setMembers([]);
+      return;
+    }
+
+    setMembersLoading(true);
+
+    const result = await apiListMembers(currentOrg.id);
+
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setMembers(result.members);
+    }
+
+    setMembersLoading(false);
+  }, [currentOrg]);
+
+  // ----- refreshInvites -----
+  const refreshInvites = useCallback(async () => {
+    if (!currentOrg) {
+      setInvites([]);
+      return;
+    }
+
+    const result = await apiListInvites(currentOrg.id);
+
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setInvites(result.invites);
+    }
+  }, [currentOrg]);
+
+  // ----- listPendingInvitesForUser -----
+  const handleListPendingInvitesForUser = useCallback(
+    async (): Promise<InviteListResult> => {
+      return apiListPendingInvitesForUser();
+    },
+    [],
+  );
+
   const value: OrgContextType = {
     currentOrg,
     orgs,
@@ -256,6 +489,17 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     refreshOrgs,
     loading,
     error,
+    // Member management
+    members,
+    invites,
+    membersLoading,
+    inviteMember: handleInviteMember,
+    acceptInvite: handleAcceptInvite,
+    removeMember: handleRemoveMember,
+    updateMemberRole: handleUpdateMemberRole,
+    refreshMembers,
+    refreshInvites,
+    listPendingInvitesForUser: handleListPendingInvitesForUser,
   };
 
   return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;
