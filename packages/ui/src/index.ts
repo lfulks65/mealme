@@ -5,10 +5,7 @@
  * Built on gluestack-ui v2 + NativeWind (Tailwind CSS for React Native).
  */
 
-// Re-export gluestack-ui themed components
-export { createProvider } from '@gluestack-ui/themed';
-
-// Re-export the config
+// Re-export the gluestack config
 export { config as gluestackConfig } from '@gluestack-ui/config';
 
 // App-specific components will be added here
