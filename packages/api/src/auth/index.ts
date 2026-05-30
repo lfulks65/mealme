@@ -7,6 +7,7 @@ export {
   signIn,
   signInWithProvider,
   signOut,
+  resetPasswordForEmail,
   getSession,
   onAuthStateChange,
 } from './functions';

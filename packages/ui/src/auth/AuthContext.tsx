@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import {
   useAuth as useApiAuth,
   AuthProvider as ApiAuthProvider,
+  resetPasswordForEmail,
 } from '@mealme/api';
 
 // ---------------------------------------------------------------------------
@@ -67,7 +68,8 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = user !== null;
   const isLoading = api.loading || forgotPasswordLoading;
-  const error = api.error ?? forgotPasswordError;
+  // Show forgot-password error when present, otherwise fall back to API error
+  const error = forgotPasswordError ?? api.error;
 
   const signIn = useCallback(
     async (email: string, password: string) => {
@@ -110,19 +112,10 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
       setForgotPasswordLoading(true);
       setForgotPasswordError(null);
       try {
-        const { supabase } = await import('@mealme/api');
-        const redirectTo =
-          typeof globalThis !== 'undefined' &&
-          typeof (globalThis as any).location !== 'undefined'
-            ? ((globalThis as any).location.origin as string)
-            : undefined;
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-          email,
-          { redirectTo },
-        );
+        const { error: resetError } = await resetPasswordForEmail(email);
         if (resetError) {
-          setForgotPasswordError(resetError.message || 'Failed to send reset email');
-          throw resetError;
+          setForgotPasswordError(resetError);
+          throw new Error(resetError);
         }
       } catch (err: any) {
         const msg = err.message || 'Failed to send reset email';
@@ -137,7 +130,8 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
 
   const resetPasswordState = useCallback(() => {
     setForgotPasswordError(null);
-  }, []);
+    api.clearError();
+  }, [api.clearError]);
 
   const value: AuthContextType = {
     user,

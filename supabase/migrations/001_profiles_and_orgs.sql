@@ -95,6 +95,12 @@ CREATE POLICY "profiles_read_same_org"
     )
   );
 
+-- Users can always read their own profile
+CREATE POLICY "profiles_read_own"
+  ON public.profiles
+  FOR SELECT
+  USING (id = auth.uid());
+
 -- Users can update their own profile only
 CREATE POLICY "profiles_update_own"
   ON public.profiles

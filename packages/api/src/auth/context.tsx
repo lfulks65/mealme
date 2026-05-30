@@ -29,6 +29,7 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signInWithProvider: (provider: 'google' | 'apple') => Promise<void>;
   signOut: () => Promise<void>;
+  clearError: () => void;
   error: string | null;
 }
 
@@ -146,6 +147,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   const value: AuthContextType = {
     user,
     session,
@@ -154,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signInWithProvider: handleSignInWithProvider,
     signOut: handleSignOut,
+    clearError,
     error,
   };
 

@@ -120,6 +120,23 @@ export async function signInWithProvider(
 }
 
 // ---------------------------------------------------------------------------
+// resetPasswordForEmail – send a password reset email
+// ---------------------------------------------------------------------------
+
+export async function resetPasswordForEmail(
+  email: string,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: getRedirectUrl(),
+  });
+
+  if (error) {
+    return { error: mapAuthError(error) };
+  }
+  return { error: null };
+}
+
+// ---------------------------------------------------------------------------
 // signOut
 // ---------------------------------------------------------------------------
 
