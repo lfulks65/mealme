@@ -35,6 +35,12 @@ importers:
       '@gluestack-ui/themed':
         specifier: ^1.1.0
         version: 1.1.73(zbipygjh5uirovqduken5qoi4q)
+      '@mealme/api':
+        specifier: workspace:*
+        version: link:../../packages/api
+      '@mealme/heb':
+        specifier: workspace:*
+        version: link:../../packages/heb
       '@mealme/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -121,6 +127,9 @@ importers:
 
   packages/api:
     dependencies:
+      '@mealme/heb':
+        specifier: workspace:*
+        version: link:../heb
       '@mealme/shared':
         specifier: workspace:*
         version: link:../shared
@@ -189,6 +198,9 @@ importers:
       '@mealme/api':
         specifier: workspace:*
         version: link:../api
+      '@mealme/heb':
+        specifier: workspace:*
+        version: link:../heb
       '@mealme/shared':
         specifier: workspace:*
         version: link:../shared

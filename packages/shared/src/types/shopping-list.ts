@@ -34,6 +34,8 @@ export interface ShoppingListItem {
   isManual: boolean;
   /** Optional note (e.g., "Get organic"). */
   note?: string;
+  /** HEB product ID when this item has been matched to an HEB product. */
+  hebProductId?: string;
 }
 
 /**

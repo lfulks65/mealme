@@ -159,3 +159,17 @@ export type { PreferenceSummaryCardProps } from './components/preferences/Prefer
 
 export { usePreferences } from './components/preferences/usePreferences';
 export type { UsePreferencesConfig, UsePreferencesResult } from './components/preferences/usePreferences';
+
+// ─── HEB Grocery Components ─────────────────────────────────────────────────
+
+export { HEBStoreSelectScreen } from './components/heb/HEBStoreSelectScreen';
+export type { HEBStoreSelectScreenProps } from './components/heb/HEBStoreSelectScreen';
+
+export { HEBProductMatchScreen } from './components/heb/HEBProductMatchScreen';
+export type { HEBProductMatchScreenProps, ShoppingListItemForMatch } from './components/heb/HEBProductMatchScreen';
+
+export { HEBCartScreen } from './components/heb/HEBCartScreen';
+export type { HEBCartScreenProps } from './components/heb/HEBCartScreen';
+
+export { HEBOrderStatusScreen } from './components/heb/HEBOrderStatusScreen';
+export type { HEBOrderStatusScreenProps } from './components/heb/HEBOrderStatusScreen';

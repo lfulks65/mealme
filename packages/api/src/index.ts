@@ -36,6 +36,9 @@ export { supabase, getSupabaseAdmin } from './supabase';
 // Preferences module
 export * from './preferences';
 
+// HEB API bridge
+export * from './heb';
+
 // API client shell
 export function createApiClient(config: ApiClientConfig) {
   return {
