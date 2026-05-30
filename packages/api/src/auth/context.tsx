@@ -15,7 +15,7 @@ import {
   getSession as authGetSession,
   onAuthStateChange,
 } from './functions';
-import type { AuthUser, AuthStateCallback } from './functions';
+import type { AuthUser } from './functions';
 
 // ---------------------------------------------------------------------------
 // Context type
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // ----- Subscribe to auth state changes -----
     subscriptionRef.current = onAuthStateChange(
-      (event: string, newSession: Session | null) => {
+      (_event: string, newSession: Session | null) => {
         if (cancelled) return;
         setSession(newSession);
         setUser(newSession ? mapSessionToUser(newSession) : null);

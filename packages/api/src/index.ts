@@ -8,6 +8,9 @@
 // Auth module
 export * from './auth';
 
+// Org module
+export * from './org';
+
 // Re-export shared types for convenience
 export type {
   User,
