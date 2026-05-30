@@ -3,8 +3,9 @@
 import { useAuth } from '@mealme/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { Button, ButtonText } from '@gluestack-ui/themed';
+import { View, StyleSheet } from 'react-native';
+import { Text } from '@gluestack-ui/themed';
+import { Button, ButtonText, ButtonSpinner } from '@gluestack-ui/themed';
 import { VStack } from '@gluestack-ui/themed';
 
 export default function DashboardPage() {
@@ -21,7 +22,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <Text size="md" color="$textLight500">Loading...</Text>
       </View>
     );
   }
@@ -33,9 +34,13 @@ export default function DashboardPage() {
   return (
     <View style={styles.container}>
       <VStack space="lg" alignItems="center" style={styles.content}>
-        <Text style={styles.title}>Welcome to MealMe</Text>
+        <Text size="2xl" fontWeight="$bold" color="$textLight900">
+          Welcome to MealMe
+        </Text>
         {user && (
-          <Text style={styles.subtitle}>Hello, {user.name}!</Text>
+          <Text size="md" color="$textLight500">
+            Hello, {user.name}!
+          </Text>
         )}
         <Button
           size="md"
@@ -44,6 +49,7 @@ export default function DashboardPage() {
           onPress={signOut}
           isDisabled={isLoading}
         >
+          {isLoading && <ButtonSpinner mr="$2" />}
           <ButtonText>Sign Out</ButtonText>
         </Button>
       </VStack>
@@ -65,13 +71,5 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#737373',
   },
 });

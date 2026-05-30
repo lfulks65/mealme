@@ -1,14 +1,14 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import {
-  signUp as authSignUp,
-  signIn as authSignIn,
-  signInWithProvider as authSignInWithProvider,
-  signOut as authSignOut,
-  getSession as authGetSession,
-  onAuthStateChange,
+  useAuth as useApiAuth,
+  AuthProvider as ApiAuthProvider,
 } from '@mealme/api';
-import type { AuthUser } from '@mealme/api';
+import type { AuthContextType as ApiAuthContextType } from '@mealme/api';
+
+// ---------------------------------------------------------------------------
+// Public User type (exposed to consumers of @mealme/ui)
+// ---------------------------------------------------------------------------
 
 export interface User {
   id: string;
@@ -16,6 +16,10 @@ export interface User {
   email: string;
   avatarUrl?: string;
 }
+
+// ---------------------------------------------------------------------------
+// Extended context type
+// ---------------------------------------------------------------------------
 
 export interface AuthContextType {
   user: User | null;
@@ -35,237 +39,129 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function toUser(authUser: AuthUser | null): User | null {
-  if (!authUser) return null;
-  return {
-    id: authUser.id,
-    name: authUser.name,
-    email: authUser.email,
-    avatarUrl: authUser.avatarUrl,
-  };
-}
+// ---------------------------------------------------------------------------
+// Provider – wraps the API AuthProvider and extends it
+// ---------------------------------------------------------------------------
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const subscriptionRef = useRef<ReturnType<typeof onAuthStateChange> | null>(null);
-
-  const isAuthenticated = user !== null;
-
-  // Check stored session on mount & subscribe to auth state changes
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      const { session: existingSession, error: sessionError } =
-        await authGetSession();
-
-      if (cancelled) return;
-
-      if (sessionError) {
-        setError(sessionError);
-      } else if (existingSession) {
-        setSession(existingSession);
-        const meta = (existingSession.user.user_metadata ?? {}) as Record<string, any>;
-        setUser({
-          id: existingSession.user.id,
-          name: meta.full_name ?? meta.name ?? existingSession.user.email?.split('@')[0] ?? '',
-          email: existingSession.user.email ?? '',
-        });
-      }
-      setIsLoading(false);
-    })();
-
-    subscriptionRef.current = onAuthStateChange(
-      (_event: string, newSession: Session | null) => {
-        if (cancelled) return;
-        setSession(newSession);
-        if (newSession) {
-          const meta = (newSession.user.user_metadata ?? {}) as Record<string, any>;
-          setUser({
-            id: newSession.user.id,
-            name: meta.full_name ?? meta.name ?? newSession.user.email?.split('@')[0] ?? '',
-            email: newSession.user.email ?? '',
-          });
-        } else {
-          setUser(null);
-        }
-        setError(null);
-      },
-    );
-
-    return () => {
-      cancelled = true;
-      subscriptionRef.current?.subscription?.unsubscribe();
-    };
-  }, []);
-
-  const signIn = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await authSignIn(email, password);
-      if (result.error) {
-        setError(result.error);
-        throw new Error(result.error);
-      }
-      setUser(toUser(result.user));
-      setSession(result.session);
-    } catch (err: any) {
-      const msg = err.message || 'Sign in failed';
-      setError(msg);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const signUp = useCallback(async (name: string, email: string, password: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await authSignUp(email, password, name);
-      if (result.error) {
-        setError(result.error);
-        throw new Error(result.error);
-      }
-      setUser(toUser(result.user));
-      setSession(result.session);
-    } catch (err: any) {
-      const msg = err.message || 'Sign up failed';
-      setError(msg);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const signOut = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await authSignOut();
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setUser(null);
-        setSession(null);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Sign out failed');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const forgotPassword = useCallback(async (email: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Supabase password reset – sends a reset email via Supabase
-      const { supabase } = await import('@mealme/api');
-      const redirectTo = typeof globalThis !== 'undefined' && typeof (globalThis as any).location !== 'undefined'
-        ? (globalThis as any).location.origin as string
-        : undefined;
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
-      });
-      if (resetError) {
-        setError(resetError.message || 'Failed to send reset email');
-        throw resetError;
-      }
-      if (!email) {
-        throw new Error('Please enter your email');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to send reset email');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const signInWithGoogle = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await authSignInWithProvider('google');
-      if (result.error) {
-        setError(result.error);
-        throw new Error(result.error);
-      }
-      // Session will be set via onAuthStateChange after the OAuth redirect
-    } catch (err: any) {
-      setError(err.message || 'Google sign in failed');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const signInWithApple = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await authSignInWithProvider('apple');
-      if (result.error) {
-        setError(result.error);
-        throw new Error(result.error);
-      }
-      // Session will be set via onAuthStateChange after the OAuth redirect
-    } catch (err: any) {
-      setError(err.message || 'Apple sign in failed');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const signInWithProvider = useCallback(async (provider: 'google' | 'apple') => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await authSignInWithProvider(provider);
-      if (result.error) {
-        setError(result.error);
-        throw new Error(result.error);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Sign in with provider failed');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const resetPasswordState = useCallback(() => {
-    setError(null);
-  }, []);
-
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated,
-        isLoading,
-        session,
-        signIn,
-        signUp,
-        signOut,
-        forgotPassword,
-        signInWithGoogle,
-        signInWithApple,
-        signInWithProvider,
-        resetPasswordState,
-        error,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <ApiAuthProvider>
+      <AuthProviderInner>{children}</AuthProviderInner>
+    </ApiAuthProvider>
   );
 }
+
+function AuthProviderInner({ children }: { children: React.ReactNode }) {
+  const api = useApiAuth();
+
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
+
+  const user: User | null = api.user
+    ? {
+        id: api.user.id,
+        name: api.user.name,
+        email: api.user.email,
+        avatarUrl: api.user.avatarUrl,
+      }
+    : null;
+
+  const isAuthenticated = user !== null;
+  const isLoading = api.loading || forgotPasswordLoading;
+  const error = api.error ?? forgotPasswordError;
+
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      await api.signIn(email, password);
+    },
+    [api.signIn],
+  );
+
+  const signUp = useCallback(
+    async (name: string, email: string, password: string) => {
+      await api.signUp(email, password, name);
+    },
+    [api.signUp],
+  );
+
+  const signOut = useCallback(async () => {
+    await api.signOut();
+  }, [api.signOut]);
+
+  const signInWithProvider = useCallback(
+    async (provider: 'google' | 'apple') => {
+      await api.signInWithProvider(provider);
+    },
+    [api.signInWithProvider],
+  );
+
+  const signInWithGoogle = useCallback(async () => {
+    await api.signInWithProvider('google');
+  }, [api.signInWithProvider]);
+
+  const signInWithApple = useCallback(async () => {
+    await api.signInWithProvider('apple');
+  }, [api.signInWithProvider]);
+
+  const forgotPassword = useCallback(
+    async (email: string) => {
+      if (!email.trim()) {
+        throw new Error('Please enter your email');
+      }
+      setForgotPasswordLoading(true);
+      setForgotPasswordError(null);
+      try {
+        const { supabase } = await import('@mealme/api');
+        const redirectTo =
+          typeof globalThis !== 'undefined' &&
+          typeof (globalThis as any).location !== 'undefined'
+            ? ((globalThis as any).location.origin as string)
+            : undefined;
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+          email,
+          { redirectTo },
+        );
+        if (resetError) {
+          setForgotPasswordError(resetError.message || 'Failed to send reset email');
+          throw resetError;
+        }
+      } catch (err: any) {
+        const msg = err.message || 'Failed to send reset email';
+        setForgotPasswordError(msg);
+        throw err;
+      } finally {
+        setForgotPasswordLoading(false);
+      }
+    },
+    [],
+  );
+
+  const resetPasswordState = useCallback(() => {
+    setForgotPasswordError(null);
+  }, []);
+
+  const value: AuthContextType = {
+    user,
+    isAuthenticated,
+    isLoading,
+    session: api.session,
+    signIn,
+    signUp,
+    signOut,
+    forgotPassword,
+    signInWithGoogle,
+    signInWithApple,
+    signInWithProvider,
+    resetPasswordState,
+    error,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// ---------------------------------------------------------------------------
+// Hook
+// ---------------------------------------------------------------------------
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
