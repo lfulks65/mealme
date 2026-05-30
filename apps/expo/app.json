@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "MealMe",
+    "slug": "mealme",
+    "version": "0.0.1",
+    "orientation": "default",
+    "scheme": "mealme",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mealme.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.mealme.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-apple-authentication"
+    ]
+  }
+}

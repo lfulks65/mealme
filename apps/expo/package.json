@@ -1,0 +1,38 @@
+{
+  "name": "@mealme/expo",
+  "version": "0.0.1",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "~50.0.0",
+    "expo-router": "~3.4.0",
+    "expo-status-bar": "~1.11.0",
+    "expo-linking": "~6.2.0",
+    "expo-constants": "~15.4.0",
+    "expo-auth-session": "~5.4.0",
+    "expo-crypto": "~12.8.0",
+    "expo-web-browser": "~12.8.0",
+    "expo-apple-authentication": "~6.3.0",
+    "@mealme/ui": "*",
+    "@gluestack-ui/themed": "^1.1.0",
+    "@gluestack-ui/config": "^1.1.0",
+    "@gluestack-style/react": "^1.0.57",
+    "react": "^18.2.0",
+    "react-native": "^0.73.0",
+    "react-native-safe-area-context": "^4.8.0",
+    "react-native-screens": "~3.29.0",
+    "react-native-svg": "^15.0.0",
+    "react-native-web": "~0.19.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "^18.2.0",
+    "typescript": "^5.3.3"
+  }
+}
