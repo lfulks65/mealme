@@ -30,6 +30,9 @@ export interface ApiClientConfig {
   timeout?: number;
 }
 
+// Supabase client (anon key + service-role admin)
+export { supabase, getSupabaseAdmin } from './supabase';
+
 // API client shell
 export function createApiClient(config: ApiClientConfig) {
   return {
