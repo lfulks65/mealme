@@ -52,14 +52,31 @@ import {
 // Helpers to build chainable Supabase query mocks
 // ---------------------------------------------------------------------------
 
-/** Build a chainable mock where the final `.single()` resolves to the given value. */
-function singleChain(data: any, error: any = null) {
+type MockChain = {
+  select: ReturnType<typeof vi.fn>;
+  insert: ReturnType<typeof vi.fn>;
+  update: ReturnType<typeof vi.fn>;
+  delete: ReturnType<typeof vi.fn>;
+  eq: ReturnType<typeof vi.fn>;
+  overlaps: ReturnType<typeof vi.fn>;
+  in: ReturnType<typeof vi.fn>;
+  limit: ReturnType<typeof vi.fn>;
+  order: ReturnType<typeof vi.fn>;
+  maybeSingle: ReturnType<typeof vi.fn>;
+  single: ReturnType<typeof vi.fn>;
+  [key: string]: any;
+};
+
+/**
+ * Build a chainable mock where the final `.single()` resolves to the given value.
+ * Every chainable method returns `this` so calls can be composed freely.
+ */
+function singleChain(data: any, error: any = null): MockChain {
   const c: any = {};
   c.select = vi.fn().mockReturnValue(c);
   c.insert = vi.fn().mockReturnValue(c);
   c.update = vi.fn().mockReturnValue(c);
   c.delete = vi.fn().mockReturnValue(c);
-  c.upsert = vi.fn().mockReturnValue(c);
   c.eq = vi.fn().mockReturnValue(c);
   c.overlaps = vi.fn().mockReturnValue(c);
   c.in = vi.fn().mockReturnValue(c);
@@ -67,15 +84,51 @@ function singleChain(data: any, error: any = null) {
   c.order = vi.fn().mockReturnValue(c);
   c.maybeSingle = vi.fn().mockResolvedValue({ data, error });
   c.single = vi.fn().mockResolvedValue({ data, error });
+  // Make the chain thenable so `await query` works
+  c.then = vi.fn().mockImplementation((resolve: any, _reject?: any) =>
+    Promise.resolve({ data, error }).then(resolve),
+  );
   return c;
 }
 
-/** Build a chainable mock that resolves to an array. */
-function arrayChain(data: any[], error: any = null) {
+/**
+ * Build a chainable mock that resolves to an array (for .order().then() pattern).
+ */
+function arrayChain(data: any[], error: any = null): MockChain {
   const c: any = {};
   c.select = vi.fn().mockReturnValue(c);
+  c.insert = vi.fn().mockReturnValue(c);
+  c.update = vi.fn().mockReturnValue(c);
+  c.delete = vi.fn().mockReturnValue(c);
   c.eq = vi.fn().mockReturnValue(c);
-  c.order = vi.fn().mockResolvedValue({ data, error });
+  c.overlaps = vi.fn().mockReturnValue(c);
+  c.in = vi.fn().mockReturnValue(c);
+  c.limit = vi.fn().mockReturnValue(c);
+  c.order = vi.fn().mockReturnValue(c);
+  c.maybeSingle = vi.fn().mockResolvedValue({ data, error });
+  c.single = vi.fn().mockResolvedValue({ data, error });
+  // Make the chain thenable so `await query` works
+  c.then = vi.fn().mockImplementation((resolve: any, _reject?: any) =>
+    Promise.resolve({ data, error }).then(resolve),
+  );
+  return c;
+}
+
+/**
+ * Build a chainable mock for the recipe query builder used in fetchCandidateRecipes.
+ * The function does: `let query = supabase.from('recipes').select(...).limit(100);`
+ * then conditionally calls `.overlaps()` and `.in()`, then awaits the query.
+ */
+function recipeQueryChain(data: any[], error: any = null): MockChain {
+  const c: any = {};
+  c.select = vi.fn().mockReturnValue(c);
+  c.overlaps = vi.fn().mockReturnValue(c);
+  c.in = vi.fn().mockReturnValue(c);
+  c.limit = vi.fn().mockReturnValue(c);
+  // Make the chain thenable so `await query` works
+  c.then = vi.fn().mockImplementation((resolve: any, _reject?: any) =>
+    Promise.resolve({ data, error }).then(resolve),
+  );
   return c;
 }
 
@@ -223,8 +276,9 @@ describe('getMealPlan', () => {
   });
 
   it('returns error when plan not found', async () => {
-    const chain = singleChain(null, { message: 'Not found' });
-    mockFrom.mockReturnValue(chain);
+    // When the plan query fails, the function returns early before fetching entries
+    const planChain = singleChain(null, { message: 'Not found' });
+    mockFrom.mockReturnValueOnce(planChain);
 
     const result = await getMealPlan(PLAN_ID);
 
@@ -269,8 +323,9 @@ describe('getWeeklyPlan', () => {
   });
 
   it('returns null mealPlan (no error) when no plan exists for the week', async () => {
-    const chain = singleChain(null, { code: 'PGRST116' });
-    mockFrom.mockReturnValue(chain);
+    // PGRST116 = no rows returned from .single()
+    const planChain = singleChain(null, { code: 'PGRST116', message: 'No rows' });
+    mockFrom.mockReturnValueOnce(planChain);
 
     const result = await getWeeklyPlan(FAMILY_ID, WEEK_START);
 
@@ -360,7 +415,7 @@ describe('addMealEntry', () => {
 
   it('returns error when Supabase insert fails', async () => {
     const chain = singleChain(null, { message: 'Foreign key violation' });
-    mockFrom.mockReturnValue(chain);
+    mockFrom.mockReturnValueOnce(chain);
 
     const result = await addMealEntry(PLAN_ID, '2025-01-13', 'breakfast', 'bad-recipe');
 
@@ -374,8 +429,9 @@ describe('addMealEntry', () => {
 describe('removeMealEntry', () => {
   it('removes a meal entry by ID', async () => {
     const chain = singleChain(null);
+    // Override eq to resolve (the delete().eq() chain is awaited directly)
     chain.eq = vi.fn().mockResolvedValue({ error: null });
-    mockFrom.mockReturnValue(chain);
+    mockFrom.mockReturnValueOnce(chain);
 
     const result = await removeMealEntry('entry-001');
 
@@ -399,7 +455,7 @@ describe('removeMealEntry', () => {
   it('returns error when Supabase delete fails', async () => {
     const chain = singleChain(null);
     chain.eq = vi.fn().mockResolvedValue({ error: { message: 'Delete failed' } });
-    mockFrom.mockReturnValue(chain);
+    mockFrom.mockReturnValueOnce(chain);
 
     const result = await removeMealEntry('entry-001');
 
@@ -471,7 +527,7 @@ describe('updateMealEntry', () => {
 
   it('returns error when Supabase update fails', async () => {
     const chain = singleChain(null, { message: 'Update failed' });
-    mockFrom.mockReturnValue(chain);
+    mockFrom.mockReturnValueOnce(chain);
 
     const result = await updateMealEntry('entry-001', { servings: 2 });
 
@@ -503,31 +559,29 @@ describe('generatePlanProposal', () => {
       error: null,
     });
 
-    // 2. No existing draft plan
+    // 2. No existing draft plan (supabase.from('meal_plans').select('id').eq().eq().eq().maybeSingle())
     const existingChain = singleChain(null);
-    existingChain.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
-    existingChain.select = vi.fn().mockReturnValue(existingChain);
-    existingChain.eq = vi.fn().mockReturnValue(existingChain);
+    mockFrom.mockReturnValueOnce(existingChain); // check existing draft
 
-    // 3. Create new plan
+    // 3. Candidate recipes (supabase.from('recipes').select().limit().overlaps().in() → await)
+    const recipeChain = recipeQueryChain(candidateRecipes);
+    mockFrom.mockReturnValueOnce(recipeChain); // fetch candidate recipes
+
+    // 4. Create new plan (supabase.from('meal_plans').insert().select().single())
     const createPlanChain = singleChain(mealPlanRow);
+    mockFrom.mockReturnValueOnce(createPlanChain); // create new plan
 
-    // 4. Candidate recipes
-    const recipeQueryChain: any = {
-      select: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-      overlaps: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({ data: candidateRecipes, error: null }),
-    };
-
-    // 5. Entry inserts (21 entries for 7 days × 3 slots)
-    const entryInsertChain = singleChain(entryRow);
-
-    mockFrom
-      .mockReturnValueOnce(existingChain)    // check existing draft
-      .mockReturnValueOnce(createPlanChain)   // create new plan
-      .mockReturnValueOnce(recipeQueryChain)  // fetch candidate recipes
-      .mockReturnValue(entryInsertChain);     // entry inserts (repeated)
+    // 5. Entry inserts (supabase.from('meal_plan_entries').insert().select().single()) — repeated
+    // We need enough for 7 days × 3 slots = 21 entries
+    for (let i = 0; i < 21; i++) {
+      const entryInsertChain = singleChain({
+        ...entryRow,
+        id: `entry-${i}`,
+        date: WEEK_START, // simplified
+        meal_slot: 'breakfast',
+      });
+      mockFrom.mockReturnValueOnce(entryInsertChain);
+    }
 
     const result = await generatePlanProposal(FAMILY_ID, WEEK_START);
 
@@ -565,21 +619,17 @@ describe('generatePlanProposal', () => {
       error: null,
     });
 
-    // Both primary and fallback recipe queries return empty
-    const emptyRecipeChain: any = {
-      select: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-      overlaps: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({ data: [], error: null }),
-    };
-    const fallbackChain: any = {
-      select: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-    };
+    // No existing draft plan
+    const existingChain = singleChain(null);
+    mockFrom.mockReturnValueOnce(existingChain);
 
-    mockFrom
-      .mockReturnValueOnce(emptyRecipeChain)
-      .mockReturnValueOnce(fallbackChain);
+    // Primary recipe query returns empty
+    const emptyRecipeChain = recipeQueryChain([]);
+    mockFrom.mockReturnValueOnce(emptyRecipeChain);
+
+    // Fallback recipe query also returns empty
+    const fallbackChain = recipeQueryChain([]);
+    mockFrom.mockReturnValueOnce(fallbackChain);
 
     const result = await generatePlanProposal(FAMILY_ID, WEEK_START);
 
@@ -595,41 +645,33 @@ describe('generatePlanProposal', () => {
 
     // Existing draft plan found
     const existingPlan = { id: 'old-plan-001' };
-    const existingChain: any = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: existingPlan, error: null }),
-      delete: vi.fn().mockReturnThis(),
-    };
-    // The delete chain needs eq to resolve
-    existingChain.eq.mockImplementation(() => existingChain);
-    existingChain.delete.mockImplementation(() => existingChain);
-    // Make the final eq on delete resolve
-    const deleteResolve = vi.fn().mockResolvedValue({ error: null });
-    existingChain.eq = vi.fn().mockImplementation((col: string, val: string) => {
-      if (col === 'id') return { ...existingChain, then: deleteResolve };
+    const existingChain = singleChain(existingPlan);
+    // The delete chain: from('meal_plans').delete().eq('id', ...) → awaited
+    existingChain.delete = vi.fn().mockReturnValue(existingChain);
+    existingChain.eq = vi.fn().mockImplementation((col: string, _val: string) => {
+      if (col === 'id') {
+        return Promise.resolve({ error: null });
+      }
       return existingChain;
     });
+    mockFrom.mockReturnValueOnce(existingChain); // check existing draft
+
+    // Candidate recipes
+    const recipeChain = recipeQueryChain(candidateRecipes);
+    mockFrom.mockReturnValueOnce(recipeChain);
 
     // Create new plan
     const createPlanChain = singleChain(mealPlanRow);
-
-    // Candidate recipes
-    const recipeQueryChain: any = {
-      select: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-      overlaps: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({ data: candidateRecipes, error: null }),
-    };
+    mockFrom.mockReturnValueOnce(createPlanChain);
 
     // Entry inserts
-    const entryInsertChain = singleChain(entryRow);
-
-    mockFrom
-      .mockReturnValueOnce(existingChain)
-      .mockReturnValueOnce(createPlanChain)
-      .mockReturnValueOnce(recipeQueryChain)
-      .mockReturnValue(entryInsertChain);
+    for (let i = 0; i < 21; i++) {
+      const entryInsertChain = singleChain({
+        ...entryRow,
+        id: `entry-${i}`,
+      });
+      mockFrom.mockReturnValueOnce(entryInsertChain);
+    }
 
     const result = await generatePlanProposal(FAMILY_ID, WEEK_START);
 
@@ -644,27 +686,16 @@ describe('generatePlanProposal', () => {
     });
 
     // No existing draft
-    const existingChain: any = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    };
+    const existingChain = singleChain(null);
+    mockFrom.mockReturnValueOnce(existingChain);
+
+    // Candidate recipes
+    const recipeChain = recipeQueryChain(candidateRecipes);
+    mockFrom.mockReturnValueOnce(recipeChain);
 
     // Plan creation fails
     const createPlanChain = singleChain(null, { message: 'Unique violation' });
-
-    // Candidate recipes
-    const recipeQueryChain: any = {
-      select: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-      overlaps: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({ data: candidateRecipes, error: null }),
-    };
-
-    mockFrom
-      .mockReturnValueOnce(existingChain)
-      .mockReturnValueOnce(recipeQueryChain)
-      .mockReturnValueOnce(createPlanChain);
+    mockFrom.mockReturnValueOnce(createPlanChain);
 
     const result = await generatePlanProposal(FAMILY_ID, WEEK_START);
 
