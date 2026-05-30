@@ -173,14 +173,12 @@ export function onAuthStateChange(
 async function ensureProfile(
   userId: string,
   name: string,
-  email: string,
+  _email: string,
 ): Promise<string | null> {
   const { error } = await supabase.from('profiles').upsert(
     {
       id: userId,
-      name,
-      email,
-      updated_at: new Date().toISOString(),
+      full_name: name,
     },
     { onConflict: 'id' },
   );
