@@ -1,0 +1,3 @@
+{
+  "index": "app/index.tsx"
+}
