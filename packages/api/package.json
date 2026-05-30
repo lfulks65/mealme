@@ -29,6 +29,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@mealme/shared": "workspace:*",
+    "@mealme/heb": "workspace:*",
     "@supabase/supabase-js": "^2.42.0",
     "react": "^18.2.0"
   },

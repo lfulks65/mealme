@@ -22,6 +22,8 @@
     "@mealme/api": "workspace:*",
     "@mealme/shared": "workspace:*",
     "@mealme/ui": "workspace:*",
+    "@mealme/api": "workspace:*",
+    "@mealme/heb": "workspace:*",
     "@gluestack-ui/themed": "^1.1.0",
     "@gluestack-ui/config": "^1.1.0",
     "@supabase/supabase-js": "^2.42.0",

@@ -30,6 +30,7 @@
   "dependencies": {
     "@mealme/shared": "workspace:*",
     "@mealme/api": "workspace:*",
+    "@mealme/heb": "workspace:*",
     "@gluestack-ui/themed": "^1.1.0",
     "@gluestack-ui/config": "^1.1.0",
     "@mealme/api": "workspace:*",

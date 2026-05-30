@@ -1,7 +1,7 @@
 {
   "name": "@mealme/heb",
   "version": "0.1.0",
-  "description": "HEB SDK integration shell for the MealMe platform",
+  "description": "HEB SDK integration layer for the MealMe platform",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -27,9 +27,11 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
-    "@mealme/shared": "workspace:*"
+    "@mealme/shared": "workspace:*",
+    "heb-sdk-unofficial": "^1.0.1"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0"
   }

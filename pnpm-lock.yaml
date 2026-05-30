@@ -38,6 +38,9 @@ importers:
       '@mealme/api':
         specifier: workspace:*
         version: link:../../packages/api
+      '@mealme/heb':
+        specifier: workspace:*
+        version: link:../../packages/heb
       '@mealme/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -142,6 +145,9 @@ importers:
 
   packages/api:
     dependencies:
+      '@mealme/heb':
+        specifier: workspace:*
+        version: link:../heb
       '@mealme/shared':
         specifier: workspace:*
         version: link:../shared
@@ -173,7 +179,13 @@ importers:
       '@mealme/shared':
         specifier: workspace:*
         version: link:../shared
+      heb-sdk-unofficial:
+        specifier: ^1.0.1
+        version: 1.0.1
     devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(jiti@1.21.7)(postcss@8.5.15)(typescript@5.9.3)(yaml@2.9.0)
@@ -210,6 +222,9 @@ importers:
       '@mealme/api':
         specifier: workspace:*
         version: link:../api
+      '@mealme/heb':
+        specifier: workspace:*
+        version: link:../heb
       '@mealme/shared':
         specifier: workspace:*
         version: link:../shared
@@ -3956,6 +3971,10 @@ packages:
   hasown@2.0.4:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
+
+  heb-sdk-unofficial@1.0.1:
+    resolution: {integrity: sha512-s6Hpgub/TMBegGs9E6WKP9mbGBKtTxGHi2eeu/SYRh7ay615YXoVHeaAPBZD2HSuMrQC/m52PKEAp41h9FxcCw==}
+    engines: {node: '>=18'}
 
   hermes-estree@0.15.0:
     resolution: {integrity: sha512-lLYvAd+6BnOqWdnNbP/Q8xfl8LOGw4wVjfrNd9Gt8eoFzhNBRVD95n4l2ksfMVOoxuVyegs85g83KS9QOsxbVQ==}
@@ -11389,6 +11408,8 @@ snapshots:
   hasown@2.0.4:
     dependencies:
       function-bind: 1.1.2
+
+  heb-sdk-unofficial@1.0.1: {}
 
   hermes-estree@0.15.0: {}
 

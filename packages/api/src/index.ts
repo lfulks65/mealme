@@ -51,6 +51,9 @@ export * from './meal-plan';
 // Shopping list module
 export * from './shopping-list';
 
+// HEB API bridge
+export * from './heb';
+
 // API client shell
 export function createApiClient(config: ApiClientConfig) {
   return {

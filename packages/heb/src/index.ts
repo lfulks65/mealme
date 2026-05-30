@@ -1,64 +1,51 @@
 /**
  * @mealme/heb
  *
- * HEB SDK integration shell for the MealMe platform.
- * Provides types and client for HEB grocery API integration.
+ * HEB SDK integration layer for the MealMe platform.
+ * Provides a typed API surface over heb-sdk-unofficial for
+ * product search, cart management, and order placement.
  */
 
-// HEB API configuration
-export interface HebClientConfig {
-  apiKey: string;
-  baseUrl?: string;
-  timeout?: number;
-}
+// ── Client ──────────────────────────────────────────────────────────────────
+export { HEBClient } from './client.js';
 
-// HEB product types
-export interface HebProduct {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  unit: string;
-  imageUrl?: string;
-  inStock: boolean;
-  category?: string;
-}
+// ── Sub-managers ────────────────────────────────────────────────────────────
+export { CartManager } from './cart.js';
+export { OrderManager } from './order.js';
 
-export interface HebStore {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  phone?: string;
-}
+// ── Types ───────────────────────────────────────────────────────────────────
+export type {
+  // Configuration
+  HEBConfig,
+  HEBShoppingContext,
+  HEBFulfillmentType,
 
-export interface HebCart {
-  id: string;
-  items: HebCartItem[];
-  storeId: string;
-  total: number;
-}
+  // Product
+  Product,
+  ProductPrice,
+  ProductSearchFilters,
+  ProductSearchResult,
 
-export interface HebCartItem {
-  productId: string;
-  quantity: number;
-  product?: HebProduct;
-}
+  // Store
+  Store,
+  StoreAddress,
+  StoreInventory,
 
-// HEB client shell
-export function createHebClient(config: HebClientConfig) {
-  const baseUrl = config.baseUrl ?? 'https://api.heb.com/v1';
+  // Cart
+  Cart,
+  CartItem,
+  CartFee,
 
-  return {
-    config: { ...config, baseUrl },
-    // Methods will be implemented here
-    // async searchProducts(query: string): Promise<HebProduct[]> { ... }
-    // async getNearbyStores(zip: string): Promise<HebStore[]> { ... }
-    // async createCart(storeId: string): Promise<HebCart> { ... }
-    // async addToCart(cartId: string, item: HebCartItem): Promise<HebCart> { ... }
-  };
-}
+  // Delivery
+  DeliveryDetails,
+  DeliveryAddress,
+  FulfillmentSlot,
 
-export type HebClient = ReturnType<typeof createHebClient>;
+  // Order
+  Order,
+  OrderItem,
+  OrderTimeslot,
+  OrderStore,
+  OrderListResult,
+  ListOrdersOptions,
+} from './types.js';

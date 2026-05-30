@@ -185,3 +185,17 @@ export type { MealPrepTimerViewProps } from './components/meal-prep/MealPrepTime
 
 export { useMealPrep } from './components/meal-prep/useMealPrep';
 export type { TimerState, UseMealPrepResult } from './components/meal-prep/useMealPrep';
+
+// ─── HEB Grocery Components ─────────────────────────────────────────────────
+
+export { HEBStoreSelectScreen } from './components/heb/HEBStoreSelectScreen';
+export type { HEBStoreSelectScreenProps } from './components/heb/HEBStoreSelectScreen';
+
+export { HEBProductMatchScreen } from './components/heb/HEBProductMatchScreen';
+export type { HEBProductMatchScreenProps, ShoppingListItemForMatch } from './components/heb/HEBProductMatchScreen';
+
+export { HEBCartScreen } from './components/heb/HEBCartScreen';
+export type { HEBCartScreenProps } from './components/heb/HEBCartScreen';
+
+export { HEBOrderStatusScreen } from './components/heb/HEBOrderStatusScreen';
+export type { HEBOrderStatusScreenProps } from './components/heb/HEBOrderStatusScreen';
