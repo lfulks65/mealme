@@ -299,16 +299,8 @@ export async function searchStores(
   zipCode: string,
   familyId: string,
 ): Promise<StoreInfo[]> {
-  await requireOrgMember(familyId);
-
-  const storeId = await getOrgStoreId(
-    // We need the orgId — re-query
-    (await supabase
-      .from('families')
-      .select('org_id')
-      .eq('id', familyId)
-      .single()).data?.org_id ?? '',
-  );
+  const orgId = await requireOrgMember(familyId);
+  const storeId = await getOrgStoreId(orgId);
 
   const client = await createHEBClient(storeId, zipCode);
   const stores = await client.searchStores(zipCode);
