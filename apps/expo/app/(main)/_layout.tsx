@@ -13,13 +13,20 @@ export default function MainLayout() {
     );
   }
 
-  // Auth guard is handled at root level — just render the stack
   return (
     <Stack screenOptions={{ headerShown: true }}>
-      <Stack.Screen name="home" options={{ title: 'MealMe', headerShown: false }} />
+      {/* Tab navigator (Home, Families, Organizations) */}
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+      {/* Family screens */}
       <Stack.Screen name="families/index" options={{ title: 'Families' }} />
       <Stack.Screen name="families/[id]" options={{ title: 'Family' }} />
       <Stack.Screen name="families/[id]/settings" options={{ title: 'Family Settings' }} />
+
+      {/* Org screens */}
+      <Stack.Screen name="orgs/index" options={{ title: 'Organizations' }} />
+      <Stack.Screen name="orgs/[id]" options={{ title: 'Organization' }} />
+      <Stack.Screen name="orgs/[id]/settings" options={{ title: 'Organization Settings' }} />
     </Stack>
   );
 }
