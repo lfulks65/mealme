@@ -32,12 +32,8 @@ export type {
   Org,
 } from '@mealme/shared';
 
-// API client configuration
-export interface ApiClientConfig {
-  baseUrl: string;
-  apiKey?: string;
-  timeout?: number;
-}
+// Client module (token management, tenant context, API client)
+export * from './client';
 
 // Supabase client (anon key + service-role admin)
 export { supabase, getSupabaseAdmin } from './supabase';
@@ -60,14 +56,4 @@ export * from './recipe';
 // Error handling
 export * from './errors';
 
-// API client shell
-export function createApiClient(config: ApiClientConfig) {
-  return {
-    config,
-    // Methods will be added here
-    // async getUser(id: string): Promise<User> { ... }
-    // async getRecipes(): Promise<Recipe[]> { ... }
-  };
-}
 
-export type ApiClient = ReturnType<typeof createApiClient>;
