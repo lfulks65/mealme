@@ -31,6 +31,12 @@ export { AuthQueryProvider } from './AuthQueryProvider';
 // Secure storage adapter
 export { SecureStorageAdapter } from './secureStorage';
 
+// Session management utilities
+export { isSessionExpired, refreshSession, forceSignOut } from './sessionManager';
+
+// Session expiry hook
+export { useSessionExpiry } from './context';
+
 // React Query auth hooks — also available via ../hooks barrel
 export {
   authKeys,
