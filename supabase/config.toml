@@ -4,8 +4,7 @@
 # Docs: https://supabase.com/docs/guides/local-development
 # ============================================================================
 
-[project]
-id = ""
+project_id = "mealme"
 
 # ----------------------------------------------------------------------------
 # API (PostgREST)
@@ -41,8 +40,6 @@ additional_redirect_urls = [
 ]
 jwt_expiry = 3600
 enable_signup = true
-email_enable_signup = true
-email_double_confirm_changes = true
 
 # ----------------------------------------------------------------------------
 # Auth — Email provider
@@ -60,6 +57,7 @@ enabled = true
 client_id = "env(GOOGLE_CLIENT_ID)"
 secret = "env(GOOGLE_CLIENT_SECRET)"
 redirect_uri = ""
+skip_nonce_check = true
 
 # ----------------------------------------------------------------------------
 # Auth — Apple OAuth
@@ -74,10 +72,10 @@ redirect_uri = ""
 # Auth — Rate limiting
 # ----------------------------------------------------------------------------
 [auth.rate_limit]
-email_send_limit = 5
-sms_send_limit = 5
-anonymous_users_limit = 30
-token_limit = 100
+email_sent = 5
+sms_sent = 5
+anonymous_users = 30
+token_refresh = 100
 
 # ----------------------------------------------------------------------------
 # Storage
