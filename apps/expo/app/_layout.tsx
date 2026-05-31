@@ -3,11 +3,12 @@ import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from '@mealme/ui';
 import { AuthProvider } from '@mealme/ui';
 import { OrgProvider, FamilyProvider } from '@mealme/api';
+import { queryClient } from '../src/lib/queryClient';
 
 export default function RootLayout() {
   return (
     <GluestackUIProvider config={config}>
-      <AuthProvider>
+      <AuthProvider queryClient={queryClient}>
         <OrgProvider>
           <FamilyProvider>
             <Slot />
