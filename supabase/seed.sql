@@ -6,6 +6,10 @@
 -- production.
 --
 -- ⚠️  DO NOT use these credentials in any environment other than local dev.
+--
+-- Multi-tenant flow demonstrated:
+--   Organization (tenant) → Family → Members, Preferences, Meal Plans,
+--   Shopping Lists
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -56,13 +60,18 @@ INSERT INTO auth.users (
 -- 2. Capture the test user ID for subsequent inserts
 -- ---------------------------------------------------------------------------
 -- The handle_new_user() trigger will have already created the profile.
--- We capture the user ID to create the personal organization.
+-- We capture the user ID to create the personal organization and all
+-- downstream seed data.
 -- ---------------------------------------------------------------------------
 
 DO $$
 DECLARE
-  v_user_id UUID;
-  v_org_id  UUID;
+  v_user_id     UUID;
+  v_org_id      UUID;
+  v_family_id   UUID;
+  v_meal_plan_id UUID;
+  v_shopping_list_id UUID;
+  v_week_start  DATE;
 BEGIN
   -- Get the test user's ID
   SELECT id INTO v_user_id
@@ -107,8 +116,8 @@ BEGIN
   -- 4. Add the test user as owner of the personal org
   -- ---------------------------------------------------------------------------
 
-  INSERT INTO public.organization_members (user_id, org_id, role)
-  VALUES (v_user_id, v_org_id, 'owner')
+  INSERT INTO public.organization_members (user_id, org_id, role, tenant_id)
+  VALUES (v_user_id, v_org_id, 'owner', v_org_id)
   ON CONFLICT (user_id, org_id) DO NOTHING;
 
   -- Set the personal org as the default org for the test user
@@ -117,6 +126,143 @@ BEGIN
   WHERE id = v_user_id
     AND default_org_id IS NULL;
 
-  RAISE NOTICE 'Seed data created: test@mealme.app with Personal org';
+  -- ---------------------------------------------------------------------------
+  -- 5. Create a test family within the personal org
+  -- ---------------------------------------------------------------------------
+
+  INSERT INTO public.families (id, name, org_id, tenant_id)
+  VALUES (
+    gen_random_uuid(),
+    'The Test Family',
+    v_org_id,
+    v_org_id
+  )
+  RETURNING id INTO v_family_id
+  ON CONFLICT DO NOTHING;
+
+  -- If the family already existed, fetch its ID
+  IF v_family_id IS NULL THEN
+    SELECT id INTO v_family_id
+    FROM public.families
+    WHERE org_id = v_org_id
+    LIMIT 1;
+  END IF;
+
+  -- ---------------------------------------------------------------------------
+  -- 6. Add the test user as a family member (owner role)
+  -- ---------------------------------------------------------------------------
+
+  INSERT INTO public.family_members (user_id, family_id, role, tenant_id)
+  VALUES (v_user_id, v_family_id, 'owner', v_org_id)
+  ON CONFLICT (user_id, family_id) DO NOTHING;
+
+  -- ---------------------------------------------------------------------------
+  -- 7. Create a sample family_preferences row
+  -- ---------------------------------------------------------------------------
+
+  INSERT INTO public.family_preferences (
+    family_id, tenant_id,
+    dietary_restrictions, allergies, cuisine_preferences,
+    budget_tier, household_size, notes
+  )
+  VALUES (
+    v_family_id, v_org_id,
+    '["vegetarian-friendly"]'::jsonb,
+    '["peanuts", "shellfish"]'::jsonb,
+    '["Mexican", "Italian", "Asian"]'::jsonb,
+    'moderate',
+    4,
+    'Test family prefers home-cooked meals on weekdays.'
+  )
+  ON CONFLICT (family_id) DO NOTHING;
+
+  -- ---------------------------------------------------------------------------
+  -- 8. Create a sample meal plan for the current week
+  -- ---------------------------------------------------------------------------
+
+  -- Calculate Monday of the current week
+  v_week_start := date_trunc('week', CURRENT_DATE)::date;
+
+  INSERT INTO public.meal_plans (id, family_id, week_start_date, created_by, status, tenant_id)
+  VALUES (
+    gen_random_uuid(),
+    v_family_id,
+    v_week_start,
+    v_user_id,
+    'active',
+    v_org_id
+  )
+  RETURNING id INTO v_meal_plan_id
+  ON CONFLICT (family_id, week_start_date) DO NOTHING;
+
+  -- If the meal plan already existed, fetch its ID
+  IF v_meal_plan_id IS NULL THEN
+    SELECT id INTO v_meal_plan_id
+    FROM public.meal_plans
+    WHERE family_id = v_family_id
+      AND week_start_date = v_week_start;
+  END IF;
+
+  -- Add a few sample meal plan entries for the first few days
+  IF v_meal_plan_id IS NOT NULL THEN
+    INSERT INTO public.meal_plan_entries (meal_plan_id, date, meal_slot, servings, notes, tenant_id)
+    VALUES
+      (v_meal_plan_id, v_week_start,        'breakfast', 4, 'Oatmeal with berries', v_org_id),
+      (v_meal_plan_id, v_week_start,        'dinner',    4, 'Taco Tuesday!',        v_org_id),
+      (v_meal_plan_id, v_week_start + 1,    'breakfast', 4, 'Smoothie bowl',        v_org_id),
+      (v_meal_plan_id, v_week_start + 1,    'lunch',     4, 'Leftover tacos',       v_org_id),
+      (v_meal_plan_id, v_week_start + 1,    'dinner',    4, 'Pasta night',          v_org_id),
+      (v_meal_plan_id, v_week_start + 2,    'dinner',    4, 'Stir-fry',             v_org_id)
+    ON CONFLICT DO NOTHING;
+  END IF;
+
+  -- ---------------------------------------------------------------------------
+  -- 9. Create a sample shopping list with items
+  -- ---------------------------------------------------------------------------
+
+  INSERT INTO public.shopping_lists (id, family_id, meal_plan_id, name, created_by, status, tenant_id)
+  VALUES (
+    gen_random_uuid(),
+    v_family_id,
+    v_meal_plan_id,
+    'Weekly Groceries',
+    v_user_id,
+    'active',
+    v_org_id
+  )
+  RETURNING id INTO v_shopping_list_id
+  ON CONFLICT DO NOTHING;
+
+  -- If the shopping list already existed, fetch its ID
+  IF v_shopping_list_id IS NULL THEN
+    SELECT id INTO v_shopping_list_id
+    FROM public.shopping_lists
+    WHERE family_id = v_family_id
+      AND name = 'Weekly Groceries'
+    LIMIT 1;
+  END IF;
+
+  -- Add sample shopping list items
+  IF v_shopping_list_id IS NOT NULL THEN
+    INSERT INTO public.shopping_list_items (
+      shopping_list_id, ingredient_name, quantity, unit, category, checked, tenant_id
+    )
+    VALUES
+      (v_shopping_list_id, 'Oats',              2,    'lb',    'pantry',  false, v_org_id),
+      (v_shopping_list_id, 'Mixed berries',     1,    'lb',    'produce', false, v_org_id),
+      (v_shopping_list_id, 'Tortillas',         1,    'pack',  'bakery',  false, v_org_id),
+      (v_shopping_list_id, 'Ground beef',       1.5,  'lb',    'meat',    false, v_org_id),
+      (v_shopping_list_id, 'Salsa',             1,    'jar',   'pantry',  false, v_org_id),
+      (v_shopping_list_id, 'Spaghetti',         1,    'lb',    'pantry',  false, v_org_id),
+      (v_shopping_list_id, 'Marinara sauce',    1,    'jar',   'pantry',  false, v_org_id),
+      (v_shopping_list_id, 'Soy sauce',         1,    'bottle','pantry',  false, v_org_id),
+      (v_shopping_list_id, 'Broccoli',          2,    'head',  'produce', false, v_org_id),
+      (v_shopping_list_id, 'Bell peppers',      3,    'piece', 'produce', false, v_org_id),
+      (v_shopping_list_id, 'Milk',              1,    'gallon','dairy',   true,  v_org_id),
+      (v_shopping_list_id, 'Eggs',              1,    'dozen', 'dairy',   true,  v_org_id)
+    ON CONFLICT DO NOTHING;
+  END IF;
+
+  RAISE NOTICE 'Seed data created: test@mealme.app → Personal org → The Test Family → preferences, meal plan, shopping list';
 END;
 $$;
