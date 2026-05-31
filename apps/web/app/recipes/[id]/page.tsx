@@ -48,7 +48,7 @@ export async function generateMetadata({
   const recipe = result.recipe;
   const description =
     recipe.description ??
-    `${recipe.title}${recipe.cuisine ? ` — ${recipe.cuisine} cuisine` : ''}. ${recipe.prep_minutes ?? 0 + (recipe.cook_minutes ?? 0)} minutes, ${recipe.servings ?? ''} servings.`;
+    `${recipe.title}${recipe.cuisine ? ` — ${recipe.cuisine} cuisine` : ''}. ${(recipe.prep_minutes ?? 0) + (recipe.cook_minutes ?? 0)} minutes, ${recipe.servings ?? ''} servings.`;
 
   return {
     title: `${recipe.title} — MealMe`,

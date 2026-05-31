@@ -213,7 +213,6 @@ export async function searchRecipes(
       .map((w) => w + ':*')
       .join(' & ');
     q = q.textSearch('fts', tsQuery, {
-      type: 'plain',
       config: 'english',
     });
   }
