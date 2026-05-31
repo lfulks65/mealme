@@ -3,11 +3,27 @@ import type { SeedRecipe } from './types';
 import { mexicanRecipes } from './mexican';
 import { italianRecipes } from './italian';
 import { latinAmericanRecipes } from './latin-american';
-import { africanRecipes } from './african';
+import { africanRecipes, africanAdditionalRecipes } from './african';
 import { caribbeanRecipes } from './caribbean';
 import { britishRecipes } from './british';
 import { greekRecipes } from './greek';
-import { scandinavianRecipes } from './scandinavian';
+import { scandinavianRecipes, scandinavianAdditionalRecipes } from './scandinavian';
+import { asianRecipes, asianAdditionalRecipes } from './asian';
+import { indianRecipes, indianAdditionalRecipes } from './indian';
+import { frenchRecipes, frenchAdditionalRecipes } from './french';
+import { middleEasternRecipes } from './middle-eastern';
+import { americanRecipes, americanAdditionalRecipes } from './american';
+import { mediterraneanRecipes, mediterraneanAdditionalRecipes } from './mediterranean';
+import { germanRecipes } from './german';
+import { japaneseRecipes } from './japanese';
+import { spanishRecipes, spanishAdditionalRecipes } from './spanish';
+import { easternEuropeanRecipes, easternEuropeanAdditionalRecipes } from './eastern-european';
+import { thaiRecipes } from './thai';
+import { koreanRecipes } from './korean';
+import { vietnameseRecipes } from './vietnamese';
+import { brazilianRecipes } from './brazilian';
+import { persianRecipes } from './persian';
+import { filipinoRecipes } from './filipino';
 
 import { getSupabaseClient } from '../../lib/supabase';
 
@@ -18,10 +34,35 @@ const recipes: SeedRecipe[] = [
   ...italianRecipes,
   ...latinAmericanRecipes,
   ...africanRecipes,
+  ...africanAdditionalRecipes,
   ...caribbeanRecipes,
   ...britishRecipes,
   ...greekRecipes,
   ...scandinavianRecipes,
+  ...scandinavianAdditionalRecipes,
+  ...asianRecipes,
+  ...asianAdditionalRecipes,
+  ...indianRecipes,
+  ...indianAdditionalRecipes,
+  ...frenchRecipes,
+  ...frenchAdditionalRecipes,
+  ...middleEasternRecipes,
+  ...americanRecipes,
+  ...americanAdditionalRecipes,
+  ...mediterraneanRecipes,
+  ...mediterraneanAdditionalRecipes,
+  ...germanRecipes,
+  ...japaneseRecipes,
+  ...spanishRecipes,
+  ...spanishAdditionalRecipes,
+  ...easternEuropeanRecipes,
+  ...easternEuropeanAdditionalRecipes,
+  ...thaiRecipes,
+  ...koreanRecipes,
+  ...vietnameseRecipes,
+  ...brazilianRecipes,
+  ...persianRecipes,
+  ...filipinoRecipes,
 ];
 
 // ── Seed function ────────────────────────────────────────────────────────────
