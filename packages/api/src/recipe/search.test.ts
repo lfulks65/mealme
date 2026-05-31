@@ -115,6 +115,7 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
       { id: 'd1', recipe_id: 'recipe-1', restriction: 'gluten-free', is_compliant: false },
       { id: 'd2', recipe_id: 'recipe-1', restriction: 'dairy-free', is_compliant: false },
     ],
+    nutrition: null,
     ...overrides,
   };
 }
@@ -544,5 +545,120 @@ describe('searchRecipes (integration)', () => {
     expect(result).toHaveProperty('total');
     expect(result).toHaveProperty('limit', 20);
     expect(result).toHaveProperty('offset', 0);
+  });
+
+  it('uses textSearch for FTS queries', async () => {
+    const chain: Record<string, any> = {};
+    const recipeData = { id: 'r1', title: 'Chicken Stir Fry' };
+
+    chain.eq = vi.fn(() => chain);
+    chain.ilike = vi.fn(() => chain);
+    chain.in = vi.fn(() => chain);
+    chain.lte = vi.fn(() => chain);
+    chain.gte = vi.fn(() => chain);
+    chain.range = vi.fn(() => chain);
+    chain.order = vi.fn(() => chain);
+    chain.textSearch = vi.fn(() => chain);
+    chain.not = vi.fn(() => chain);
+    chain.single = vi.fn(() => Promise.resolve({ data: null, error: null }));
+
+    chain.then = (resolve: (v: unknown) => void) => {
+      resolve({ data: [recipeData], error: null, count: 1 });
+    };
+
+    mockClient.from.mockReturnValue({ select: vi.fn(() => chain) });
+
+    const { searchRecipes } = await import('./search');
+    const result = await searchRecipes('chicken stir fry', undefined, 20, 0);
+
+    expect(chain.textSearch).toHaveBeenCalledWith('fts', 'chicken:* & stir:* & fry:*', {
+      type: 'plain',
+      config: 'english',
+    });
+    expect(result.recipes).toHaveLength(1);
+  });
+
+  it('applies cuisine filter alongside FTS', async () => {
+    const chain: Record<string, any> = {};
+    const recipeData = { id: 'r1', title: 'Pad Thai' };
+
+    chain.eq = vi.fn(() => chain);
+    chain.ilike = vi.fn(() => chain);
+    chain.in = vi.fn(() => chain);
+    chain.lte = vi.fn(() => chain);
+    chain.gte = vi.fn(() => chain);
+    chain.range = vi.fn(() => chain);
+    chain.order = vi.fn(() => chain);
+    chain.textSearch = vi.fn(() => chain);
+    chain.not = vi.fn(() => chain);
+    chain.single = vi.fn(() => Promise.resolve({ data: null, error: null }));
+
+    chain.then = (resolve: (v: unknown) => void) => {
+      resolve({ data: [recipeData], error: null, count: 1 });
+    };
+
+    mockClient.from.mockReturnValue({ select: vi.fn(() => chain) });
+
+    const { searchRecipes } = await import('./search');
+    const result = await searchRecipes('pad thai', { cuisine: 'thai' }, 20, 0);
+
+    expect(chain.textSearch).toHaveBeenCalled();
+    expect(chain.eq).toHaveBeenCalledWith('cuisine', 'thai');
+    expect(result.recipes).toHaveLength(1);
+  });
+
+  it('applies max_prep_minutes filter alongside FTS', async () => {
+    const chain: Record<string, any> = {};
+    const recipeData = { id: 'r1', title: 'Quick Omelette' };
+
+    chain.eq = vi.fn(() => chain);
+    chain.ilike = vi.fn(() => chain);
+    chain.in = vi.fn(() => chain);
+    chain.lte = vi.fn(() => chain);
+    chain.gte = vi.fn(() => chain);
+    chain.range = vi.fn(() => chain);
+    chain.order = vi.fn(() => chain);
+    chain.textSearch = vi.fn(() => chain);
+    chain.not = vi.fn(() => chain);
+    chain.single = vi.fn(() => Promise.resolve({ data: null, error: null }));
+
+    chain.then = (resolve: (v: unknown) => void) => {
+      resolve({ data: [recipeData], error: null, count: 1 });
+    };
+
+    mockClient.from.mockReturnValue({ select: vi.fn(() => chain) });
+
+    const { searchRecipes } = await import('./search');
+    await searchRecipes('omelette', { max_prep_minutes: 15 }, 20, 0);
+
+    expect(chain.textSearch).toHaveBeenCalled();
+    expect(chain.lte).toHaveBeenCalledWith('prep_minutes', 15);
+  });
+
+  it('skips textSearch when query is empty or whitespace', async () => {
+    const chain: Record<string, any> = {};
+    const recipeData = { id: 'r1', title: 'Test' };
+
+    chain.eq = vi.fn(() => chain);
+    chain.ilike = vi.fn(() => chain);
+    chain.in = vi.fn(() => chain);
+    chain.lte = vi.fn(() => chain);
+    chain.gte = vi.fn(() => chain);
+    chain.range = vi.fn(() => chain);
+    chain.order = vi.fn(() => chain);
+    chain.textSearch = vi.fn(() => chain);
+    chain.not = vi.fn(() => chain);
+    chain.single = vi.fn(() => Promise.resolve({ data: null, error: null }));
+
+    chain.then = (resolve: (v: unknown) => void) => {
+      resolve({ data: [recipeData], error: null, count: 1 });
+    };
+
+    mockClient.from.mockReturnValue({ select: vi.fn(() => chain) });
+
+    const { searchRecipes } = await import('./search');
+    await searchRecipes('   ', undefined, 20, 0);
+
+    expect(chain.textSearch).not.toHaveBeenCalled();
   });
 });

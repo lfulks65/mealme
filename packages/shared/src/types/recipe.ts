@@ -194,6 +194,26 @@ export interface RecipeDietaryInfo {
   is_compliant: boolean;
 }
 
+/** Nutrition data from the recipe_nutrition Supabase table. */
+export interface RecipeNutrition {
+  id: string;
+  recipe_id: string;
+  calories: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  fiber_g: number | null;
+  sugar_g: number | null;
+  sodium_mg: number | null;
+  cholesterol_mg: number | null;
+  serving_size: string | null;
+}
+
+/** Recipe with its nutrition data attached. */
+export interface RecipeWithNutrition extends RecipeFull {
+  nutrition: RecipeNutrition;
+}
+
 /**
  * Full recipe with all nested relations from Supabase.
  *
@@ -233,6 +253,7 @@ export interface RecipeFull {
   steps: RecipeStepDB[];
   tags: RecipeTag[];
   dietary_info: RecipeDietaryInfo[];
+  nutrition: RecipeNutrition | null;
 }
 
 /** Filters for recipe search. */

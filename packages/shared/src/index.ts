@@ -25,6 +25,8 @@ export type {
   RecipeStepDB,
   RecipeTag,
   RecipeDietaryInfo,
+  RecipeNutrition,
+  RecipeWithNutrition,
   RecipeFull,
   RecipeSearchFilters,
   RecipeSearchParams,

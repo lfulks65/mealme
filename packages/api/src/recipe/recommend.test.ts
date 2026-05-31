@@ -99,6 +99,7 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
       { id: 'd1', recipe_id: 'recipe-1', restriction: 'gluten-free', is_compliant: true },
       { id: 'd2', recipe_id: 'recipe-1', restriction: 'dairy-free', is_compliant: true },
     ],
+    nutrition: null,
     ...overrides,
   };
 }

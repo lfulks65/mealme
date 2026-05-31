@@ -52,7 +52,7 @@ interface SeedRecipe {
   steps: SeedStep[];
   tags: string[];
   dietary_info: { restriction: string; is_compliant: boolean }[];
-  nutrition: NutritionData;
+  nutrition?: NutritionData;
 }
 
 // ── Recipe Data ──────────────────────────────────────────────────────────────
