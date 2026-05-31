@@ -21,6 +21,7 @@
     "@mealme/api": "workspace:*",
     "@mealme/shared": "workspace:*",
     "@mealme/ui": "workspace:*",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.42.0",
     "next": "^14.2.0",
     "react": "^18.2.0",
@@ -31,6 +32,7 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.5.0",
+    "nativewind": "^4.0.0",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.4.0"

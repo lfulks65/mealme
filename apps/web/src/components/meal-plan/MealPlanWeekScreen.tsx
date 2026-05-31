@@ -34,9 +34,11 @@ import { PlanProposalScreen } from './PlanProposalScreen';
 interface MealPlanWeekScreenProps {
   familyId: string | null;
   initialWeekStart?: string;
+  /** Server-fetched meal plan data. When provided, the hook skips its initial fetch. */
+  initialMealPlan?: MealPlanWithEntries | null;
 }
 
-export function MealPlanWeekScreen({ familyId, initialWeekStart }: MealPlanWeekScreenProps) {
+export function MealPlanWeekScreen({ familyId, initialWeekStart, initialMealPlan }: MealPlanWeekScreenProps) {
   const [weekStart, setWeekStart] = useState(
     initialWeekStart ?? getWeekStart(getToday()),
   );
@@ -47,7 +49,7 @@ export function MealPlanWeekScreen({ familyId, initialWeekStart }: MealPlanWeekS
   const [generating, setGenerating] = useState(false);
 
   const { mealPlan, loading, error, assignRecipe, removeEntry, moveEntry, generateProposal } =
-    useWeeklyMealPlan(familyId, weekStart);
+    useWeeklyMealPlan(familyId, weekStart, initialMealPlan);
 
   // Compute the 7 dates for the current week
   const weekDates = useMemo(

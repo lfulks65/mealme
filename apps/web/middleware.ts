@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard'];
+const protectedRoutes = ['/dashboard', '/meal-plan'];
 
 // Routes that should redirect away if already authenticated
 const authRoutes = ['/login', '/signup', '/forgot-password'];
@@ -37,6 +37,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*',
+    '/meal-plan/:path*',
     '/login',
     '/signup',
     '/forgot-password',

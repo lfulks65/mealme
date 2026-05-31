@@ -2,7 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "preserve",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowJs": true,
@@ -10,13 +14,16 @@
     "emitDeclarationOnly": true,
     "outDir": "./dist",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "noEmit": true
   },
   "include": [
     "next-env.d.ts",
@@ -24,10 +31,18 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"],
+  "exclude": [
+    "node_modules"
+  ],
   "references": [
-    { "path": "../../packages/shared" },
-    { "path": "../../packages/api" },
-    { "path": "../../packages/ui" }
+    {
+      "path": "../../packages/shared"
+    },
+    {
+      "path": "../../packages/api"
+    },
+    {
+      "path": "../../packages/ui"
+    }
   ]
 }

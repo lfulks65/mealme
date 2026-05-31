@@ -20,6 +20,8 @@ import type { DayPlanIndicator } from '../../hooks/useMealPlan';
 interface MealPlanMonthScreenProps {
   familyId: string | null;
   onDaySelect?: (date: string) => void;
+  /** Server-fetched day indicators. When provided, the hook skips its initial fetch. */
+  initialDays?: DayPlanIndicator[];
 }
 
 const MONTH_NAMES = [
@@ -29,12 +31,12 @@ const MONTH_NAMES = [
 
 const DAY_HEADER_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export function MealPlanMonthScreen({ familyId, onDaySelect }: MealPlanMonthScreenProps) {
+export function MealPlanMonthScreen({ familyId, onDaySelect, initialDays }: MealPlanMonthScreenProps) {
   const today = getToday();
   const [year, setYear] = useState(() => new Date().getFullYear());
   const [month, setMonth] = useState(() => new Date().getMonth()); // 0-indexed
 
-  const { days, loading, error } = useMealPlanMonth(familyId, year, month);
+  const { days, loading, error } = useMealPlanMonth(familyId, year, month, initialDays);
 
   // Build a lookup map: date → DayPlanIndicator
   const dayMap = useMemo(() => {
