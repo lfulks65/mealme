@@ -7,10 +7,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import {
-  searchRecipes,
-  getRecipe,
-} from '../recipe/search';
+import { searchRecipes, getRecipe } from '../recipe/search';
 import { recommendRecipes } from '../recipe/recommend';
 import type {
   RecipeSearchFilters,
@@ -31,8 +28,7 @@ export const recipeKeys = {
     [...recipeKeys.lists(), filters, page] as const,
   details: () => [...recipeKeys.all, 'detail'] as const,
   detail: (id: string) => [...recipeKeys.details(), id] as const,
-  search: (params: RecipeSearchParams) =>
-    [...recipeKeys.all, 'search', params] as const,
+  search: (params: RecipeSearchParams) => [...recipeKeys.all, 'search', params] as const,
   recommendations: (familyId: string, count?: number) =>
     [...recipeKeys.all, 'recommendations', familyId, count] as const,
   preferences: (filters: RecipeSearchFilters | undefined, page: number) =>
@@ -49,16 +45,13 @@ export const recipeKeys = {
  * @param filters - Optional search filters (cuisine, tags, dietary, etc.)
  * @param page - Page number (0-indexed). Defaults to 0.
  */
-export function useRecipes(
-  filters?: RecipeSearchFilters,
-  page: number = 0,
-) {
+export function useRecipes(filters?: RecipeSearchFilters, page: number = 0) {
   const limit = 20;
   const offset = page * limit;
 
   return useQuery<RecipeSearchResult>({
     queryKey: recipeKeys.list(filters, page),
-    queryFn: () => searchRecipes(undefined, filters, limit, offset),
+    queryFn: () => searchRecipes({ ...filters, limit, offset }),
   });
 }
 
@@ -84,7 +77,12 @@ export function useRecipeSearch(params: RecipeSearchParams) {
   return useQuery<RecipeSearchResult>({
     queryKey: recipeKeys.search(params),
     queryFn: () =>
-      searchRecipes(params.query, params.filters, params.limit, params.offset),
+      searchRecipes({
+        query: params.query,
+        ...params.filters,
+        limit: params.limit,
+        offset: params.offset,
+      }),
   });
 }
 
@@ -94,10 +92,7 @@ export function useRecipeSearch(params: RecipeSearchParams) {
  * @param familyId - The family to get recommendations for.
  * @param count - Number of recommendations to return. Defaults to 10.
  */
-export function useRecipeRecommendations(
-  familyId: string | undefined,
-  count: number = 10,
-) {
+export function useRecipeRecommendations(familyId: string | undefined, count: number = 10) {
   return useQuery<RecipeRecommendation[]>({
     queryKey: recipeKeys.recommendations(familyId ?? '', count),
     queryFn: () => recommendRecipes(familyId!, count),

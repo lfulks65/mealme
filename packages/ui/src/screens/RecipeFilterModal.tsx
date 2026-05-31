@@ -137,7 +137,7 @@ export const RecipeFilterModal: React.FC<RecipeFilterModalProps> = ({
     }
     if (selectedTime !== null) {
       filters.max_prep_minutes = selectedTime;
-      filters.max_cook_minutes = selectedTime;
+      filters.max_total_minutes = selectedTime;
     }
     if (selectedCalories !== null) {
       filters.max_calories = selectedCalories;

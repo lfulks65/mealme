@@ -3,7 +3,7 @@ import { passesDietaryFilter, passesAllergenFilter, passesBudgetFilter } from '.
 import type {
   RecipeFull,
   RecipeIngredientDB,
-  RecipeInstruction,
+  RecipeStepDB,
   RecipeTag,
   RecipeDietaryInfo,
   RecipeSearchFilters,
@@ -24,10 +24,10 @@ export async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull
   const sb = getSupabaseClient();
   const recipeIds = recipes.map((r) => r.id);
 
-  const [ingredients, instructions, tags, dietaryInfo] = await Promise.all([
+  const [ingredients, steps, tags, dietaryInfo] = await Promise.all([
     sb.from('recipe_ingredients').select('*').in('recipe_id', recipeIds),
     sb
-      .from('recipe_instructions')
+      .from('recipe_steps')
       .select('*')
       .in('recipe_id', recipeIds)
       .order('step_number', { ascending: true }),
@@ -36,19 +36,19 @@ export async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull
   ]);
 
   if (ingredients.error) throw ingredients.error;
-  if (instructions.error) throw instructions.error;
+  if (steps.error) throw steps.error;
   if (tags.error) throw tags.error;
   if (dietaryInfo.error) throw dietaryInfo.error;
 
   const ingredientMap = groupBy<RecipeIngredientDB>(ingredients.data, 'recipe_id');
-  const instructionMap = groupBy<RecipeInstruction>(instructions.data, 'recipe_id');
+  const stepMap = groupBy<RecipeStepDB>(steps.data, 'recipe_id');
   const tagMap = groupBy<RecipeTag>(tags.data, 'recipe_id');
   const dietaryMap = groupBy<RecipeDietaryInfo>(dietaryInfo.data, 'recipe_id');
 
   return recipes.map((r) => ({
     ...r,
     ingredients: ingredientMap[r.id] ?? [],
-    instructions: instructionMap[r.id] ?? [],
+    steps: stepMap[r.id] ?? [],
     tags: tagMap[r.id] ?? [],
     dietary_info: dietaryMap[r.id] ?? [],
   }));
@@ -63,97 +63,46 @@ function groupBy<T extends Record<string, any>>(items: T[], key: string): Record
   }, {});
 }
 
-/**
- * Build a Supabase query with filter chain from RecipeSearchFilters.
- */
-function applyFilters(query: any, filters: RecipeSearchFilters) {
-  if (filters.cuisine) {
-    query = query.eq('cuisine', filters.cuisine);
-  }
-  if (filters.max_prep_minutes !== undefined) {
-    query = query.lte('prep_minutes', filters.max_prep_minutes);
-  }
-  if (filters.max_cook_minutes !== undefined) {
-    query = query.lte('cook_minutes', filters.max_cook_minutes);
-  }
-  if (filters.max_calories !== undefined) {
-    query = query.lte('calories', filters.max_calories);
-  }
-  if (filters.min_servings !== undefined) {
-    query = query.gte('servings', filters.min_servings);
-  }
-  return query;
-}
-
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
  * Full-text search across recipes with optional filters.
- * Uses PostgreSQL tsvector `fts` column for efficient text search.
+ * Uses the `search_recipes_rpc` Supabase RPC for server-side
+ * filtering, sorting, and pagination.
  */
 export async function searchRecipes(
-  query?: string,
-  filters?: RecipeSearchFilters,
-  limit = 20,
-  offset = 0,
+  filters: RecipeSearchFilters = {},
 ): Promise<RecipeSearchResult> {
   const sb = getSupabaseClient();
 
-  let q: any = sb.from('recipes').select('*', { count: 'exact' });
+  const { data, error } = await sb.rpc('search_recipes_rpc', {
+    p_query: filters.query || null,
+    p_cuisine: filters.cuisine || null,
+    p_difficulty: filters.difficulty || null,
+    p_dietary_restrictions: filters.dietary_restrictions ?? [],
+    p_max_prep_minutes: filters.max_prep_minutes ?? null,
+    p_max_total_minutes: filters.max_total_minutes ?? null,
+    p_max_calories: filters.max_calories ?? null,
+    p_tags: filters.tags ?? [],
+    p_sort: filters.sort ?? 'relevance',
+    p_limit: filters.limit ?? 20,
+    p_offset: filters.offset ?? 0,
+  });
 
-  // Full-text search using the generated `fts` column
-  if (query && query.trim().length > 0) {
-    // Convert user query to tsquery: split words, join with &
-    const tsQuery = query
-      .trim()
-      .split(/\s+/)
-      .map((w) => w + ':*')
-      .join(' & ');
-    q = q.textSearch('fts', tsQuery, {
-      type: 'plain',
-      config: 'english',
-    });
-  }
-
-  // Apply structured filters
-  if (filters) {
-    q = applyFilters(q, filters);
-  }
-
-  // Pagination
-  q = q.range(offset, offset + limit - 1).order('created_at', { ascending: false });
-
-  const { data, error, count } = await q;
   if (error) throw error;
 
   const recipes = (data ?? []) as RecipeFull[];
+  const total = recipes.length > 0 ? (recipes[0] as any).total_count : 0;
+
+  // Attach relations (ingredients, steps, tags, dietary_info)
   const withRelations = await attachRelations(recipes);
 
-  // If dietary restriction filters are specified, further filter in-memory
-  // since dietary_info is in a separate table
-  let filtered = withRelations;
-  if (filters?.dietary_restrictions && filters.dietary_restrictions.length > 0) {
-    filtered = withRelations.filter((recipe) =>
-      filters.dietary_restrictions!.every((restriction: string) =>
-        recipe.dietary_info.some((di) => di.restriction === restriction && di.is_compliant),
-      ),
-    );
-  }
-
-  // If tag filters are specified, further filter in-memory
-  if (filters?.tags && filters.tags.length > 0) {
-    filtered = filtered.filter((recipe) =>
-      filters.tags!.every((tag: string) =>
-        recipe.tags.some((t) => t.tag.toLowerCase() === tag.toLowerCase()),
-      ),
-    );
-  }
-
   return {
-    recipes: filtered,
-    total: count ?? filtered.length,
-    limit,
-    offset,
+    recipes: withRelations,
+    total,
+    limit: filters.limit ?? 20,
+    offset: filters.offset ?? 0,
+    has_more: (filters.offset ?? 0) + (filters.limit ?? 20) < total,
   };
 }
 
@@ -215,11 +164,14 @@ export async function getRecipesByPreferences(
     passesBudgetFilter(recipe, preferences.budgetRange),
   );
 
+  const total = count ?? withRelations.length;
+
   return {
     recipes: withRelations,
-    total: count ?? withRelations.length,
+    total,
     limit,
     offset,
+    has_more: offset + limit < total,
   };
 }
 
@@ -244,12 +196,14 @@ export async function listRecipesByCategory(
 
   const recipes = (data ?? []) as RecipeFull[];
   const withRelations = await attachRelations(recipes);
+  const total = count ?? withRelations.length;
 
   return {
     recipes: withRelations,
-    total: count ?? withRelations.length,
+    total,
     limit,
     offset,
+    has_more: offset + limit < total,
   };
 }
 

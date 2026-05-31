@@ -88,7 +88,7 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
     if (selectedDietary.length > 0) f.dietary_restrictions = selectedDietary;
     if (selectedTime !== null) {
       f.max_prep_minutes = selectedTime;
-      f.max_cook_minutes = selectedTime;
+      f.max_total_minutes = selectedTime;
     }
     if (selectedCalories !== null) f.max_calories = selectedCalories;
     return f;

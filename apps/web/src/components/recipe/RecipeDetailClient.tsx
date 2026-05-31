@@ -9,7 +9,13 @@
 'use client';
 
 import { useState } from 'react';
-import type { RecipeFull, RecipeIngredientDB, RecipeInstruction, RecipeTag, RecipeDietaryInfo } from '@mealme/shared';
+import type {
+  RecipeFull,
+  RecipeIngredientDB,
+  RecipeStepDB,
+  RecipeTag,
+  RecipeDietaryInfo,
+} from '@mealme/shared';
 
 interface RecipeDetailClientProps {
   recipe: RecipeFull;
@@ -36,7 +42,9 @@ export function RecipeDetailClient({ recipe }: RecipeDetailClientProps) {
     if (isNaN(num)) return quantity;
     const adjusted = num * servingsMultiplier;
     // Show clean numbers (e.g., 2 instead of 2.0)
-    return adjusted % 1 === 0 ? adjusted.toFixed(0) : adjusted.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+    return adjusted % 1 === 0
+      ? adjusted.toFixed(0)
+      : adjusted.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
   };
 
   return (
@@ -44,18 +52,14 @@ export function RecipeDetailClient({ recipe }: RecipeDetailClientProps) {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">{recipe.title}</h1>
-        {recipe.description && (
-          <p className="mt-2 text-lg text-gray-600">{recipe.description}</p>
-        )}
+        {recipe.description && <p className="mt-2 text-lg text-gray-600">{recipe.description}</p>}
 
         {/* Action buttons */}
         <div className="mt-4 flex flex-wrap gap-3">
           <button
             onClick={() => setSaved(!saved)}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              saved
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              saved ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             <svg
@@ -85,7 +89,12 @@ export function RecipeDetailClient({ recipe }: RecipeDetailClientProps) {
             className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+              />
             </svg>
             Share
           </button>
@@ -112,16 +121,12 @@ export function RecipeDetailClient({ recipe }: RecipeDetailClientProps) {
         )}
         <div className="rounded-lg bg-gray-50 p-4 text-center">
           <p className="text-sm text-gray-500">Servings</p>
-          <p className="mt-1 text-lg font-semibold text-gray-900">
-            {adjustedServings}
-          </p>
+          <p className="mt-1 text-lg font-semibold text-gray-900">{adjustedServings}</p>
         </div>
         {recipe.calories != null && (
           <div className="rounded-lg bg-gray-50 p-4 text-center">
             <p className="text-sm text-gray-500">Calories</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900">
-              {recipe.calories}
-            </p>
+            <p className="mt-1 text-lg font-semibold text-gray-900">{recipe.calories}</p>
           </div>
         )}
       </div>
@@ -136,9 +141,7 @@ export function RecipeDetailClient({ recipe }: RecipeDetailClientProps) {
           >
             −
           </button>
-          <span className="min-w-[3rem] text-center font-medium">
-            {adjustedServings}
-          </span>
+          <span className="min-w-[3rem] text-center font-medium">{adjustedServings}</span>
           <button
             onClick={() => setServingsMultiplier(servingsMultiplier + 0.5)}
             className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100"
@@ -146,17 +149,13 @@ export function RecipeDetailClient({ recipe }: RecipeDetailClientProps) {
             +
           </button>
         </div>
-        <span className="text-xs text-gray-500">
-          (base: {baseServings})
-        </span>
+        <span className="text-xs text-gray-500">(base: {baseServings})</span>
       </div>
 
       {/* Ingredients */}
       {recipe.ingredients.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
-            Ingredients
-          </h2>
+          <h2 className="mb-4 text-xl font-semibold text-gray-900">Ingredients</h2>
           <ul className="space-y-2">
             {recipe.ingredients.map((ingredient: RecipeIngredientDB) => (
               <li
@@ -179,14 +178,12 @@ export function RecipeDetailClient({ recipe }: RecipeDetailClientProps) {
         </div>
       )}
 
-      {/* Instructions */}
-      {recipe.instructions.length > 0 && (
+      {/* Steps */}
+      {recipe.steps.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
-            Instructions
-          </h2>
+          <h2 className="mb-4 text-xl font-semibold text-gray-900">Instructions</h2>
           <ol className="space-y-4">
-            {recipe.instructions.map((step: RecipeInstruction) => (
+            {recipe.steps.map((step: RecipeStepDB) => (
               <li key={step.id} className="flex gap-4">
                 <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
                   {step.step_number}
@@ -195,8 +192,18 @@ export function RecipeDetailClient({ recipe }: RecipeDetailClientProps) {
                   <p className="text-sm text-gray-700">{step.instruction}</p>
                   {step.timer_minutes != null && step.timer_minutes > 0 && (
                     <span className="mt-1 inline-flex items-center gap-1 text-xs text-gray-500">
-                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <svg
+                        className="h-3 w-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
                       </svg>
                       {step.timer_minutes} min
                     </span>
@@ -228,17 +235,13 @@ export function RecipeDetailClient({ recipe }: RecipeDetailClientProps) {
       {/* Dietary info */}
       {recipe.dietary_info.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-3 text-xl font-semibold text-gray-900">
-            Dietary Information
-          </h2>
+          <h2 className="mb-3 text-xl font-semibold text-gray-900">Dietary Information</h2>
           <div className="flex flex-wrap gap-2">
             {recipe.dietary_info.map((di: RecipeDietaryInfo) => (
               <span
                 key={di.id}
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  di.is_compliant
-                    ? 'bg-green-50 text-green-700'
-                    : 'bg-red-50 text-red-700'
+                  di.is_compliant ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
                 }`}
               >
                 {di.restriction} {di.is_compliant ? '✓' : '✗'}

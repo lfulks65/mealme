@@ -6,16 +6,21 @@
  * to fetch recipe data in Server Components. They mirror
  * the client-side API functions from @mealme/api but work
  * without React hooks or client-side auth context.
+ *
+ * Also exports a client-side `searchRecipesClient` that uses
+ * the @mealme/api package for use in React Query hooks.
  */
 
 import { createServerClient } from './supabase-server';
+import { searchRecipes as searchRecipesApi } from '@mealme/api';
 import type {
   RecipeFull,
   RecipeIngredientDB,
-  RecipeInstruction,
+  RecipeStepDB,
   RecipeTag,
   RecipeDietaryInfo,
   RecipeSearchFilters,
+  RecipeSearchResult,
   RecipeCategory,
 } from '@mealme/shared';
 
@@ -34,6 +39,7 @@ export interface ServerRecipeListResult {
   recipes: RecipeFull[];
   total: number;
   error: string | null;
+  has_more?: boolean;
 }
 
 /** Result wrapper for server-side category queries. */
@@ -73,10 +79,10 @@ async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
   const supabase = createServerClient();
   const recipeIds = recipes.map((r) => r.id);
 
-  const [ingredients, instructions, tags, dietaryInfo] = await Promise.all([
+  const [ingredients, steps, tags, dietaryInfo] = await Promise.all([
     supabase.from('recipe_ingredients').select('*').in('recipe_id', recipeIds),
     supabase
-      .from('recipe_instructions')
+      .from('recipe_steps')
       .select('*')
       .in('recipe_id', recipeIds)
       .order('step_number', { ascending: true }),
@@ -85,7 +91,7 @@ async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
   ]);
 
   if (ingredients.error) throw ingredients.error;
-  if (instructions.error) throw instructions.error;
+  if (steps.error) throw steps.error;
   if (tags.error) throw tags.error;
   if (dietaryInfo.error) throw dietaryInfo.error;
 
@@ -93,10 +99,7 @@ async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
     ingredients.data as RecipeIngredientDB[],
     'recipe_id',
   );
-  const instructionMap = groupBy<RecipeInstruction>(
-    instructions.data as RecipeInstruction[],
-    'recipe_id',
-  );
+  const stepMap = groupBy<RecipeStepDB>(steps.data as RecipeStepDB[], 'recipe_id');
   const tagMap = groupBy<RecipeTag>(tags.data as RecipeTag[], 'recipe_id');
   const dietaryMap = groupBy<RecipeDietaryInfo>(
     dietaryInfo.data as RecipeDietaryInfo[],
@@ -106,32 +109,10 @@ async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
   return recipes.map((r) => ({
     ...r,
     ingredients: ingredientMap[r.id] ?? [],
-    instructions: instructionMap[r.id] ?? [],
+    steps: stepMap[r.id] ?? [],
     tags: tagMap[r.id] ?? [],
     dietary_info: dietaryMap[r.id] ?? [],
   }));
-}
-
-/**
- * Build a Supabase query with filter chain from RecipeSearchFilters.
- */
-function applyFilters(query: any, filters: RecipeSearchFilters) {
-  if (filters.cuisine) {
-    query = query.eq('cuisine', filters.cuisine);
-  }
-  if (filters.max_prep_minutes !== undefined) {
-    query = query.lte('prep_minutes', filters.max_prep_minutes);
-  }
-  if (filters.max_cook_minutes !== undefined) {
-    query = query.lte('cook_minutes', filters.max_cook_minutes);
-  }
-  if (filters.max_calories !== undefined) {
-    query = query.lte('calories', filters.max_calories);
-  }
-  if (filters.min_servings !== undefined) {
-    query = query.gte('servings', filters.min_servings);
-  }
-  return query;
 }
 
 // ---------------------------------------------------------------------------
@@ -172,83 +153,108 @@ export async function getRecipe(id: string): Promise<ServerRecipeResult> {
 }
 
 // ---------------------------------------------------------------------------
-// searchRecipes
+// searchRecipesRPC
 // ---------------------------------------------------------------------------
 
+/** Parameters for the search_recipes_rpc Supabase RPC. */
+export interface SearchRecipesRPCParams {
+  p_query?: string | null;
+  p_cuisine?: string | null;
+  p_difficulty?: string | null;
+  p_dietary_restrictions?: string[];
+  p_max_prep_minutes?: number | null;
+  p_max_total_minutes?: number | null;
+  p_max_calories?: number | null;
+  p_tags?: string[];
+  p_sort?: string;
+  p_limit?: number;
+  p_offset?: number;
+}
+
+/** Row returned by the search_recipes_rpc Supabase RPC. */
+export interface SearchRecipesRPCRow {
+  id: string;
+  title: string;
+  description: string | null;
+  cuisine: string | null;
+  difficulty: string | null;
+  prep_minutes: number | null;
+  cook_minutes: number | null;
+  servings: number | null;
+  calories: number | null;
+  avg_rating: number | null;
+  fts: unknown;
+  created_at: string;
+  total_count: number;
+}
+
+/** Result of the search_recipes_rpc call. */
+export interface SearchRecipesRPCResult {
+  recipes: RecipeFull[];
+  total: number;
+  error: string | null;
+  has_more?: boolean;
+}
+
 /**
- * Full-text search across recipes with optional filters, server-side.
+ * Call the `search_recipes_rpc` Supabase RPC directly for server-side
+ * recipe search with full-text search, filtering, sorting, and pagination.
  *
- * @param query - Search query string.
- * @param filters - Optional structured filters.
- * @param limit - Max results to return.
- * @param offset - Pagination offset.
- * @returns Search results with total count, or an error.
+ * This is the low-level RPC wrapper used by `searchRecipes`. Prefer
+ * `searchRecipes` for the higher-level API that accepts `RecipeSearchFilters`.
+ *
+ * @param params - RPC parameters matching the Postgres function signature.
+ * @returns Search results with total count and has_more, or an error.
  */
-export async function searchRecipes(
-  query?: string,
-  filters?: RecipeSearchFilters,
-  limit = 20,
-  offset = 0,
-): Promise<ServerRecipeListResult> {
+export async function searchRecipesRPC(
+  params: SearchRecipesRPCParams = {},
+): Promise<SearchRecipesRPCResult> {
   const supabase = createServerClient();
 
-  let q: any = supabase.from('recipes').select('*', { count: 'exact' });
+  const {
+    p_query = null,
+    p_cuisine = null,
+    p_difficulty = null,
+    p_dietary_restrictions = [],
+    p_max_prep_minutes = null,
+    p_max_total_minutes = null,
+    p_max_calories = null,
+    p_tags = [],
+    p_sort = 'relevance',
+    p_limit = 20,
+    p_offset = 0,
+  } = params;
 
-  // Full-text search using the generated `fts` column
-  if (query && query.trim().length > 0) {
-    const tsQuery = query
-      .trim()
-      .split(/\s+/)
-      .map((w) => w + ':*')
-      .join(' & ');
-    q = q.textSearch('fts', tsQuery, {
-      config: 'english',
-    });
-  }
-
-  // Apply structured filters
-  if (filters) {
-    q = applyFilters(q, filters);
-  }
-
-  // Pagination
-  q = q.range(offset, offset + limit - 1).order('created_at', { ascending: false });
-
-  const { data, error, count } = await q;
+  const { data, error } = await supabase.rpc('search_recipes_rpc', {
+    p_query,
+    p_cuisine,
+    p_difficulty,
+    p_dietary_restrictions,
+    p_max_prep_minutes,
+    p_max_total_minutes,
+    p_max_calories,
+    p_tags,
+    p_sort,
+    p_limit,
+    p_offset,
+  });
 
   if (error) {
     return { recipes: [], total: 0, error: mapError(error, 'Search failed') };
   }
 
-  const recipes = (data ?? []) as RecipeFull[];
+  const rows = (data ?? []) as SearchRecipesRPCRow[];
+  const recipes = rows as unknown as RecipeFull[];
+  const total = rows.length > 0 ? rows[0].total_count : 0;
 
   try {
-    let withRelations = await attachRelations(recipes);
-
-    // If dietary restriction filters are specified, further filter in-memory
-    if (filters?.dietary_restrictions && filters.dietary_restrictions.length > 0) {
-      withRelations = withRelations.filter((recipe: RecipeFull) =>
-        filters.dietary_restrictions!.every((restriction: string) =>
-          recipe.dietary_info.some(
-            (di: RecipeDietaryInfo) => di.restriction === restriction && di.is_compliant,
-          ),
-        ),
-      );
-    }
-
-    // If tag filters are specified, further filter in-memory
-    if (filters?.tags && filters.tags.length > 0) {
-      withRelations = withRelations.filter((recipe: RecipeFull) =>
-        filters.tags!.every((tag: string) =>
-          recipe.tags.some((t: RecipeTag) => t.tag.toLowerCase() === tag.toLowerCase()),
-        ),
-      );
-    }
+    const withRelations = await attachRelations(recipes);
 
     return {
       recipes: withRelations,
-      total: count ?? withRelations.length,
+      total,
       error: null,
+      has_more: p_offset + p_limit < total,
     };
   } catch (err) {
     return {
@@ -257,6 +263,36 @@ export async function searchRecipes(
       error: err instanceof Error ? err.message : 'Failed to load search results',
     };
   }
+}
+
+// ---------------------------------------------------------------------------
+// searchRecipes
+// ---------------------------------------------------------------------------
+
+/**
+ * Full-text search across recipes with optional filters, server-side.
+ * Uses the `search_recipes_rpc` Supabase RPC for server-side
+ * filtering, sorting, and pagination.
+ *
+ * @param filters - Search filters including query, cuisine, difficulty, etc.
+ * @returns Search results with total count and has_more, or an error.
+ */
+export async function searchRecipes(
+  filters: RecipeSearchFilters = {},
+): Promise<ServerRecipeListResult> {
+  return searchRecipesRPC({
+    p_query: filters.query || null,
+    p_cuisine: filters.cuisine || null,
+    p_difficulty: filters.difficulty || null,
+    p_dietary_restrictions: filters.dietary_restrictions ?? [],
+    p_max_prep_minutes: filters.max_prep_minutes ?? null,
+    p_max_total_minutes: filters.max_total_minutes ?? null,
+    p_max_calories: filters.max_calories ?? null,
+    p_tags: filters.tags ?? [],
+    p_sort: filters.sort ?? 'relevance',
+    p_limit: filters.limit ?? 20,
+    p_offset: filters.offset ?? 0,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -338,6 +374,7 @@ export async function getRecipesByCuisine(
       recipes: withRelations,
       total: count ?? withRelations.length,
       error: null,
+      has_more: offset + limit < (count ?? withRelations.length),
     };
   } catch (err) {
     return {
@@ -418,4 +455,24 @@ export async function getPopularRecipeIds(limit = 20): Promise<string[]> {
   }
 
   return data.map((row: { id: string }) => row.id);
+}
+
+// ---------------------------------------------------------------------------
+// searchRecipesClient (client-side)
+// ---------------------------------------------------------------------------
+
+/**
+ * Client-side recipe search using the @mealme/api package.
+ *
+ * This function delegates to the @mealme/api searchRecipes,
+ * which uses the Supabase client (anon key) for client-side
+ * data fetching. Used by React Query hooks in the web app.
+ *
+ * @param filters - Search filters including query, cuisine, difficulty, etc.
+ * @returns Search results with total count and has_more.
+ */
+export async function searchRecipesClient(
+  filters: RecipeSearchFilters = {},
+): Promise<RecipeSearchResult> {
+  return searchRecipesApi(filters);
 }

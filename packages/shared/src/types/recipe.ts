@@ -20,6 +20,9 @@ export type MeasurementUnit = MeasurementUnitKey;
 /** Difficulty level for a recipe. */
 export type RecipeDifficulty = 'easy' | 'medium' | 'hard';
 
+/** Sort options for recipe search. */
+export type RecipeSortOption = 'relevance' | 'rating' | 'prep_time' | 'newest';
+
 /**
  * A single ingredient in a recipe.
  */
@@ -170,14 +173,17 @@ export interface RecipeIngredientDB {
   optional: boolean;
 }
 
-/** A single instruction step for a Supabase-backed recipe. */
-export interface RecipeInstruction {
+/** A single instruction step for a Supabase-backed recipe (from recipe_steps table). */
+export interface RecipeStepDB {
   id: string;
   recipe_id: string;
   step_number: number;
   instruction: string;
   timer_minutes: number | null;
 }
+
+/** @deprecated Use RecipeStepDB instead. Kept for backward compatibility. */
+export type RecipeInstruction = RecipeStepDB;
 
 /** A tag associated with a recipe. */
 export interface RecipeTag {
@@ -227,23 +233,31 @@ export interface RecipeFull {
   created_by: string | null;
   /** ISO-8601 timestamp when the recipe was created. */
   created_at: string;
+  /** Difficulty level (easy, medium, hard). */
+  difficulty: RecipeDifficulty | null;
+  /** Average rating from reviews (nullable). */
+  avg_rating: number | null;
 
   // ── Nested relations (attached by attachRelations) ─────────────────────
   ingredients: RecipeIngredientDB[];
-  instructions: RecipeInstruction[];
+  steps: RecipeStepDB[];
   tags: RecipeTag[];
   dietary_info: RecipeDietaryInfo[];
 }
 
 /** Filters for recipe search. */
 export interface RecipeSearchFilters {
+  query?: string;
   cuisine?: string;
-  tags?: string[];
+  difficulty?: RecipeDifficulty;
   dietary_restrictions?: string[];
   max_prep_minutes?: number;
-  max_cook_minutes?: number;
+  max_total_minutes?: number;
   max_calories?: number;
-  min_servings?: number;
+  tags?: string[];
+  sort?: RecipeSortOption;
+  limit?: number;
+  offset?: number;
 }
 
 /** Parameters for recipe search. */
@@ -260,6 +274,7 @@ export interface RecipeSearchResult {
   total: number;
   limit: number;
   offset: number;
+  has_more: boolean;
 }
 
 /** A scored recipe recommendation. */

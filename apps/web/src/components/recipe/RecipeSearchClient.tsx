@@ -1,73 +1,124 @@
 /**
  * @module RecipeSearchClient
- * Client component for interactive recipe search.
+ * Client component for interactive recipe search with infinite scroll.
  *
- * Provides debounced search input, filter toggles for cuisine
- * and dietary restrictions, and triggers server-side navigation
- * via URL search params.
+ * Uses React Query's useInfiniteQuery for pagination,
+ * IntersectionObserver for infinite scroll, and URL-synced
+ * filter state for shareable/bookmarkable search URLs.
  */
 
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
+import { useRecipeSearch } from '@/hooks/useRecipeSearch';
+import { useRecipeSearchFilters } from '@/hooks/useRecipeSearchFilters';
+import { RecipeCard } from './RecipeCard';
+import { RecipeFilterPanel } from './RecipeFilterPanel';
 
-interface RecipeSearchClientProps {
-  availableCuisines: string[];
-  availableDietaryRestrictions: string[];
+/** Skeleton card for loading state. */
+function SkeletonCard() {
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="h-48 animate-pulse bg-gray-200" />
+      <div className="space-y-3 p-4">
+        <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+        <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
+        <div className="flex gap-3">
+          <div className="h-3 w-16 animate-pulse rounded bg-gray-200" />
+          <div className="h-3 w-16 animate-pulse rounded bg-gray-200" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export function RecipeSearchClient({
-  availableCuisines,
-  availableDietaryRestrictions,
-}: RecipeSearchClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+/** Loading skeleton grid. */
+function SkeletonGrid({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <SkeletonCard key={i} />
+      ))}
+    </div>
+  );
+}
 
-  const initialQuery = searchParams.get('q') ?? '';
-  const initialCuisine = searchParams.get('cuisine') ?? '';
-  const initialDietary = searchParams.get('dietary')?.split(',').filter(Boolean) ?? [];
+/** Empty state with contextual message. */
+function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <svg
+        className="mb-4 h-16 w-16 text-gray-300"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1}
+          d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+        />
+      </svg>
+      <p className="text-lg font-medium text-gray-500">
+        {hasFilters
+          ? 'No recipes match your filters. Try adjusting your search.'
+          : 'No recipes found. Start by searching or browsing.'}
+      </p>
+    </div>
+  );
+}
 
-  const [query, setQuery] = useState(initialQuery);
-  const [selectedCuisine, setSelectedCuisine] = useState(initialCuisine);
-  const [selectedDietary, setSelectedDietary] = useState<string[]>(initialDietary);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+export function RecipeSearchClient() {
+  const {
+    filters,
+    searchFilters,
+    queryInput,
+    setQueryInput,
+    setCuisine,
+    setDifficulty,
+    toggleDietary,
+    clearDietary,
+    setMaxPrep,
+    setSort,
+    clearFilters,
+    activeFilterCount,
+  } = useRecipeSearchFilters();
 
-  // Build URL with search params and navigate
-  const navigateToSearch = useCallback(
-    (q: string, cuisine: string, dietary: string[]) => {
-      const params = new URLSearchParams();
-      if (q.trim()) params.set('q', q.trim());
-      if (cuisine) params.set('cuisine', cuisine);
-      if (dietary.length > 0) params.set('dietary', dietary.join(','));
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } =
+    useRecipeSearch(searchFilters);
 
-      const search = params.toString();
-      router.push(`/recipes/search${search ? `?${search}` : ''}`);
+  // Flatten pages into single recipe list
+  const recipes = data?.pages.flatMap((p) => p.recipes) ?? [];
+  const total = data?.pages[0]?.total ?? 0;
+
+  // Infinite scroll sentinel ref
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const handleIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries;
+      if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
     },
-    [router],
+    [hasNextPage, isFetchingNextPage, fetchNextPage],
   );
 
-  // Debounced search on query change
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      navigateToSearch(query, selectedCuisine, selectedDietary);
-    }, 400);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, selectedCuisine, selectedDietary, navigateToSearch]);
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(handleIntersect, {
+      rootMargin: '200px',
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [handleIntersect]);
 
-  const toggleDietary = (restriction: string) => {
-    setSelectedDietary((prev) =>
-      prev.includes(restriction)
-        ? prev.filter((r) => r !== restriction)
-        : [...prev, restriction],
-    );
-  };
+  const hasFilters = activeFilterCount > 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Search input */}
       <div className="relative">
         <svg
@@ -85,79 +136,113 @@ export function RecipeSearchClient({
         </svg>
         <input
           type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={queryInput}
+          onChange={(e) => setQueryInput(e.target.value)}
           placeholder="Search recipes..."
-          className="w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-        {query && (
+        {queryInput && (
           <button
-            onClick={() => setQuery('')}
+            onClick={() => setQueryInput('')}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            aria-label="Clear search"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}
       </div>
 
-      {/* Cuisine filter */}
-      {availableCuisines.length > 0 && (
-        <div>
-          <h3 className="mb-2 text-sm font-medium text-gray-700">Cuisine</h3>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedCuisine('')}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                selectedCuisine === ''
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              All
-            </button>
-            {availableCuisines.map((cuisine) => (
-              <button
-                key={cuisine}
-                onClick={() =>
-                  setSelectedCuisine(selectedCuisine === cuisine ? '' : cuisine)
-                }
-                className={`rounded-full px-3 py-1 text-xs font-medium capitalize transition-colors ${
-                  selectedCuisine === cuisine
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {cuisine}
-              </button>
-            ))}
-          </div>
+      {/* Filter panel */}
+      <RecipeFilterPanel
+        cuisine={filters.cuisine}
+        difficulty={filters.difficulty}
+        dietary={filters.dietary}
+        maxPrep={filters.maxPrep}
+        sort={filters.sort}
+        activeFilterCount={activeFilterCount}
+        onCuisineChange={setCuisine}
+        onDifficultyChange={setDifficulty}
+        onToggleDietary={toggleDietary}
+        onClearDietary={clearDietary}
+        onMaxPrepChange={setMaxPrep}
+        onSortChange={setSort}
+        onClearFilters={clearFilters}
+      />
+
+      {/* Results info */}
+      {!isLoading && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            {recipes.length > 0
+              ? `Showing ${recipes.length} of ${total} recipe${total !== 1 ? 's' : ''}`
+              : hasFilters
+                ? 'No matching recipes'
+                : ''}
+          </p>
         </div>
       )}
 
-      {/* Dietary restriction filter */}
-      {availableDietaryRestrictions.length > 0 && (
-        <div>
-          <h3 className="mb-2 text-sm font-medium text-gray-700">
-            Dietary Restrictions
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {availableDietaryRestrictions.map((restriction) => (
-              <button
-                key={restriction}
-                onClick={() => toggleDietary(restriction)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  selectedDietary.includes(restriction)
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {restriction}
-              </button>
-            ))}
-          </div>
+      {/* Error state */}
+      {isError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm text-red-700">
+            {error instanceof Error ? error.message : 'Something went wrong. Please try again.'}
+          </p>
         </div>
+      )}
+
+      {/* Loading skeleton */}
+      {isLoading && <SkeletonGrid />}
+
+      {/* Results */}
+      {!isLoading && recipes.length > 0 && (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {recipes.map((recipe) => (
+            <RecipeCard key={recipe.id} recipe={recipe} />
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!isLoading && recipes.length === 0 && !isError && <EmptyState hasFilters={hasFilters} />}
+
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="h-1" />
+
+      {/* Next page loading spinner */}
+      {isFetchingNextPage && (
+        <div className="flex items-center justify-center py-8">
+          <svg className="h-6 w-6 animate-spin text-blue-600" fill="none" viewBox="0 0 24 24">
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          <span className="ml-2 text-sm text-gray-500">Loading more recipes...</span>
+        </div>
+      )}
+
+      {/* End of results */}
+      {!hasNextPage && recipes.length > 0 && !isFetchingNextPage && (
+        <p className="py-4 text-center text-sm text-gray-400">
+          You&apos;ve seen all {total} recipe{total !== 1 ? 's' : ''}
+        </p>
       )}
     </div>
   );

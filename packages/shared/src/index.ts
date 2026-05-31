@@ -14,6 +14,7 @@ export type { AuthProvider, User, CreateUserInput, UpdateUserInput } from './typ
 
 export type {
   RecipeDifficulty,
+  RecipeSortOption,
   MeasurementUnit,
   RecipeIngredient,
   RecipeStep,
@@ -22,6 +23,7 @@ export type {
   CreateRecipeInput,
   UpdateRecipeInput,
   RecipeIngredientDB,
+  RecipeStepDB,
   RecipeInstruction,
   RecipeTag,
   RecipeDietaryInfo,

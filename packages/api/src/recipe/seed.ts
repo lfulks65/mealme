@@ -7,7 +7,7 @@
  * Inserts into all related tables respecting foreign-key order:
  *   1. recipes
  *   2. recipe_ingredients
- *   3. recipe_instructions
+ *   3. recipe_steps
  *   4. recipe_tags
  *   5. recipe_dietary_info
  */
@@ -23,7 +23,7 @@ interface SeedIngredient {
   optional?: boolean;
 }
 
-interface SeedInstruction {
+interface SeedStep {
   step_number: number;
   instruction: string;
   timer_minutes?: number;
@@ -39,7 +39,7 @@ interface SeedRecipe {
   servings: number;
   calories?: number;
   ingredients: SeedIngredient[];
-  instructions: SeedInstruction[];
+  steps: SeedStep[];
   tags: string[];
   dietary_info: { restriction: string; is_compliant: boolean }[];
 }
@@ -66,7 +66,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Cilantro', quantity: '0.25', unit: 'cup' },
       { name: 'Lime juice', quantity: '2', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -115,7 +115,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Cumin', quantity: '1', unit: 'tsp' },
       { name: 'Sour cream', quantity: '0.5', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Preheat oven to 375°F. Spread ½ cup sauce on the bottom of a 9×13 dish.',
@@ -165,7 +165,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Pecorino Romano', quantity: '1', unit: 'cup' },
       { name: 'Black pepper', quantity: '2', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Boil spaghetti in well-salted water until al dente.' },
       {
         step_number: 2,
@@ -213,7 +213,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Olive oil', quantity: '2', unit: 'tbsp' },
       { name: 'Salt', quantity: '0.5', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Preheat oven to 500°F with a pizza stone for 30 minutes.' },
       { step_number: 2, instruction: 'Crush tomatoes by hand and season with salt.' },
       { step_number: 3, instruction: 'Stretch dough into a 12-inch round on a floured surface.' },
@@ -255,7 +255,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Garlic', quantity: '2', unit: 'clove' },
       { name: 'Sesame oil', quantity: '1', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Slice chicken and toss with 1 tbsp soy sauce and cornstarch.',
@@ -301,7 +301,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Crushed peanuts', quantity: '0.25', unit: 'cup' },
       { name: 'Lime wedges', quantity: '4', unit: 'piece' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Soak rice noodles in hot water 8 minutes until pliable; drain.',
@@ -346,7 +346,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Ketchup', quantity: '2', unit: 'tbsp' },
       { name: 'Salt and pepper', quantity: '1', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Form beef into 4 patties, season with salt and pepper.' },
       {
         step_number: 2,
@@ -386,7 +386,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Breadcrumbs', quantity: '0.5', unit: 'cup' },
       { name: 'Mustard powder', quantity: '1', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Cook macaroni until al dente; drain and set aside.' },
       {
         step_number: 2,
@@ -434,7 +434,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Tamari', quantity: '2', unit: 'tbsp' },
       { name: 'Sesame seeds', quantity: '1', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -484,7 +484,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Thai basil', quantity: '0.5', unit: 'cup' },
       { name: 'Jasmine rice', quantity: '2', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Slice chicken into bite-sized pieces.' },
       {
         step_number: 2,
@@ -533,7 +533,7 @@ const recipes: SeedRecipe[] = [
       { name: 'White onion', quantity: '2', unit: 'tbsp' },
       { name: 'Salt', quantity: '0.5', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Halve avocados, remove pits, and scoop flesh into a bowl.' },
       { step_number: 2, instruction: 'Mash with a fork to desired chunkiness.' },
       { step_number: 3, instruction: 'Dice tomato, finely mince jalapeño and onion; add to bowl.' },
@@ -582,7 +582,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Oregano', quantity: '1', unit: 'tsp' },
       { name: 'Radishes', quantity: '6', unit: 'whole' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Toast guajillo and ancho chiles in a dry pan; soak in hot water 20 minutes.',
@@ -637,7 +637,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Butter', quantity: '2', unit: 'tbsp' },
       { name: 'Thyme', quantity: '1', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Warm broth in a saucepan; keep at a low simmer.' },
       {
         step_number: 2,
@@ -686,7 +686,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Balsamic vinegar', quantity: '1', unit: 'tbsp' },
       { name: 'Salt', quantity: '0.5', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -736,7 +736,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Vegetable oil', quantity: '3', unit: 'cup' },
       { name: 'Salt', quantity: '1', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -790,7 +790,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Thyme', quantity: '1', unit: 'tsp' },
       { name: 'Bay leaf', quantity: '1', unit: 'piece' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Cook chopped bacon in a large pot until crispy; remove and set aside.',
@@ -845,7 +845,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Parsley', quantity: '2', unit: 'tbsp' },
       { name: 'Olive oil', quantity: '1', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -895,7 +895,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Chives', quantity: '1', unit: 'tbsp' },
       { name: 'Salt', quantity: '0.25', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -954,7 +954,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Vanilla extract', quantity: '1', unit: 'tsp' },
       { name: 'Flax meal', quantity: '2', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1007,7 +1007,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Red wine vinegar', quantity: '2', unit: 'tbsp' },
       { name: 'Dried oregano', quantity: '1', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Chop cucumber into half-moons and tomatoes into wedges.' },
       {
         step_number: 2,
@@ -1064,7 +1064,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Olive oil', quantity: '2', unit: 'tbsp' },
       { name: 'Smoked paprika', quantity: '1', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1128,7 +1128,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Smoked paprika', quantity: '1', unit: 'tsp' },
       { name: 'Crumbled feta', quantity: '0.25', unit: 'cup', optional: true },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1190,7 +1190,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Fresh thyme', quantity: '1', unit: 'tbsp' },
       { name: 'Cherry tomatoes', quantity: '0.5', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1247,7 +1247,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Garlic', quantity: '4', unit: 'clove' },
       { name: 'Basmati rice', quantity: '2', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1299,7 +1299,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Garam masala', quantity: '1.5', unit: 'tsp' },
       { name: 'Cilantro', quantity: '0.25', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Sauté diced onion in oil until golden, about 6 minutes.' },
       {
         step_number: 2,
@@ -1359,7 +1359,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Heavy cream', quantity: '0.25', unit: 'cup' },
       { name: 'Garam masala', quantity: '1', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1413,7 +1413,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Ginger', quantity: '1', unit: 'tbsp' },
       { name: 'Fresh mint', quantity: '0.25', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1476,7 +1476,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Red pepper flakes', quantity: '0.25', unit: 'tsp' },
       { name: 'Flaky sea salt', quantity: '0.25', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Toast sourdough slices until golden and crisp.' },
       {
         step_number: 2,
@@ -1517,7 +1517,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Vegetable oil', quantity: '2', unit: 'tbsp' },
       { name: 'Garlic', quantity: '2', unit: 'clove' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Heat vegetable oil in a wok over high heat until shimmering.',
@@ -1575,7 +1575,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Butter', quantity: '1', unit: 'tbsp' },
       { name: 'Salsa', quantity: '0.25', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Shred cheeses and thinly slice bell pepper.' },
       {
         step_number: 2,
@@ -1621,7 +1621,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Agave nectar or honey', quantity: '1', unit: 'tbsp', optional: true },
       { name: 'Almond milk', quantity: '0.25', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1676,7 +1676,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Yellow mustard', quantity: '1', unit: 'tsp' },
       { name: 'Onion', quantity: '0.25', unit: 'whole' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Cook bacon in a skillet until crispy; crumble and set aside.',
@@ -1722,7 +1722,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Pepperoni', quantity: '20', unit: 'piece' },
       { name: 'Italian seasoning', quantity: '1', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1772,7 +1772,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Fresh dill', quantity: '2', unit: 'tbsp' },
       { name: 'Salt', quantity: '0.5', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       { step_number: 1, instruction: 'Pat salmon fillets dry and season with salt and pepper.' },
       {
         step_number: 2,
@@ -1833,7 +1833,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Smoked paprika', quantity: '1', unit: 'tsp' },
       { name: 'Fresh parsley', quantity: '2', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Dice sweet potatoes into half-inch cubes; dice bell pepper and onion.',
@@ -1903,7 +1903,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Bouquet garni', quantity: '1', unit: 'piece' },
       { name: 'Garlic', quantity: '3', unit: 'clove' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -1971,7 +1971,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Garlic', quantity: '6', unit: 'clove' },
       { name: 'Ginger', quantity: '3', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2038,7 +2038,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Worcestershire sauce', quantity: '2', unit: 'tbsp' },
       { name: 'Yellow mustard', quantity: '2', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2116,7 +2116,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Flour', quantity: '3', unit: 'tbsp' },
       { name: 'Milk', quantity: '2', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2177,7 +2177,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Salt', quantity: '2', unit: 'tsp' },
       { name: 'Rice flour', quantity: '2', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2245,7 +2245,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Vanilla extract', quantity: '1', unit: 'tsp' },
       { name: 'Powdered sugar', quantity: '1', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2310,7 +2310,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Cocoa powder', quantity: '2', unit: 'tbsp' },
       { name: 'Coffee liqueur', quantity: '2', unit: 'tbsp', optional: true },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Brew espresso and let it cool. Stir in coffee liqueur if using.',
@@ -2375,7 +2375,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Butter', quantity: '0.33', unit: 'cup' },
       { name: 'Cinnamon', quantity: '0.5', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2443,7 +2443,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Vanilla extract', quantity: '1', unit: 'tsp' },
       { name: 'Salt', quantity: '0.5', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Whisk flour, sugar, baking powder, and salt together in a large bowl.',
@@ -2497,7 +2497,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Butter', quantity: '2', unit: 'tbsp' },
       { name: 'Maple syrup', quantity: '0.25', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2552,7 +2552,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Cilantro', quantity: '0.25', unit: 'cup' },
       { name: 'Olive oil', quantity: '1', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2618,7 +2618,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Vegetable broth', quantity: '6', unit: 'cup' },
       { name: 'Garlic', quantity: '3', unit: 'clove' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Dice carrot, celery, zucchini, and onion into small uniform pieces.',
@@ -2680,7 +2680,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Fresh dill', quantity: '2', unit: 'tbsp' },
       { name: 'Garlic', quantity: '2', unit: 'clove' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2740,7 +2740,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Thai chiles', quantity: '3', unit: 'whole' },
       { name: 'Cilantro', quantity: '0.25', unit: 'cup' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2806,7 +2806,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Dijon mustard', quantity: '1', unit: 'tsp' },
       { name: 'Egg yolk', quantity: '1', unit: 'whole' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Mash anchovy fillets and garlic into a paste with the flat side of a knife.',
@@ -2861,7 +2861,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Red wine vinegar', quantity: '2', unit: 'tbsp' },
       { name: 'Olive oil', quantity: '3', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2916,7 +2916,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Vanilla extract', quantity: '1', unit: 'tbsp' },
       { name: 'Lemon juice', quantity: '1', unit: 'tbsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction:
@@ -2976,7 +2976,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Coconut flakes', quantity: '2', unit: 'tbsp' },
       { name: 'Lime zest', quantity: '0.5', unit: 'tsp' },
     ],
-    instructions: [
+    steps: [
       {
         step_number: 1,
         instruction: 'Whisk coconut milk, sugar, and agar agar powder together in a saucepan.',
@@ -3027,7 +3027,7 @@ const recipes: SeedRecipe[] = [
 
 /**
  * Seed all recipes into the database.
- * Inserts into recipes, recipe_ingredients, recipe_instructions,
+ * Inserts into recipes, recipe_ingredients, recipe_steps,
  * recipe_tags, and recipe_dietary_info in the correct FK order.
  */
 export async function seedRecipes(): Promise<void> {
@@ -3071,15 +3071,15 @@ export async function seedRecipes(): Promise<void> {
       console.error(`  Ingredients error for "${recipe.title}":`, ingError.message);
     }
 
-    // 3. Insert instructions
-    const instructionRows = recipe.instructions.map((inst) => ({
+    // 3. Insert steps
+    const stepRows = recipe.steps.map((inst) => ({
       recipe_id: recipeId,
       step_number: inst.step_number,
       instruction: inst.instruction,
       timer_minutes: inst.timer_minutes ?? null,
     }));
 
-    const { error: instError } = await sb.from('recipe_instructions').insert(instructionRows);
+    const { error: instError } = await sb.from('recipe_steps').insert(stepRows);
     if (instError) {
       console.error(`  Instructions error for "${recipe.title}":`, instError.message);
     }
