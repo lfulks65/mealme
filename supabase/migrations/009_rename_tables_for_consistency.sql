@@ -123,7 +123,7 @@ BEGIN
     JOIN pg_class frel ON frel.oid = con.confrelid
     WHERE con.contype = 'f'
       AND frel.relname IN ('organization_members', 'family_members')
-      AND con.conname LIKE '%org_membership%' OR con.conname LIKE '%family_membership%'
+      AND (con.conname LIKE '%org_membership%' OR con.conname LIKE '%family_membership%')
   LOOP
     -- Generate a new name by replacing the old table name pattern
     EXECUTE format(
