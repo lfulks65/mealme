@@ -107,7 +107,7 @@ BEGIN
   -- 4. Add the test user as owner of the personal org
   -- ---------------------------------------------------------------------------
 
-  INSERT INTO public.org_memberships (user_id, org_id, role)
+  INSERT INTO public.organization_members (user_id, org_id, role)
   VALUES (v_user_id, v_org_id, 'owner')
   ON CONFLICT (user_id, org_id) DO NOTHING;
 

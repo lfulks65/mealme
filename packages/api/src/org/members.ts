@@ -79,7 +79,7 @@ export async function inviteMember(
 
   // Verify the caller is admin+ in this org
   const { data: callerMembership, error: membershipError } = await supabase
-    .from('org_memberships')
+    .from('organization_members')
     .select('role')
     .eq('org_id', input.orgId)
     .eq('user_id', userId)
@@ -206,7 +206,7 @@ export async function removeMember(
   if (targetUserId === userId) {
     // Check the user is not the owner (owner cannot leave)
     const { data: membership, error: membershipError } = await supabase
-      .from('org_memberships')
+      .from('organization_members')
       .select('role')
       .eq('org_id', orgId)
       .eq('user_id', userId)
@@ -221,7 +221,7 @@ export async function removeMember(
     }
 
     const { error: deleteError } = await supabase
-      .from('org_memberships')
+      .from('organization_members')
       .delete()
       .eq('org_id', orgId)
       .eq('user_id', userId);
@@ -311,7 +311,7 @@ export async function listMembers(
 
   // Fetch memberships with profile data
   const { data, error } = await supabase
-    .from('org_memberships')
+    .from('organization_members')
     .select('id, user_id, role, created_at, profiles(id, full_name, avatar_url)')
     .eq('org_id', orgId)
     .order('created_at', { ascending: true });

@@ -6,7 +6,7 @@
 // Types
 export type {
   OrgRow,
-  OrgMembershipRow,
+  OrgMemberRow,
   OrgRole,
   OrgWithRole,
   CreateOrgInput,

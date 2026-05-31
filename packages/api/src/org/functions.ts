@@ -91,7 +91,7 @@ export async function createOrg(
 
   // 2. Insert the creator as owner
   const { error: memberError } = await supabase
-    .from('org_memberships')
+    .from('organization_members')
     .insert({
       user_id: userId,
       org_id: orgData.id,
@@ -143,7 +143,7 @@ export async function getOrg(id: string): Promise<OrgResult> {
 
   // Fetch the current user's membership role
   const { data: membershipData, error: membershipError } = await supabase
-    .from('org_memberships')
+    .from('organization_members')
     .select('role')
     .eq('org_id', id)
     .eq('user_id', userId)
@@ -181,7 +181,7 @@ export async function listUserOrgs(): Promise<OrgListResult> {
 
   // Join organizations with the user's memberships
   const { data, error } = await supabase
-    .from('org_memberships')
+    .from('organization_members')
     .select('role, organizations(id, name, slug, created_at)')
     .eq('user_id', userId);
 
@@ -222,7 +222,7 @@ export async function updateOrg(
 
   // Verify the user is admin+ in this org
   const { data: membershipData, error: membershipError } = await supabase
-    .from('org_memberships')
+    .from('organization_members')
     .select('role')
     .eq('org_id', id)
     .eq('user_id', userId)
@@ -287,7 +287,7 @@ export async function deleteOrg(id: string): Promise<OrgDeleteResult> {
 
   // Verify the user is the owner
   const { data: membershipData, error: membershipError } = await supabase
-    .from('org_memberships')
+    .from('organization_members')
     .select('role')
     .eq('org_id', id)
     .eq('user_id', userId)
