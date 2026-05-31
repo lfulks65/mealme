@@ -3116,6 +3116,15 @@ const recipes: SeedRecipe[] = [
       { restriction: 'whole30', is_compliant: false },
     ],
   },
+  // ══ Seed Batch 1: Mexican, Italian, Asian, Indian ═══════════════════════
+  ...generateCuisineRecipes(mexicanBatchRecipes),
+  ...generateCuisineRecipes(italianBatchRecipes),
+  ...generateCuisineRecipes(chineseBatchRecipes),
+  ...generateCuisineRecipes(japaneseBatchRecipes),
+  ...generateCuisineRecipes(koreanBatchRecipes),
+  ...generateCuisineRecipes(thaiBatchRecipes),
+  ...generateCuisineRecipes(vietnameseBatchRecipes),
+  ...generateCuisineRecipes(indianBatchRecipes),
 ];
 
 // ── Seed Function ───────────────────────────────────────────────────────────
