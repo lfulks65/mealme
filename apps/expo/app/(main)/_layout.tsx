@@ -1,9 +1,9 @@
-import { Redirect, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useAuth } from '@mealme/ui';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 export default function MainLayout() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -13,11 +13,7 @@ export default function MainLayout() {
     );
   }
 
-  // Protected route: redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Redirect href="/(auth)/login" />;
-  }
-
+  // Auth guard is handled at root level — just render the stack
   return (
     <Stack screenOptions={{ headerShown: true }}>
       <Stack.Screen name="home" options={{ title: 'MealMe', headerShown: false }} />

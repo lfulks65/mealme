@@ -1,18 +1,26 @@
-import { Redirect } from 'expo-router';
+import { useEffect } from 'react';
+import { useRouter } from 'expo-router';
 import { useAuth } from '@mealme/ui';
 import { SignupScreen as SharedSignupScreen } from '@mealme/ui';
 
 export default function SignupScreen() {
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  // Safety net: redirect to home if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(main)/home');
+    }
+  }, [isAuthenticated]);
 
   if (isAuthenticated) {
-    return <Redirect href="/(main)/home" />;
+    return null;
   }
 
   return (
     <SharedSignupScreen
       onNavigateToLogin={() => {
-        const router = require('expo-router').router;
         router.push('/(auth)/login');
       }}
     />
