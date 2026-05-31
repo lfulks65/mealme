@@ -160,6 +160,14 @@ export function useRecipeSearchFilters() {
     [syncToURL],
   );
 
+  const clearDietary = useCallback(() => {
+    setFilters((prev) => {
+      const next = { ...prev, dietary: [] };
+      syncToURL(next);
+      return next;
+    });
+  }, [syncToURL]);
+
   const clearFilters = useCallback(() => {
     const empty: FilterState = {
       query: '',
@@ -210,6 +218,7 @@ export function useRecipeSearchFilters() {
     setCuisine,
     setDifficulty,
     toggleDietary,
+    clearDietary,
     setMaxPrep,
     setSort,
     toggleTag,

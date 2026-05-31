@@ -78,6 +78,7 @@ export function RecipeSearchClient() {
     setCuisine,
     setDifficulty,
     toggleDietary,
+    clearDietary,
     setMaxPrep,
     setSort,
     clearFilters,
@@ -169,6 +170,7 @@ export function RecipeSearchClient() {
         onCuisineChange={setCuisine}
         onDifficultyChange={setDifficulty}
         onToggleDietary={toggleDietary}
+        onClearDietary={clearDietary}
         onMaxPrepChange={setMaxPrep}
         onSortChange={setSort}
         onClearFilters={clearFilters}

@@ -23,6 +23,7 @@ interface RecipeFilterPanelProps {
   onCuisineChange: (cuisine: string) => void;
   onDifficultyChange: (difficulty: RecipeDifficulty | '') => void;
   onToggleDietary: (restriction: string) => void;
+  onClearDietary: () => void;
   onMaxPrepChange: (maxPrep: number | '') => void;
   onSortChange: (sort: RecipeSortOption) => void;
   onClearFilters: () => void;
@@ -59,6 +60,7 @@ export function RecipeFilterPanel({
   onCuisineChange,
   onDifficultyChange,
   onToggleDietary,
+  onClearDietary,
   onMaxPrepChange,
   onSortChange,
   onClearFilters,
@@ -191,11 +193,7 @@ export function RecipeFilterPanel({
         {/* Dietary restrictions */}
         <FilterSection
           title="Dietary"
-          onReset={
-            dietary.length > 0
-              ? () => dietary.forEach(() => onToggleDietary(dietary[0]))
-              : undefined
-          }
+          onReset={dietary.length > 0 ? () => onClearDietary() : undefined}
         >
           <div className="flex flex-wrap gap-2">
             {DIETARY_RESTRICTIONS_ARRAY.map((d: { id: string; label: string; icon: string }) => (
