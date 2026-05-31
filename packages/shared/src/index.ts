@@ -48,6 +48,15 @@ export type {
 } from './types/recipe';
 
 export type {
+  Ingredient,
+  IngredientCategory,
+} from './types/ingredient';
+
+export {
+  INGREDIENT_CATEGORIES,
+} from './types/ingredient';
+
+export type {
   MealPlanEntry,
   MealPlan,
   CreateMealPlanInput,
@@ -70,6 +79,14 @@ export type {
 } from './types/preferences';
 
 // ── Constants ──────────────────────────────────────────────────────────────
+export {
+  MEASUREMENT_UNITS,
+  MEASUREMENT_UNIT_KEYS,
+  getMeasurementUnitLabel,
+} from './constants/measurement-units';
+
+export type { MeasurementUnitKey, MeasurementUnitCategory } from './constants/measurement-units';
+
 export {
   DIETARY_RESTRICTIONS,
   DIETARY_RESTRICTION_KEYS,
@@ -138,3 +155,67 @@ export {
   hasRequiredId,
   hasRequiredDate,
 } from './utils/validation';
+
+export {
+  formatQuantity,
+  formatDuration,
+  formatCalories,
+  formatServings,
+  formatNutrition,
+} from './utils/formatters';
+
+// ── Schemas ─────────────────────────────────────────────────────────────────
+export {
+  RecipeDifficultySchema,
+  RecipeIngredientSchema,
+  RecipeStepSchema,
+  NutritionInfoSchema,
+  RecipeSchema,
+  CreateRecipeInputSchema,
+  UpdateRecipeInputSchema,
+  MealPlanEntrySchema,
+  MealPlanSchema,
+  CreateMealPlanInputSchema,
+  UpdateMealPlanInputSchema,
+  FamilyRoleSchema,
+  FamilyMembershipSchema,
+  FamilySchema,
+  AuthProviderSchema,
+  UserSchema,
+  CreateUserInputSchema,
+  UpdateUserInputSchema,
+  IngredientCategorySchema,
+  IngredientSchema,
+  ItemStatusSchema,
+  ShoppingListItemSchema,
+  ShoppingListSchema,
+  CreateShoppingListInputSchema,
+  UpdateShoppingListInputSchema,
+  FamilyPreferencesSchema,
+  UserPreferencesSchema,
+} from './schemas';
+
+export type {
+  RecipeIngredientInput,
+  RecipeStepInput,
+  NutritionInfoInput,
+  RecipeInput,
+  CreateRecipeInputSchemaType,
+  UpdateRecipeInputSchemaType,
+  MealPlanEntryInput,
+  MealPlanInput,
+  CreateMealPlanInputSchemaType,
+  UpdateMealPlanInputSchemaType,
+  FamilyMembershipInput,
+  FamilyInput,
+  UserInput,
+  CreateUserInputSchemaType,
+  UpdateUserInputSchemaType,
+  IngredientInput,
+  ShoppingListItemInput,
+  ShoppingListInput,
+  CreateShoppingListInputSchemaType,
+  UpdateShoppingListInputSchemaType,
+  FamilyPreferencesInput,
+  UserPreferencesInput,
+} from './schemas';

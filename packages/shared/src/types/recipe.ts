@@ -10,27 +10,15 @@
 import type { DietaryRestriction } from '../constants/dietary-restrictions';
 import type { CuisineType } from '../constants/cuisine-types';
 
-/** Difficulty level for a recipe. */
-export type RecipeDifficulty = 'easy' | 'medium' | 'hard';
+// MeasurementUnit is now derived from the canonical constants file.
+// Re-exported for backward compatibility — consumers still import MeasurementUnit.
+import type { MeasurementUnitKey } from '../constants/measurement-units';
 
 /** Unit of measurement for recipe ingredients. */
-export type MeasurementUnit =
-  | 'tsp'
-  | 'tbsp'
-  | 'cup'
-  | 'oz'
-  | 'lb'
-  | 'g'
-  | 'kg'
-  | 'ml'
-  | 'l'
-  | 'pinch'
-  | 'clove'
-  | 'slice'
-  | 'piece'
-  | 'can'
-  | 'bunch'
-  | 'whole';
+export type MeasurementUnit = MeasurementUnitKey;
+
+/** Difficulty level for a recipe. */
+export type RecipeDifficulty = 'easy' | 'medium' | 'hard';
 
 /**
  * A single ingredient in a recipe.
