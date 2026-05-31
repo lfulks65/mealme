@@ -263,6 +263,17 @@ BEGIN
     ON CONFLICT DO NOTHING;
   END IF;
 
-  RAISE NOTICE 'Seed data created: test@mealme.app → Personal org → The Test Family → preferences, meal plan, shopping list';
+  -- ---------------------------------------------------------------------------
+  -- 10. Create sample invites with invite tokens and viewer roles
+  -- ---------------------------------------------------------------------------
+
+  INSERT INTO public.invites (org_id, email, role, invited_by, invite_token, tenant_id)
+  VALUES
+    (v_org_id, 'viewer1@example.com', 'viewer', v_user_id, 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2', v_org_id),
+    (v_org_id, 'viewer2@example.com', 'viewer', v_user_id, 'f0e1d2c3b4a5968778695a4b3c2d1e0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3', v_org_id),
+    (v_org_id, 'member2@example.com', 'member', v_user_id, '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', v_org_id)
+  ON CONFLICT (invite_token) DO NOTHING;
+
+  RAISE NOTICE 'Seed data created: test@mealme.app → Personal org → The Test Family → preferences, meal plan, shopping list, sample invites';
 END;
 $$;

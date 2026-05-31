@@ -32,7 +32,7 @@ export interface OrgMemberRow {
 // ---------------------------------------------------------------------------
 
 /** Role a user may hold within an organization. */
-export type OrgRole = 'owner' | 'admin' | 'member';
+export type OrgRole = 'owner' | 'admin' | 'member' | 'viewer';
 
 /**
  * An organization with its current user's membership role.
@@ -95,6 +95,7 @@ export interface InviteRow {
   accepted_at: string | null;
   expires_at: string;
   created_at: string;
+  invite_token: string;
 }
 
 /**
@@ -168,4 +169,42 @@ export interface AcceptInviteResult {
   orgId: string | null;
   role: OrgRole | null;
   error: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Invite lookup result types (from SECURITY DEFINER RPCs)
+// ---------------------------------------------------------------------------
+
+/** Result from the `get_invite_by_token` RPC. */
+export interface InviteLookupResult {
+  /** Whether the lookup succeeded. */
+  success: boolean;
+  /** Error message if lookup failed (e.g. not found, expired, already accepted). */
+  error: string | null;
+  /** The invite row, if found and valid. */
+  invite: InviteRow | null;
+  /** The organization name associated with the invite. */
+  orgName: string | null;
+  /** The display name of the user who sent the invite. */
+  inviterName: string | null;
+  /** If the invite was already accepted, the timestamp. */
+  acceptedAt: string | null;
+  /** If the invite is expired, the expiration timestamp. */
+  expiresAt: string | null;
+}
+
+/** An invite row with the org name included (from `get_pending_invites_for_user` RPC). */
+export interface InviteWithOrgName extends InviteRow {
+  /** The organization name associated with the invite. */
+  org_name: string;
+}
+
+/** Result from the `get_pending_invites_for_user` RPC. */
+export interface PendingInvitesResult {
+  /** Whether the lookup succeeded. */
+  success: boolean;
+  /** Error message if lookup failed. */
+  error: string | null;
+  /** Pending invites with org names included. */
+  invites: InviteWithOrgName[];
 }

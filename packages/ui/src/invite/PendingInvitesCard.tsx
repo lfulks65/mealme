@@ -1,0 +1,218 @@
+/**
+ * @module invite/PendingInvitesCard
+ * Shows pending org invites for the current user.
+ *
+ * Used on the dashboard/home screen to display invites awaiting action.
+ * Each invite shows org name, role badge, and accept/reject buttons.
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, FlatList } from 'react-native';
+import {
+  Box,
+  Text,
+  VStack,
+  HStack,
+  Button,
+  ButtonText,
+  Heading,
+  Spinner,
+  Badge,
+  BadgeText,
+  Card,
+} from '@gluestack-ui/themed';
+import { listPendingInvitesForUser, acceptInviteByToken } from '@mealme/api';
+import type { OrgRole, AcceptInviteResult, InviteWithOrgName } from '@mealme/api';
+
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
+
+export interface PendingInvitesCardProps {
+  /** Called when an invite is accepted. Provides the orgId. */
+  onAcceptSuccess?: (orgId: string) => void;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const ROLE_LABELS: Record<OrgRole, string> = {
+  owner: 'Owner',
+  admin: 'Admin',
+  member: 'Member',
+  viewer: 'Viewer',
+};
+
+const ROLE_BADGE_COLORS: Record<OrgRole, { bg: string; text: string }> = {
+  owner: { bg: '$warning100', text: '$warning700' },
+  admin: { bg: '$info100', text: '$info700' },
+  member: { bg: '$backgroundLight200', text: '$textLight700' },
+  viewer: { bg: '$backgroundLight100', text: '$textLight500' },
+};
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps) {
+  const [invites, setInvites] = useState<InviteWithOrgName[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [accepting, setAccepting] = useState<string | null>(null);
+  const [dismissing, setDismissing] = useState<Set<string>>(new Set());
+
+  const loadInvites = useCallback(async () => {
+    setLoading(true);
+    const result = await listPendingInvitesForUser();
+    if (!result.error && result.success) {
+      setInvites(result.invites);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadInvites();
+  }, [loadInvites]);
+
+  const handleAccept = useCallback(
+    async (invite: InviteWithOrgName) => {
+      setAccepting(invite.id);
+      const result: AcceptInviteResult = await acceptInviteByToken(invite.invite_token);
+      setAccepting(null);
+
+      if (result.error) {
+        // Silently fail — the dedicated invite screen handles errors better
+        return;
+      }
+
+      // Remove from local list
+      setInvites((prev) => prev.filter((i) => i.id !== invite.id));
+
+      if (result.orgId) {
+        onAcceptSuccess?.(result.orgId);
+      }
+    },
+    [onAcceptSuccess],
+  );
+
+  const handleDismiss = useCallback((inviteId: string) => {
+    // Dismiss just removes from local view (doesn't reject the invite server-side)
+    setDismissing((prev) => new Set(prev).add(inviteId));
+    // Remove after a brief moment
+    setTimeout(() => {
+      setInvites((prev) => prev.filter((i) => i.id !== inviteId));
+      setDismissing((prev) => {
+        const next = new Set(prev);
+        next.delete(inviteId);
+        return next;
+      });
+    }, 300);
+  }, []);
+
+  if (loading) {
+    return (
+      <Box p="$4">
+        <HStack space="sm" alignItems="center">
+          <Spinner size="small" color="$primary500" />
+          <Text size="sm" color="$textLight500">
+            Loading invites…
+          </Text>
+        </HStack>
+      </Box>
+    );
+  }
+
+  if (invites.length === 0) {
+    return null; // Don't render anything if no pending invites
+  }
+
+  const renderInviteItem = ({ item }: { item: InviteWithOrgName }) => {
+    const roleBadgeColor = ROLE_BADGE_COLORS[item.role] ?? ROLE_BADGE_COLORS.member;
+    const isAccepting = accepting === item.id;
+    const isDismissing = dismissing.has(item.id);
+
+    return (
+      <Box
+        px="$4"
+        py="$3"
+        borderBottomWidth={1}
+        borderBottomColor="$borderLight200"
+        bg="$backgroundLight0"
+        opacity={isDismissing ? 0.5 : 1}
+      >
+        <HStack space="md" alignItems="center" justifyContent="space-between">
+          <VStack space="xs" flex={1}>
+            <Text size="md" fontWeight="$medium" color="$textLight900">
+              {item.org_name}
+            </Text>
+            <HStack space="sm" alignItems="center">
+              <Badge
+                size="sm"
+                variant="solid"
+                bg={roleBadgeColor.bg}
+                borderRadius="$md"
+                px="$2"
+                py="$1"
+              >
+                <BadgeText size="xs" color={roleBadgeColor.text}>
+                  {ROLE_LABELS[item.role] ?? item.role}
+                </BadgeText>
+              </Badge>
+            </HStack>
+          </VStack>
+          <HStack space="sm">
+            <Button
+              size="sm"
+              variant="solid"
+              action="primary"
+              onPress={() => handleAccept(item)}
+              isDisabled={isAccepting}
+            >
+              <ButtonText size="sm">{isAccepting ? 'Accepting…' : 'Accept'}</ButtonText>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              action="secondary"
+              onPress={() => handleDismiss(item.id)}
+              isDisabled={isDismissing}
+            >
+              <ButtonText size="sm">Dismiss</ButtonText>
+            </Button>
+          </HStack>
+        </HStack>
+      </Box>
+    );
+  };
+
+  return (
+    <Card size="md" variant="outline" style={styles.card}>
+      <VStack space="sm">
+        <Box px="$4" pt="$4" pb="$2">
+          <Heading size="sm" color="$textLight900">
+            Pending Invitations
+          </Heading>
+          <Text size="xs" color="$textLight500" mt="$1">
+            You have {invites.length} invitation{invites.length !== 1 ? 's' : ''} waiting
+          </Text>
+        </Box>
+        <FlatList
+          data={invites}
+          keyExtractor={(item) => item.id}
+          renderItem={renderInviteItem}
+          scrollEnabled={false}
+        />
+      </VStack>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
+
+const styles = StyleSheet.create({
+  card: {
+    width: '100%',
+  },
+});

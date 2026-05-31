@@ -47,13 +47,80 @@ export interface OrgSettingsScreenProps {
 const ROLE_OPTIONS: { label: string; value: OrgRole }[] = [
   { label: 'Admin', value: 'admin' },
   { label: 'Member', value: 'member' },
+  { label: 'Viewer', value: 'viewer' },
 ];
 
 const ROLE_COLORS: Record<OrgRole, { bg: string; text: string }> = {
   owner: { bg: '$warning100', text: '$warning700' },
   admin: { bg: '$info100', text: '$info700' },
   member: { bg: '$backgroundLight200', text: '$textLight700' },
+  viewer: { bg: '$backgroundLight100', text: '$textLight500' },
 };
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Get the site URL for building invite links. */
+function getSiteUrl(): string {
+  if (typeof process === 'undefined') return '';
+  return (
+    process.env.EXPO_PUBLIC_SITE_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.SITE_URL ??
+    ''
+  );
+}
+
+/** Build the full invite URL from a token. */
+function buildInviteUrl(token: string): string {
+  const base = getSiteUrl();
+  return base ? `${base}/invite/${token}` : `/invite/${token}`;
+}
+
+/** Copy text to clipboard (works on both RN and web). */
+async function copyToClipboard(text: string): Promise<void> {
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+  } else {
+    const { Clipboard } = require('react-native');
+    await Clipboard.setString(text);
+  }
+}
+
+/** Format a relative expiry countdown (e.g., "Expires in 3 days"). */
+function formatExpiryCountdown(expiresAt: string): string {
+  const now = new Date();
+  const expiry = new Date(expiresAt);
+  const diffMs = expiry.getTime() - now.getTime();
+
+  if (diffMs <= 0) {
+    return 'Expired';
+  }
+
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+  if (diffDays > 1) {
+    return `Expires in ${diffDays} days`;
+  }
+  if (diffDays === 1) {
+    return `Expires in 1 day${diffHours > 0 ? ` ${diffHours}h` : ''}`;
+  }
+  if (diffHours > 1) {
+    return `Expires in ${diffHours} hours`;
+  }
+  if (diffHours === 1) {
+    return 'Expires in 1 hour';
+  }
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  return `Expires in ${diffMins} minute${diffMins !== 1 ? 's' : ''}`;
+}
+
+/** Check if an email is a placeholder (link-only invite). */
+function isPlaceholderEmail(email: string): boolean {
+  return email.endsWith('@placeholder.mealme.app');
+}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -71,6 +138,7 @@ export function OrgSettingsScreen({ orgId, onOrgDeleted }: OrgSettingsScreenProp
     deleteOrg,
     removeMember,
     updateMemberRole,
+    revokeInvite,
   } = useOrg();
 
   const [editName, setEditName] = useState('');
@@ -80,6 +148,7 @@ export function OrgSettingsScreen({ orgId, onOrgDeleted }: OrgSettingsScreenProp
   const [savingName, setSavingName] = useState(false);
   const [savingSlug, setSavingSlug] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
 
   // Load the org if it's not the current one
   useEffect(() => {
@@ -204,6 +273,43 @@ export function OrgSettingsScreen({ orgId, onOrgDeleted }: OrgSettingsScreenProp
     [orgId, updateMemberRole],
   );
 
+  // ----- Copy invite link -----
+  const handleCopyInviteLink = useCallback(async (invite: InviteRow) => {
+    const url = buildInviteUrl(invite.invite_token);
+    try {
+      await copyToClipboard(url);
+      Alert.alert('Copied', 'Invite link copied to clipboard');
+    } catch {
+      Alert.alert('Error', 'Failed to copy link');
+    }
+  }, []);
+
+  // ----- Revoke invite -----
+  const handleRevokeInvite = useCallback(
+    (invite: InviteRow) => {
+      Alert.alert(
+        'Revoke Invite',
+        `Are you sure you want to revoke the invite for ${isPlaceholderEmail(invite.email) ? 'this shareable link' : invite.email}? The link will no longer work.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Revoke',
+            style: 'destructive',
+            onPress: async () => {
+              setRevokingId(invite.id);
+              const result = await revokeInvite(invite.id);
+              setRevokingId(null);
+              if (result.error) {
+                Alert.alert('Error', result.error);
+              }
+            },
+          },
+        ],
+      );
+    },
+    [revokeInvite],
+  );
+
   // ----- Renderers -----
   const renderMemberItem = ({ item }: { item: OrgMember }) => {
     const roleColor = ROLE_COLORS[item.role] ?? ROLE_COLORS.member;
@@ -242,14 +348,7 @@ export function OrgSettingsScreen({ orgId, onOrgDeleted }: OrgSettingsScreenProp
                 </SelectContent>
               </Select>
             ) : (
-              <Badge
-                size="sm"
-                variant="solid"
-                bg={roleColor.bg}
-                borderRadius="$md"
-                px="$2"
-                py="$1"
-              >
+              <Badge size="sm" variant="solid" bg={roleColor.bg} borderRadius="$md" px="$2" py="$1">
                 <BadgeText size="xs" color={roleColor.text}>
                   Owner
                 </BadgeText>
@@ -274,8 +373,10 @@ export function OrgSettingsScreen({ orgId, onOrgDeleted }: OrgSettingsScreenProp
 
   const renderInviteItem = ({ item }: { item: InviteRow }) => {
     const roleColor = ROLE_COLORS[item.role] ?? ROLE_COLORS.member;
-    const expiresAt = new Date(item.expires_at);
-    const isExpired = expiresAt < new Date();
+    const isExpired = new Date(item.expires_at) < new Date();
+    const isLink = isPlaceholderEmail(item.email);
+    const isRevoking = revokingId === item.id;
+    const truncatedToken = item.invite_token ? `${item.invite_token.slice(0, 8)}...` : '';
 
     return (
       <Box
@@ -285,28 +386,85 @@ export function OrgSettingsScreen({ orgId, onOrgDeleted }: OrgSettingsScreenProp
         borderBottomColor="$borderLight200"
         bg="$backgroundLight0"
       >
-        <HStack space="md" alignItems="center" justifyContent="space-between">
-          <VStack space="xs" flex={1}>
-            <Text size="md" fontWeight="$medium" color="$textLight900">
-              {item.email}
-            </Text>
-            <Text size="sm" color={isExpired ? '$error500' : '$textLight500'}>
-              {isExpired ? 'Expired' : `Expires ${expiresAt.toLocaleDateString()}`}
-            </Text>
-          </VStack>
-          <Badge
-            size="sm"
-            variant="solid"
-            bg={roleColor.bg}
-            borderRadius="$md"
-            px="$2"
-            py="$1"
-          >
-            <BadgeText size="xs" color={roleColor.text}>
-              {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
-            </BadgeText>
-          </Badge>
-        </HStack>
+        <VStack space="sm">
+          <HStack space="md" alignItems="center" justifyContent="space-between">
+            <VStack space="xs" flex={1}>
+              <HStack space="sm" alignItems="center">
+                <Text size="md" fontWeight="$medium" color="$textLight900">
+                  {isLink ? 'Shareable link' : item.email}
+                </Text>
+                {isExpired ? (
+                  <Badge
+                    size="sm"
+                    variant="solid"
+                    bg="$error100"
+                    borderRadius="$md"
+                    px="$2"
+                    py="$1"
+                  >
+                    <BadgeText size="xs" color="$error700">
+                      Expired
+                    </BadgeText>
+                  </Badge>
+                ) : (
+                  <Badge
+                    size="sm"
+                    variant="solid"
+                    bg="$warning100"
+                    borderRadius="$md"
+                    px="$2"
+                    py="$1"
+                  >
+                    <BadgeText size="xs" color="$warning700">
+                      Pending
+                    </BadgeText>
+                  </Badge>
+                )}
+              </HStack>
+              <HStack space="sm" alignItems="center">
+                <Badge
+                  size="sm"
+                  variant="solid"
+                  bg={roleColor.bg}
+                  borderRadius="$md"
+                  px="$2"
+                  py="$1"
+                >
+                  <BadgeText size="xs" color={roleColor.text}>
+                    {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
+                  </BadgeText>
+                </Badge>
+                <Text size="xs" color={isExpired ? '$error500' : '$textLight500'}>
+                  {isExpired ? 'Expired' : formatExpiryCountdown(item.expires_at)}
+                </Text>
+              </HStack>
+              {truncatedToken && (
+                <Text size="xs" color="$textLight400">
+                  Token: {truncatedToken}
+                </Text>
+              )}
+            </VStack>
+          </HStack>
+          <HStack space="sm" justifyContent="flex-end">
+            <Button
+              size="sm"
+              variant="outline"
+              action="primary"
+              onPress={() => handleCopyInviteLink(item)}
+            >
+              <ButtonText size="xs">Copy Link</ButtonText>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              action="negative"
+              onPress={() => handleRevokeInvite(item)}
+              isDisabled={isRevoking}
+            >
+              <ButtonText size="xs">{isRevoking ? 'Revoking...' : 'Revoke'}</ButtonText>
+            </Button>
+          </HStack>
+        </VStack>
       </Box>
     );
   };

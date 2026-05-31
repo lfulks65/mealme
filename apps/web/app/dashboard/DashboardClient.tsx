@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useAuth, TenantSwitcher } from '@mealme/ui';
+import { useAuth, TenantSwitcher, PendingInvitesCard } from '@mealme/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -55,6 +55,16 @@ export function DashboardClient() {
             onCreateFamilyPress={() => router.push('/families')}
           />
         </div>
+
+        {/* Pending Invites */}
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          <PendingInvitesCard
+            onAcceptSuccess={(orgId: string) => {
+              router.push(`/orgs/${orgId}`);
+            }}
+          />
+        </div>
+
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
           <button
             onClick={() => router.push('/orgs')}

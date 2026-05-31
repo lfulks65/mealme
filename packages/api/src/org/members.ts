@@ -27,6 +27,9 @@ import type {
   InviteResult,
   InviteListResult,
   AcceptInviteResult,
+  InviteLookupResult,
+  InviteWithOrgName,
+  PendingInvitesResult,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -47,6 +50,72 @@ function mapError(error: { message?: string }, fallback: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// fetchInviteByToken
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch invite details by token using the `get_invite_by_token` RPC.
+ *
+ * This uses a SECURITY DEFINER function that bypasses RLS, so
+ * unauthenticated and non-member users can view invite details.
+ * Returns the invite row, org name, and inviter name.
+ */
+export async function fetchInviteByToken(token: string): Promise<InviteLookupResult> {
+  const { data, error } = await supabase.rpc('get_invite_by_token', {
+    p_invite_token: token,
+  });
+
+  if (error) {
+    return {
+      success: false,
+      error: mapError(error, 'Failed to fetch invite'),
+      invite: null,
+      orgName: null,
+      inviterName: null,
+      acceptedAt: null,
+      expiresAt: null,
+    };
+  }
+
+  const result = data as Record<string, unknown>;
+
+  if (result.success === false) {
+    return {
+      success: false,
+      error: (result.error as string) ?? 'Invite not found',
+      invite: null,
+      orgName: null,
+      inviterName: null,
+      acceptedAt: (result.accepted_at as string) ?? null,
+      expiresAt: (result.expires_at as string) ?? null,
+    };
+  }
+
+  const inviteData = result.invite as Record<string, unknown>;
+  const invite: InviteRow = {
+    id: inviteData.id as string,
+    org_id: inviteData.org_id as string,
+    email: inviteData.email as string,
+    role: inviteData.role as OrgRole,
+    invited_by: inviteData.invited_by as string,
+    accepted_at: inviteData.accepted_at as string | null,
+    expires_at: inviteData.expires_at as string,
+    created_at: inviteData.created_at as string,
+    invite_token: inviteData.invite_token as string,
+  };
+
+  return {
+    success: true,
+    error: null,
+    invite,
+    orgName: (result.org_name as string) ?? null,
+    inviterName: (result.inviter_name as string) ?? null,
+    acceptedAt: invite.accepted_at,
+    expiresAt: invite.expires_at,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // inviteMember
 // ---------------------------------------------------------------------------
 
@@ -60,9 +129,7 @@ function mapError(error: { message?: string }, fallback: string): string {
  * Note: The `role` must be 'admin' or 'member' — you cannot invite
  * someone as 'owner'.
  */
-export async function inviteMember(
-  input: InviteMemberInput,
-): Promise<InviteResult> {
+export async function inviteMember(input: InviteMemberInput): Promise<InviteResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { invite: null, error: 'Not authenticated' };
@@ -73,8 +140,8 @@ export async function inviteMember(
     return { invite: null, error: 'Cannot invite a user as owner' };
   }
 
-  if (input.role !== 'admin' && input.role !== 'member') {
-    return { invite: null, error: 'Invalid role. Must be "admin" or "member"' };
+  if (input.role !== 'admin' && input.role !== 'member' && input.role !== 'viewer') {
+    return { invite: null, error: 'Invalid role. Must be "admin", "member", or "viewer"' };
   }
 
   // Verify the caller is admin+ in this org
@@ -103,16 +170,70 @@ export async function inviteMember(
       role: input.role,
       invited_by: userId,
     })
-    .select('id, org_id, email, role, invited_by, accepted_at, expires_at, created_at')
+    .select(
+      'id, org_id, email, role, invited_by, accepted_at, expires_at, created_at, invite_token',
+    )
     .single();
 
   if (inviteError) {
     return { invite: null, error: mapError(inviteError, 'Failed to create invite') };
   }
 
-  // TODO: Send invite email via Supabase Edge Function or external service.
-  // For now, the invite row is created and can be retrieved by the invitee.
-  // A future task should implement email delivery.
+  // Send invite email via Supabase Edge Function
+  try {
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      process.env.EXPO_PUBLIC_SITE_URL ??
+      process.env.SITE_URL ??
+      '';
+
+    if (siteUrl) {
+      // Fetch inviter's display name
+      const { data: inviterProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', userId)
+        .single();
+      const inviterName = (inviterProfile as any)?.full_name ?? 'Someone';
+
+      // Fetch org name
+      const { data: orgRow } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('id', input.orgId)
+        .single();
+      const orgName = (orgRow as any)?.name ?? 'an organization';
+
+      // Determine the Edge Function URL
+      const supabaseUrl =
+        process.env.EXPO_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+      const functionUrl = `${supabaseUrl}/functions/v1/send-invite-email`;
+
+      if (serviceRoleKey) {
+        // Call the Edge Function (server-side only — requires service role key)
+        await fetch(functionUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            inviteId: inviteData.id,
+            email: inviteData.email,
+            orgName,
+            inviteToken: inviteData.invite_token,
+            inviterName,
+            role: inviteData.role,
+          }),
+        });
+      }
+    }
+  } catch (emailError) {
+    // Email delivery failure should not block the invite creation.
+    // The invite row is still valid and can be accepted via direct link.
+    console.warn('[inviteMember] Failed to send invite email:', emailError);
+  }
 
   const invite: InviteRow = {
     id: inviteData.id,
@@ -123,6 +244,7 @@ export async function inviteMember(
     accepted_at: inviteData.accepted_at,
     expires_at: inviteData.expires_at,
     created_at: inviteData.created_at,
+    invite_token: inviteData.invite_token,
   };
 
   return { invite, error: null };
@@ -139,9 +261,7 @@ export async function inviteMember(
  * validates the invite, checks expiration, and inserts the membership
  * row in a single transaction.
  */
-export async function acceptInvite(
-  inviteId: string,
-): Promise<AcceptInviteResult> {
+export async function acceptInvite(inviteId: string): Promise<AcceptInviteResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { success: false, orgId: null, role: null, error: 'Not authenticated' };
@@ -149,6 +269,55 @@ export async function acceptInvite(
 
   const { data, error } = await supabase.rpc('accept_invite', {
     p_invite_id: inviteId,
+    p_user_id: userId,
+  });
+
+  if (error) {
+    return {
+      success: false,
+      orgId: null,
+      role: null,
+      error: mapError(error, 'Failed to accept invite'),
+    };
+  }
+
+  const result = data as Record<string, unknown>;
+  if (result.success === false) {
+    return {
+      success: false,
+      orgId: null,
+      role: null,
+      error: (result.error as string) ?? 'Failed to accept invite',
+    };
+  }
+
+  return {
+    success: true,
+    orgId: result.org_id as string | null,
+    role: result.role as OrgRole | null,
+    error: null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// acceptInviteByToken
+// ---------------------------------------------------------------------------
+
+/**
+ * Accept a pending invite by its token.
+ *
+ * Uses the `accept_invite_by_token` RPC function for atomicity.
+ * This allows users to accept invites via shareable links without
+ * needing to know the invite ID.
+ */
+export async function acceptInviteByToken(token: string): Promise<AcceptInviteResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { success: false, orgId: null, role: null, error: 'Not authenticated' };
+  }
+
+  const { data, error } = await supabase.rpc('accept_invite_by_token', {
+    p_invite_token: token,
     p_user_id: userId,
   });
 
@@ -193,10 +362,7 @@ export async function acceptInvite(
  *
  * Members can also remove themselves (leave the org).
  */
-export async function removeMember(
-  orgId: string,
-  targetUserId: string,
-): Promise<OrgMemberResult> {
+export async function removeMember(orgId: string, targetUserId: string): Promise<OrgMemberResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { success: false, error: 'Not authenticated' };
@@ -217,7 +383,10 @@ export async function removeMember(
     }
 
     if ((membership.role as OrgRole) === 'owner') {
-      return { success: false, error: 'Owner cannot leave the organization. Transfer ownership first.' };
+      return {
+        success: false,
+        error: 'Owner cannot leave the organization. Transfer ownership first.',
+      };
     }
 
     const { error: deleteError } = await supabase
@@ -265,9 +434,7 @@ export async function removeMember(
  *   - Admins can only change 'member' roles (not other admins)
  *   - New role must be 'admin' or 'member'
  */
-export async function updateMemberRole(
-  input: UpdateMemberRoleInput,
-): Promise<OrgMemberResult> {
+export async function updateMemberRole(input: UpdateMemberRoleInput): Promise<OrgMemberResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { success: false, error: 'Not authenticated' };
@@ -301,9 +468,7 @@ export async function updateMemberRole(
  *
  * RLS ensures only members of the org can view the member list.
  */
-export async function listMembers(
-  orgId: string,
-): Promise<OrgMemberListResult> {
+export async function listMembers(orgId: string): Promise<OrgMemberListResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { members: [], error: 'Not authenticated' };
@@ -343,9 +508,7 @@ export async function listMembers(
  *
  * Only admins/owners can view invites (enforced by RLS).
  */
-export async function listInvites(
-  orgId: string,
-): Promise<InviteListResult> {
+export async function listInvites(orgId: string): Promise<InviteListResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { invites: [], error: 'Not authenticated' };
@@ -353,7 +516,9 @@ export async function listInvites(
 
   const { data, error } = await supabase
     .from('invites')
-    .select('id, org_id, email, role, invited_by, accepted_at, expires_at, created_at')
+    .select(
+      'id, org_id, email, role, invited_by, accepted_at, expires_at, created_at, invite_token',
+    )
     .eq('org_id', orgId)
     .order('created_at', { ascending: false });
 
@@ -370,9 +535,66 @@ export async function listInvites(
     accepted_at: row.accepted_at,
     expires_at: row.expires_at,
     created_at: row.created_at,
+    invite_token: row.invite_token,
   }));
 
   return { invites, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// revokeInvite
+// ---------------------------------------------------------------------------
+
+/**
+ * Revoke (delete) a pending invite.
+ *
+ * Only admins/owners of the org can revoke invites. The invite row
+ * is deleted from the `invites` table, making the invite link unusable.
+ */
+export async function revokeInvite(inviteId: string): Promise<OrgMemberResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  // Fetch the invite to verify the caller is admin+ in the org
+  const { data: inviteRow, error: fetchError } = await supabase
+    .from('invites')
+    .select('org_id')
+    .eq('id', inviteId)
+    .single();
+
+  if (fetchError || !inviteRow) {
+    return { success: false, error: 'Invite not found' };
+  }
+
+  const orgId = (inviteRow as any).org_id as string;
+
+  // Verify the caller is admin+ in this org
+  const { data: callerMembership, error: membershipError } = await supabase
+    .from('organization_members')
+    .select('role')
+    .eq('org_id', orgId)
+    .eq('user_id', userId)
+    .single();
+
+  if (membershipError || !callerMembership) {
+    return { success: false, error: 'Not a member of this organization' };
+  }
+
+  const callerRole = callerMembership.role as OrgRole;
+  if (callerRole !== 'owner' && callerRole !== 'admin') {
+    return { success: false, error: 'Only admins and owners can revoke invites' };
+  }
+
+  // Delete the invite
+  const { error: deleteError } = await supabase.from('invites').delete().eq('id', inviteId);
+
+  if (deleteError) {
+    return { success: false, error: mapError(deleteError, 'Failed to revoke invite') };
+  }
+
+  return { success: true, error: null };
 }
 
 // ---------------------------------------------------------------------------
@@ -382,13 +604,14 @@ export async function listInvites(
 /**
  * List pending invites for the current user's email address.
  *
- * This is used on the user's dashboard to show org invites they can accept.
- * Since invites are keyed by email, we look up the user's email first.
+ * Uses the `get_pending_invites_for_user` SECURITY DEFINER RPC to bypass
+ * RLS, so non-members can see their pending invites. The RPC includes
+ * org names in the response, so no separate organization query is needed.
  */
-export async function listPendingInvitesForUser(): Promise<InviteListResult> {
+export async function listPendingInvitesForUser(): Promise<PendingInvitesResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
-    return { invites: [], error: 'Not authenticated' };
+    return { success: false, invites: [], error: 'Not authenticated' };
   }
 
   // Get the user's email
@@ -397,31 +620,44 @@ export async function listPendingInvitesForUser(): Promise<InviteListResult> {
   } = await supabase.auth.getUser();
   const email = user?.email?.toLowerCase().trim();
   if (!email) {
-    return { invites: [], error: 'User email not available' };
+    return { success: false, invites: [], error: 'User email not available' };
   }
 
-  const { data, error } = await supabase
-    .from('invites')
-    .select('id, org_id, email, role, invited_by, accepted_at, expires_at, created_at')
-    .eq('email', email)
-    .is('accepted_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false });
+  const { data, error } = await supabase.rpc('get_pending_invites_for_user', {
+    p_user_email: email,
+  });
 
   if (error) {
-    return { invites: [], error: mapError(error, 'Failed to list pending invites') };
+    return {
+      success: false,
+      invites: [],
+      error: mapError(error, 'Failed to list pending invites'),
+    };
   }
 
-  const invites: InviteRow[] = (data ?? []).map((row: any) => ({
-    id: row.id,
-    org_id: row.org_id,
-    email: row.email,
-    role: row.role,
-    invited_by: row.invited_by,
-    accepted_at: row.accepted_at,
-    expires_at: row.expires_at,
-    created_at: row.created_at,
+  const result = data as Record<string, unknown>;
+
+  if (result.success === false) {
+    return {
+      success: false,
+      invites: [],
+      error: (result.error as string) ?? 'Failed to list pending invites',
+    };
+  }
+
+  const rawInvites = (result.invites as Record<string, unknown>[]) ?? [];
+  const invites: InviteWithOrgName[] = rawInvites.map((row) => ({
+    id: row.id as string,
+    org_id: row.org_id as string,
+    email: row.email as string,
+    role: row.role as OrgRole,
+    invited_by: row.invited_by as string,
+    accepted_at: row.accepted_at as string | null,
+    expires_at: row.expires_at as string,
+    created_at: row.created_at as string,
+    invite_token: row.invite_token as string,
+    org_name: (row.org_name as string) ?? 'Organization',
   }));
 
-  return { invites, error: null };
+  return { success: true, invites, error: null };
 }
