@@ -54,9 +54,9 @@ function mapError(error: { message?: string }, fallback: string): string {
 /**
  * Group an array of objects by a key.
  */
-function groupBy<T extends Record<string, unknown>>(
+function groupBy<T>(
   items: T[],
-  key: string,
+  key: string & keyof T,
 ): Record<string, T[]> {
   return items.reduce<Record<string, T[]>>((acc, item) => {
     const k = item[key] as string;
