@@ -21,6 +21,8 @@ export interface HEBConfig {
   timeout?: number;
   /** Enable debug logging (default false). */
   debug?: boolean;
+  /** Optional rate limiter applied before each SDK call. */
+  rateLimiter?: import('./rate-limit.js').TokenBucketRateLimiter;
 }
 
 /** Shopping context values recognised by the HEB API. */

@@ -33,6 +33,8 @@ import type {
 
 import { CartManager } from './cart.js';
 import { OrderManager } from './order.js';
+import { createHEBRateLimiter } from './rate-limit.js';
+import type { RateLimiterOptions } from './rate-limit.js';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -89,7 +91,7 @@ function mapStore(raw: { storeNumber: string; name: string; address: { streetAdd
  */
 export class HEBClient {
   private readonly config: Required<Pick<HEBConfig, 'storeId' | 'zipCode'>> &
-    Pick<HEBConfig, 'shoppingContext' | 'timeout' | 'debug'>;
+    Pick<HEBConfig, 'shoppingContext' | 'timeout' | 'debug' | 'rateLimiter'>;
 
   private sdkClient: SDKClient | null = null;
   private session: HEBSession | null = null;
@@ -107,6 +109,7 @@ export class HEBClient {
       shoppingContext: config.shoppingContext ?? 'CURBSIDE_PICKUP',
       timeout: config.timeout,
       debug: config.debug,
+      rateLimiter: config.rateLimiter,
     };
   }
 
@@ -232,6 +235,39 @@ export class HEBClient {
     return this.session;
   }
 
+  /**
+   * Acquire a rate-limit token before making an SDK call.
+   *
+   * If a rate limiter is configured, this blocks until a token is
+   * available.  If no rate limiter is configured, this is a no-op.
+   */
+  private async rateLimit(): Promise<void> {
+    if (this.config.rateLimiter) {
+      await this.config.rateLimiter.acquire();
+    }
+  }
+
+  /**
+   * Return a new HEBClient with rate limiting configured.
+   *
+   * If `options` are omitted, sensible HEB defaults are used
+   * (10 req/s).  The returned client shares the same store/zip
+   * configuration but gets its own rate limiter instance.
+   *
+   * @param options - Rate limiter options (uses HEB defaults when omitted)
+   */
+  withRateLimiter(options?: RateLimiterOptions): HEBClient {
+    const limiter = createHEBRateLimiter(options);
+    return new HEBClient({
+      storeId: this.config.storeId,
+      zipCode: this.config.zipCode,
+      shoppingContext: this.config.shoppingContext,
+      timeout: this.config.timeout,
+      debug: this.config.debug,
+      rateLimiter: limiter,
+    });
+  }
+
   // ── Product search ─────────────────────────────────────────────────────
 
   /**
@@ -241,6 +277,7 @@ export class HEBClient {
    * @param filters - Optional filters (limit, storeId, shoppingContext, etc.)
    */
   async searchProducts(query: string, filters?: ProductSearchFilters): Promise<ProductSearchResult> {
+    await this.rateLimit();
     const client = this.requireClient();
     const options: SearchOptions = {
       limit: filters?.limit ?? 20,
@@ -266,6 +303,7 @@ export class HEBClient {
    * @param productId - HEB product ID
    */
   async getProduct(productId: string): Promise<Product> {
+    await this.rateLimit();
     const client = this.requireClient();
     const raw = await client.getProduct(productId);
     return mapProduct(raw);
@@ -278,6 +316,7 @@ export class HEBClient {
    * @param productIds - Product IDs to check
    */
   async getStoreInventory(storeId: string, productIds: string[]): Promise<StoreInventory[]> {
+    await this.rateLimit();
     const session = this.requireSession();
     const results: StoreInventory[] = [];
 
@@ -311,6 +350,7 @@ export class HEBClient {
    * @param query  - Address, ZIP code, or city name
    */
   async searchStores(query?: string): Promise<Store[]> {
+    await this.rateLimit();
     const client = this.requireClient();
     const raw = await client.searchStores(query ?? this.config.zipCode);
     return raw.map(mapStore);
@@ -322,6 +362,7 @@ export class HEBClient {
    * @param storeId - New store ID
    */
   async setStore(storeId: string): Promise<void> {
+    await this.rateLimit();
     const client = this.requireClient();
     await client.setStore(storeId);
     // Update local config so subsequent calls use the new store
@@ -361,6 +402,11 @@ export class HEBClient {
   /** @internal Expose the config store ID. */
   _getStoreId(): string {
     return this.config.storeId;
+  }
+
+  /** @internal Acquire a rate-limit token (used by sub-managers). */
+  async _rateLimit(): Promise<void> {
+    await this.rateLimit();
   }
 }
 

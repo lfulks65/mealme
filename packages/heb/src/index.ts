@@ -28,6 +28,11 @@ export {
 
 export type { RetryOptions } from './errors.js';
 
+// ── Rate Limiter ────────────────────────────────────────────────────────────
+export { TokenBucketRateLimiter, createHEBRateLimiter } from './rate-limit.js';
+
+export type { RateLimiterOptions } from './rate-limit.js';
+
 // ── Types ───────────────────────────────────────────────────────────────────
 export type {
   // Configuration
