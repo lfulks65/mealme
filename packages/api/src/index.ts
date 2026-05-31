@@ -56,4 +56,7 @@ export * from './recipe';
 // Error handling
 export * from './errors';
 
+// API request/response types
+export * from './types';
+
 
