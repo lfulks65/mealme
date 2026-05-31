@@ -28,7 +28,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@mealme/shared": "workspace:*",
-    "heb-sdk-unofficial": "^1.0.1"
+    "heb-sdk-unofficial": "^1.0.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -45,6 +45,70 @@ export {
 } from './mock/fixtures.js';
 export { shouldUseMock, createHEBClientOrMock } from './mock/detect.js';
 
+// ── Schemas ─────────────────────────────────────────────────────────────────
+export {
+  // Enums
+  HEBShoppingContextSchema,
+  HEBFulfillmentTypeSchema,
+
+  // Configuration
+  HEBConfigSchema,
+
+  // Product
+  ProductPriceSchema,
+  ProductSchema,
+  ProductSearchFiltersSchema,
+  ProductSearchResultSchema,
+
+  // Store
+  StoreAddressSchema,
+  StoreSchema,
+  StoreInventorySchema,
+
+  // Cart
+  CartItemSchema,
+  CartFeeSchema,
+  CartSchema,
+
+  // Delivery
+  DeliveryAddressSchema,
+  DeliveryDetailsSchema,
+  FulfillmentSlotSchema,
+
+  // Order
+  OrderItemSchema,
+  OrderTimeslotSchema,
+  OrderStoreSchema,
+  OrderSchema,
+  OrderListResultSchema,
+  ListOrdersOptionsSchema,
+} from './schemas.js';
+
+export type {
+  HEBShoppingContextFromSchema,
+  HEBFulfillmentTypeFromSchema,
+  HEBConfigFromSchema,
+  ProductPriceFromSchema,
+  ProductFromSchema,
+  ProductSearchFiltersFromSchema,
+  ProductSearchResultFromSchema,
+  StoreAddressFromSchema,
+  StoreFromSchema,
+  StoreInventoryFromSchema,
+  CartItemFromSchema,
+  CartFeeFromSchema,
+  CartFromSchema,
+  DeliveryAddressFromSchema,
+  DeliveryDetailsFromSchema,
+  FulfillmentSlotFromSchema,
+  OrderItemFromSchema,
+  OrderTimeslotFromSchema,
+  OrderStoreFromSchema,
+  OrderFromSchema,
+  OrderListResultFromSchema,
+  ListOrdersOptionsFromSchema,
+} from './schemas.js';
+
 // ── Types ───────────────────────────────────────────────────────────────────
 export type {
   // Configuration
