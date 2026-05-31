@@ -10,7 +10,7 @@
 
 import {
   ApiError,
-  NetworkError,
+  NotFoundError,
   isApiError,
 } from './api-error';
 import type { SupabaseError } from './api-error';
@@ -44,7 +44,9 @@ export function handleSupabaseError<T>(
   }
 
   if (data === null || data === undefined) {
-    throw new NetworkError('No data returned from the server');
+    throw new NotFoundError('resource', 'unknown', {
+      reason: 'No data returned from the server',
+    });
   }
 
   return data;
