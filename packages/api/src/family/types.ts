@@ -2,7 +2,7 @@
  * @module family/types
  * Family domain types for the MealMe API client.
  *
- * These types mirror the Supabase `families` and `family_memberships`
+ * These types mirror the Supabase `families` and `family_members`
  * tables and provide input/result wrappers for the CRUD functions.
  */
 
@@ -20,8 +20,8 @@ export interface FamilyRow {
   deleted_at: string | null;
 }
 
-/** Row from the `family_memberships` table. */
-export interface FamilyMembershipRow {
+/** Row from the `family_members` table. */
+export interface FamilyMemberRow {
   id: string;
   user_id: string;
   family_id: string;

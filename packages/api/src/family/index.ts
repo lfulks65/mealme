@@ -6,7 +6,7 @@
 // Types
 export type {
   FamilyRow,
-  FamilyMembershipRow,
+  FamilyMemberRow,
   FamilyRole,
   FamilyWithRole,
   FamilyMember,

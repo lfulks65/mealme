@@ -2,7 +2,7 @@
  * @module org/types
  * Organization domain types for the MealMe API client.
  *
- * These types mirror the Supabase `organizations` and `org_memberships`
+ * These types mirror the Supabase `organizations` and `organization_members`
  * tables and provide input/result wrappers for the CRUD functions.
  */
 
@@ -18,8 +18,8 @@ export interface OrgRow {
   created_at: string;
 }
 
-/** Row from the `org_memberships` table. */
-export interface OrgMembershipRow {
+/** Row from the `organization_members` table. */
+export interface OrgMemberRow {
   id: string;
   user_id: string;
   org_id: string;

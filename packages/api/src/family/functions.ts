@@ -97,7 +97,7 @@ export async function createFamily(
 
   // 2. Insert the creator as owner
   const { error: memberError } = await supabase
-    .from('family_memberships')
+    .from('family_members')
     .insert({
       user_id: userId,
       family_id: familyData.id,
@@ -152,7 +152,7 @@ export async function getFamily(id: string): Promise<FamilyResult> {
 
   // Fetch the current user's membership role
   const { data: membershipData, error: membershipError } = await supabase
-    .from('family_memberships')
+    .from('family_members')
     .select('role')
     .eq('family_id', id)
     .eq('user_id', userId)
@@ -191,7 +191,7 @@ export async function listFamilies(orgId: string): Promise<FamilyListResult> {
 
   // Join families with the user's memberships
   const { data, error } = await supabase
-    .from('family_memberships')
+    .from('family_members')
     .select('role, families(id, name, org_id, created_at, updated_at, deleted_at)')
     .eq('user_id', userId)
     .is('families.deleted_at', null);
@@ -255,7 +255,7 @@ export async function updateFamily(
 
   // Fetch the user's role
   const { data: membershipData } = await supabase
-    .from('family_memberships')
+    .from('family_members')
     .select('role')
     .eq('family_id', id)
     .eq('user_id', userId)
@@ -331,7 +331,7 @@ export async function addFamilyMember(
   }
 
   const { error } = await supabase
-    .from('family_memberships')
+    .from('family_members')
     .insert({
       user_id: input.userId,
       family_id: input.familyId,
@@ -365,7 +365,7 @@ export async function removeFamilyMember(
   }
 
   const { error } = await supabase
-    .from('family_memberships')
+    .from('family_members')
     .delete()
     .eq('family_id', familyId)
     .eq('user_id', memberUserId);
@@ -396,7 +396,7 @@ export async function updateFamilyMemberRole(
   }
 
   const { error } = await supabase
-    .from('family_memberships')
+    .from('family_members')
     .update({ role: input.role })
     .eq('family_id', input.familyId)
     .eq('user_id', input.userId);
@@ -424,7 +424,7 @@ export async function listFamilyMembers(
   }
 
   const { data, error } = await supabase
-    .from('family_memberships')
+    .from('family_members')
     .select('id, user_id, role, created_at, profiles(id, full_name, avatar_url)')
     .eq('family_id', familyId);
 

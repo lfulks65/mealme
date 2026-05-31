@@ -70,7 +70,7 @@ async function requireOrgMember(familyId: string): Promise<string> {
   const orgId = family.org_id as string;
 
   const { data: membership, error: memberError } = await supabase
-    .from('org_memberships')
+    .from('organization_members')
     .select('role')
     .eq('org_id', orgId)
     .eq('user_id', userId)
