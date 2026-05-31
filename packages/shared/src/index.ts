@@ -155,3 +155,11 @@ export {
   hasRequiredId,
   hasRequiredDate,
 } from './utils/validation';
+
+export {
+  formatQuantity,
+  formatDuration,
+  formatCalories,
+  formatServings,
+  formatNutrition,
+} from './utils/formatters';
