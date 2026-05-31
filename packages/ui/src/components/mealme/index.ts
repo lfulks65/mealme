@@ -19,3 +19,7 @@ export type { PreferenceToggleProps, PreferenceCategory } from './PreferenceTogg
 
 export { FamilyMemberAvatar } from './FamilyMemberAvatar';
 export type { FamilyMemberAvatarProps, AvatarSize } from './FamilyMemberAvatar';
+
+// CalendarDay
+export { CalendarDay } from './CalendarDay';
+export type { CalendarDayProps, CalendarMeal } from './CalendarDay';
