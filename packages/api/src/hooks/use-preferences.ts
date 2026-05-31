@@ -9,15 +9,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getFamilyPreferences,
-  upsertFamilyPreferences,
+  updateFamilyPreferences,
   getMemberPreferences,
-  upsertMemberPreferences,
+  updateMemberPreferences,
 } from '../preferences/functions';
 import type {
   FamilyPreferencesResult,
   MemberPreferencesResult,
-  UpsertFamilyPreferencesInput,
-  UpsertMemberPreferencesInput,
+  FamilyPreferencesInput,
+  MemberPreferencesInput,
 } from '../preferences/types';
 
 // ---------------------------------------------------------------------------
@@ -26,10 +26,8 @@ import type {
 
 export const preferenceKeys = {
   all: ['preferences'] as const,
-  family: (familyId: string) =>
-    [...preferenceKeys.all, 'family', familyId] as const,
-  member: (familyId: string, userId: string) =>
-    [...preferenceKeys.all, 'member', familyId, userId] as const,
+  family: (familyId: string) => [...preferenceKeys.all, 'family', familyId] as const,
+  member: (memberId: string) => [...preferenceKeys.all, 'member', memberId] as const,
 };
 
 // ---------------------------------------------------------------------------
@@ -50,19 +48,15 @@ export function useFamilyPreferences(familyId: string | undefined) {
 }
 
 /**
- * Fetch member preferences for a specific user within a family.
+ * Fetch member preferences for a specific family member.
  *
- * @param familyId - The family context.
- * @param userId - The user whose preferences to fetch.
+ * @param memberId - The family member whose preferences to fetch.
  */
-export function useUserPreferences(
-  familyId: string | undefined,
-  userId: string | undefined,
-) {
+export function useMemberPreferences(memberId: string | undefined) {
   return useQuery<MemberPreferencesResult>({
-    queryKey: preferenceKeys.member(familyId ?? '', userId ?? ''),
-    queryFn: () => getMemberPreferences(familyId!, userId!),
-    enabled: !!familyId && !!userId,
+    queryKey: preferenceKeys.member(memberId ?? ''),
+    queryFn: () => getMemberPreferences(memberId!),
+    enabled: !!memberId,
   });
 }
 
@@ -71,7 +65,7 @@ export function useUserPreferences(
 // ---------------------------------------------------------------------------
 
 /**
- * Upsert family preferences with optimistic update.
+ * Update family preferences with optimistic update.
  *
  * Immediately updates the cached family preferences with the new data,
  * then sends the mutation to the server. Rolls back on error.
@@ -80,10 +74,8 @@ export function useUpdateFamilyPreferences() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (args: {
-      familyId: string;
-      input: UpsertFamilyPreferencesInput;
-    }) => upsertFamilyPreferences(args.familyId, args.input),
+    mutationFn: (args: { familyId: string; input: FamilyPreferencesInput }) =>
+      updateFamilyPreferences(args.familyId, args.input),
     onMutate: async (variables) => {
       await queryClient.cancelQueries({
         queryKey: preferenceKeys.family(variables.familyId),
@@ -99,7 +91,7 @@ export function useUpdateFamilyPreferences() {
           {
             preferences: {
               ...previous.preferences,
-              ...mapFamilyInputToRow(variables.input),
+              ...mapFamilyInputToDomain(variables.input),
             },
             error: null,
           },
@@ -110,10 +102,7 @@ export function useUpdateFamilyPreferences() {
     },
     onError: (_err, variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(
-          preferenceKeys.family(variables.familyId),
-          context.previous,
-        );
+        queryClient.setQueryData(preferenceKeys.family(variables.familyId), context.previous);
       }
     },
     onSettled: (_data, _error, variables) => {
@@ -125,22 +114,19 @@ export function useUpdateFamilyPreferences() {
 }
 
 /**
- * Upsert member preferences with optimistic update.
+ * Update member preferences with optimistic update.
  *
  * Immediately updates the cached member preferences with the new data,
  * then sends the mutation to the server. Rolls back on error.
  */
-export function useUpdateUserPreferences() {
+export function useUpdateMemberPreferences() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (args: {
-      familyId: string;
-      userId: string;
-      input: UpsertMemberPreferencesInput;
-    }) => upsertMemberPreferences(args.familyId, args.userId, args.input),
+    mutationFn: (args: { memberId: string; input: MemberPreferencesInput }) =>
+      updateMemberPreferences(args.memberId, args.input),
     onMutate: async (variables) => {
-      const key = preferenceKeys.member(variables.familyId, variables.userId);
+      const key = preferenceKeys.member(variables.memberId);
 
       await queryClient.cancelQueries({ queryKey: key });
 
@@ -150,7 +136,7 @@ export function useUpdateUserPreferences() {
         queryClient.setQueryData<MemberPreferencesResult>(key, {
           preferences: {
             ...previous.preferences,
-            ...mapMemberInputToRow(variables.input),
+            ...mapMemberInputToDomain(variables.input),
           },
           error: null,
         });
@@ -160,73 +146,67 @@ export function useUpdateUserPreferences() {
     },
     onError: (_err, variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(
-          preferenceKeys.member(variables.familyId, variables.userId),
-          context.previous,
-        );
+        queryClient.setQueryData(preferenceKeys.member(variables.memberId), context.previous);
       }
     },
     onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({
-        queryKey: preferenceKeys.member(variables.familyId, variables.userId),
+        queryKey: preferenceKeys.member(variables.memberId),
       });
     },
   });
 }
 
 // ---------------------------------------------------------------------------
+// Backward-compatible aliases
+// ---------------------------------------------------------------------------
+
+/** @deprecated Use useMemberPreferences instead. */
+export const useUserPreferences = useMemberPreferences;
+
+/** @deprecated Use useUpdateMemberPreferences instead. */
+export const useUpdateUserPreferences = useUpdateMemberPreferences;
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Map camelCase input fields to snake_case row fields for optimistic update.
+ * Map camelCase input fields to domain object fields for optimistic update.
  */
-function mapFamilyInputToRow(
-  input: UpsertFamilyPreferencesInput,
-): Partial<Record<string, unknown>> {
+function mapFamilyInputToDomain(input: FamilyPreferencesInput): Partial<Record<string, unknown>> {
   const mapped: Record<string, unknown> = {};
 
   if (input.dietaryRestrictions !== undefined) {
-    mapped.dietary_restrictions = input.dietaryRestrictions;
+    mapped.dietaryRestrictions = input.dietaryRestrictions;
   }
   if (input.allergies !== undefined) {
     mapped.allergies = input.allergies;
   }
   if (input.cuisinePreferences !== undefined) {
-    mapped.cuisine_preferences = input.cuisinePreferences;
+    mapped.cuisinePreferences = input.cuisinePreferences;
   }
-  if (input.budgetTier !== undefined) {
-    mapped.budget_tier = input.budgetTier;
-  }
-  if (input.householdSize !== undefined) {
-    mapped.household_size = input.householdSize;
-  }
-  if (input.notes !== undefined) {
-    mapped.notes = input.notes;
+  if (input.budgetRange !== undefined) {
+    mapped.budgetRange = input.budgetRange;
   }
 
   return mapped;
 }
 
 /**
- * Map camelCase input fields to snake_case row fields for optimistic update.
+ * Map camelCase input fields to domain object fields for optimistic update.
  */
-function mapMemberInputToRow(
-  input: UpsertMemberPreferencesInput,
-): Partial<Record<string, unknown>> {
+function mapMemberInputToDomain(input: MemberPreferencesInput): Partial<Record<string, unknown>> {
   const mapped: Record<string, unknown> = {};
 
   if (input.dietaryRestrictions !== undefined) {
-    mapped.dietary_restrictions = input.dietaryRestrictions;
+    mapped.dietaryRestrictions = input.dietaryRestrictions;
   }
   if (input.allergies !== undefined) {
     mapped.allergies = input.allergies;
   }
   if (input.cuisinePreferences !== undefined) {
-    mapped.cuisine_preferences = input.cuisinePreferences;
-  }
-  if (input.isOverride !== undefined) {
-    mapped.is_override = input.isOverride;
+    mapped.cuisinePreferences = input.cuisinePreferences;
   }
 
   return mapped;

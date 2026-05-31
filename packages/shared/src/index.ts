@@ -6,25 +6,11 @@
  */
 
 // ── Types ──────────────────────────────────────────────────────────────────
-export type {
-  OrgPlan,
-  OrgRole,
-  Org,
-  OrgMembership,
-} from './types/org';
+export type { OrgPlan, OrgRole, Org, OrgMembership } from './types/org';
 
-export type {
-  FamilyRole,
-  Family,
-  FamilyMembership,
-} from './types/family';
+export type { FamilyRole, Family, FamilyMembership } from './types/family';
 
-export type {
-  AuthProvider,
-  User,
-  CreateUserInput,
-  UpdateUserInput,
-} from './types/user';
+export type { AuthProvider, User, CreateUserInput, UpdateUserInput } from './types/user';
 
 export type {
   RecipeDifficulty,
@@ -47,14 +33,9 @@ export type {
   RecipeCategory,
 } from './types/recipe';
 
-export type {
-  Ingredient,
-  IngredientCategory,
-} from './types/ingredient';
+export type { Ingredient, IngredientCategory } from './types/ingredient';
 
-export {
-  INGREDIENT_CATEGORIES,
-} from './types/ingredient';
+export { INGREDIENT_CATEGORIES } from './types/ingredient';
 
 export type {
   MealPlanEntry,
@@ -72,10 +53,11 @@ export type {
 } from './types/shopping-list';
 
 export type {
+  BudgetRange,
   FamilyPreferences,
-  UserPreferences,
+  MemberPreferences,
   UpdateFamilyPreferencesInput,
-  UpdateUserPreferencesInput,
+  UpdateMemberPreferencesInput,
 } from './types/preferences';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -90,6 +72,7 @@ export type { MeasurementUnitKey, MeasurementUnitCategory } from './constants/me
 export {
   DIETARY_RESTRICTIONS,
   DIETARY_RESTRICTION_KEYS,
+  DIETARY_RESTRICTIONS_ARRAY,
   getDietaryRestrictionLabel,
 } from './constants/dietary-restrictions';
 
@@ -98,6 +81,7 @@ export type { DietaryRestriction } from './constants/dietary-restrictions';
 export {
   CUISINE_TYPES,
   CUISINE_TYPE_KEYS,
+  CUISINE_PREFERENCES_ARRAY,
   getCuisineTypeLabel,
 } from './constants/cuisine-types';
 
@@ -120,6 +104,10 @@ export {
 } from './constants/budget-tiers';
 
 export type { BudgetTier } from './constants/budget-tiers';
+
+export { ALLERGIES, ALLERGY_IDS, getAllergyById, getAllergyLabel } from './constants/allergies';
+
+export type { AllergyId, AllergySeverity } from './constants/allergies';
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 export {
@@ -192,7 +180,10 @@ export {
   CreateShoppingListInputSchema,
   UpdateShoppingListInputSchema,
   FamilyPreferencesSchema,
-  UserPreferencesSchema,
+  MemberPreferencesSchema,
+  BudgetRangeSchema,
+  UpdateFamilyPreferencesInputSchema,
+  UpdateMemberPreferencesInputSchema,
 } from './schemas';
 
 export type {
@@ -217,5 +208,8 @@ export type {
   CreateShoppingListInputSchemaType,
   UpdateShoppingListInputSchemaType,
   FamilyPreferencesInput,
-  UserPreferencesInput,
+  MemberPreferencesInput,
+  BudgetRangeInput,
+  UpdateFamilyPreferencesInputSchemaType,
+  UpdateMemberPreferencesInputSchemaType,
 } from './schemas';

@@ -7,22 +7,22 @@
  *
  * Usage:
  *   const { familyPrefs, aggregated, loading, saveFamily, saveMember } =
- *     usePreferences({ familyId: 'xxx', currentUserId: 'yyy', members: [...] });
+ *     usePreferences({ familyId: 'xxx', memberId: 'yyy', memberIds: [...] });
  */
 import { useCallback, useEffect, useState } from 'react';
 import {
   getFamilyPreferences,
-  upsertFamilyPreferences,
+  updateFamilyPreferences,
   getMemberPreferences,
-  upsertMemberPreferences,
+  updateMemberPreferences,
   getAggregatedPreferences,
 } from '@mealme/api';
 import type {
-  FamilyPreferencesRow,
-  MemberPreferencesRow,
+  FamilyPreferences,
+  MemberPreferences,
   AggregatedPreferences,
-  UpsertFamilyPreferencesInput,
-  UpsertMemberPreferencesInput,
+  FamilyPreferencesInput,
+  MemberPreferencesInput,
 } from '@mealme/api';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -30,19 +30,19 @@ import type {
 export interface UsePreferencesConfig {
   /** The family ID to manage preferences for. */
   familyId: string;
-  /** Current user ID (for own member preferences). */
-  currentUserId: string;
-  /** Member user IDs to load preferences for. */
+  /** Current user's family member ID (for own member preferences). */
+  memberId?: string;
+  /** Family member IDs to load preferences for. */
   memberIds?: string[];
   /** Whether to load on mount (default: true). */
   autoLoad?: boolean;
 }
 
 export interface UsePreferencesResult {
-  /** Family-level preferences row (null if not set). */
-  familyPrefs: FamilyPreferencesRow | null;
-  /** Per-member preferences map (userId → row). */
-  memberPrefsMap: Record<string, MemberPreferencesRow | null>;
+  /** Family-level preferences (null if not set). */
+  familyPrefs: FamilyPreferences | null;
+  /** Per-member preferences map (memberId → preferences). */
+  memberPrefsMap: Record<string, MemberPreferences | null>;
   /** Aggregated preferences (null if not computed). */
   aggregated: AggregatedPreferences | null;
   /** Whether data is currently loading. */
@@ -58,9 +58,12 @@ export interface UsePreferencesResult {
   loadAggregated: () => Promise<void>;
 
   /** Save family-level preferences. */
-  saveFamily: (input: UpsertFamilyPreferencesInput) => Promise<FamilyPreferencesRow | null>;
-  /** Save member-level preferences for a specific user. */
-  saveMember: (userId: string, input: UpsertMemberPreferencesInput) => Promise<MemberPreferencesRow | null>;
+  saveFamily: (input: FamilyPreferencesInput) => Promise<FamilyPreferences | null>;
+  /** Save member-level preferences for a specific family member. */
+  saveMember: (
+    memberId: string,
+    input: MemberPreferencesInput,
+  ) => Promise<MemberPreferences | null>;
 
   /** Clear the current error. */
   clearError: () => void;
@@ -70,12 +73,13 @@ export interface UsePreferencesResult {
 
 export function usePreferences({
   familyId,
-  currentUserId: _currentUserId,
   memberIds = [],
   autoLoad = true,
 }: UsePreferencesConfig): UsePreferencesResult {
-  const [familyPrefs, setFamilyPrefs] = useState<FamilyPreferencesRow | null>(null);
-  const [memberPrefsMap, setMemberPrefsMap] = useState<Record<string, MemberPreferencesRow | null>>({});
+  const [familyPrefs, setFamilyPrefs] = useState<FamilyPreferences | null>(null);
+  const [memberPrefsMap, setMemberPrefsMap] = useState<Record<string, MemberPreferences | null>>(
+    {},
+  );
   const [aggregated, setAggregated] = useState<AggregatedPreferences | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -101,11 +105,11 @@ export function usePreferences({
       }
 
       // Load member preferences
-      const memberMap: Record<string, MemberPreferencesRow | null> = {};
+      const memberMap: Record<string, MemberPreferences | null> = {};
       await Promise.all(
-        memberIds.map(async (userId) => {
-          const result = await getMemberPreferences(familyId, userId);
-          memberMap[userId] = result.error ? null : result.preferences;
+        memberIds.map(async (mId) => {
+          const result = await getMemberPreferences(mId);
+          memberMap[mId] = result.error ? null : result.preferences;
         }),
       );
       setMemberPrefsMap(memberMap);
@@ -138,12 +142,12 @@ export function usePreferences({
   // ── Save family preferences ────────────────────────────────────────────
 
   const saveFamily = useCallback(
-    async (input: UpsertFamilyPreferencesInput): Promise<FamilyPreferencesRow | null> => {
+    async (input: FamilyPreferencesInput): Promise<FamilyPreferences | null> => {
       setSaving(true);
       setError(null);
 
       try {
-        const result = await upsertFamilyPreferences(familyId, input);
+        const result = await updateFamilyPreferences(familyId, input);
         if (result.error) {
           setError(result.error);
           return null;
@@ -163,19 +167,19 @@ export function usePreferences({
   // ── Save member preferences ────────────────────────────────────────────
 
   const saveMember = useCallback(
-    async (userId: string, input: UpsertMemberPreferencesInput): Promise<MemberPreferencesRow | null> => {
+    async (mId: string, input: MemberPreferencesInput): Promise<MemberPreferences | null> => {
       setSaving(true);
       setError(null);
 
       try {
-        const result = await upsertMemberPreferences(familyId, userId, input);
+        const result = await updateMemberPreferences(mId, input);
         if (result.error) {
           setError(result.error);
           return null;
         }
         setMemberPrefsMap((prev) => ({
           ...prev,
-          [userId]: result.preferences,
+          [mId]: result.preferences,
         }));
         return result.preferences;
       } catch (err: any) {
@@ -185,7 +189,7 @@ export function usePreferences({
         setSaving(false);
       }
     },
-    [familyId],
+    [],
   );
 
   // ── Clear error ────────────────────────────────────────────────────────

@@ -15,19 +15,8 @@
  *   - Member override count
  */
 import React, { useMemo } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  type ViewStyle,
-  type TextStyle,
-} from 'react-native';
-import {
-  getDietaryRestrictionLabel,
-  getCuisineTypeLabel,
-  getBudgetTierLabel,
-  getBudgetTierWeeklyRange,
-} from '@mealme/shared';
+import { View, Text, Pressable, type ViewStyle, type TextStyle } from 'react-native';
+import { getDietaryRestrictionLabel, getCuisineTypeLabel, getAllergyLabel } from '@mealme/shared';
 import type { AggregatedPreferences } from '@mealme/api';
 
 export interface PreferenceSummaryCardProps {
@@ -52,12 +41,7 @@ interface BadgeProps {
   size?: 'sm' | 'md';
 }
 
-function Badge({
-  label,
-  color = '#2563eb',
-  backgroundColor = '#eff6ff',
-  size = 'md',
-}: BadgeProps) {
+function Badge({ label, color = '#2563eb', backgroundColor = '#eff6ff', size = 'md' }: BadgeProps) {
   const px = size === 'sm' ? 8 : 10;
   const py = size === 'sm' ? 3 : 4;
   const fontSize = size === 'sm' ? 11 : 12;
@@ -73,34 +57,28 @@ function Badge({
         marginBottom: 6,
       }}
     >
-      <Text style={{ fontSize, fontWeight: '500', color } as TextStyle}>
-        {label}
-      </Text>
+      <Text style={{ fontSize, fontWeight: '500', color } as TextStyle}>{label}</Text>
     </View>
   );
 }
 
 // ─── Stat Item ───────────────────────────────────────────────────────────────
 
-function StatItem({
-  label,
-  value,
-  subtitle,
-}: {
-  label: string;
-  value: string;
-  subtitle?: string;
-}) {
+function StatItem({ label, value, subtitle }: { label: string; value: string; subtitle?: string }) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
       <Text style={{ fontSize: 20, fontWeight: '700', color: '#111827' } as TextStyle}>
         {value}
       </Text>
-      <Text style={{ fontSize: 11, color: '#6b7280', marginTop: 2, textAlign: 'center' } as TextStyle}>
+      <Text
+        style={{ fontSize: 11, color: '#6b7280', marginTop: 2, textAlign: 'center' } as TextStyle}
+      >
         {label}
       </Text>
       {subtitle && (
-        <Text style={{ fontSize: 10, color: '#9ca3af', marginTop: 1, textAlign: 'center' } as TextStyle}>
+        <Text
+          style={{ fontSize: 10, color: '#9ca3af', marginTop: 1, textAlign: 'center' } as TextStyle}
+        >
           {subtitle}
         </Text>
       )}
@@ -122,14 +100,16 @@ function Section({
   return (
     <View style={{ marginBottom: compact ? 10 : 14 }}>
       <Text
-        style={{
-          fontSize: compact ? 11 : 12,
-          fontWeight: '600',
-          color: '#6b7280',
-          textTransform: 'uppercase',
-          letterSpacing: 0.5,
-          marginBottom: 6,
-        } as TextStyle}
+        style={
+          {
+            fontSize: compact ? 11 : 12,
+            fontWeight: '600',
+            color: '#6b7280',
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+            marginBottom: 6,
+          } as TextStyle
+        }
       >
         {title}
       </Text>
@@ -147,12 +127,12 @@ export function PreferenceSummaryCard({
   compact = false,
   style,
 }: PreferenceSummaryCardProps) {
-  const { dietaryRestrictions, allergies, cuisinePreferences, budgetTier, householdSize, memberOverrides } = preferences;
+  const { dietaryRestrictions, allergies, cuisinePreferences, budgetRange, memberOverrides } =
+    preferences;
 
   // ── Budget info ────────────────────────────────────────────────────────
-  const budgetLabel = getBudgetTierLabel(budgetTier);
-  const budgetRange = getBudgetTierWeeklyRange(budgetTier);
-  const budgetSubtitle = budgetRange ? `$${budgetRange[0]}–$${budgetRange[1]}/wk` : undefined;
+  const budgetLabel = budgetRange ? `$${budgetRange.min}–$${budgetRange.max}` : 'Not set';
+  const budgetSubtitle = budgetRange ? `${budgetRange.currency}/wk` : undefined;
 
   // ── Card variant styles ────────────────────────────────────────────────
   const cardStyles = useMemo((): ViewStyle => {
@@ -216,11 +196,13 @@ export function PreferenceSummaryCard({
         }}
       >
         <Text
-          style={{
-            fontSize: compact ? 15 : 17,
-            fontWeight: '700',
-            color: '#111827',
-          } as TextStyle}
+          style={
+            {
+              fontSize: compact ? 15 : 17,
+              fontWeight: '700',
+              color: '#111827',
+            } as TextStyle
+          }
         >
           Family Preferences
         </Text>
@@ -245,7 +227,11 @@ export function PreferenceSummaryCard({
       >
         <StatItem label="Budget" value={budgetLabel} subtitle={budgetSubtitle} />
         <View style={{ width: 1, backgroundColor: '#f3f4f6' }} />
-        <StatItem label="Household" value={String(householdSize)} subtitle={householdSize === 1 ? 'person' : 'people'} />
+        <StatItem
+          label="Allergies"
+          value={String(allergies.length)}
+          subtitle={allergies.length === 1 ? 'item' : 'items'}
+        />
         {memberOverrides.length > 0 && (
           <>
             <View style={{ width: 1, backgroundColor: '#f3f4f6' }} />
@@ -279,7 +265,7 @@ export function PreferenceSummaryCard({
           {allergies.map((allergy) => (
             <Badge
               key={allergy}
-              label={allergy}
+              label={getAllergyLabel(allergy)}
               color="#dc2626"
               backgroundColor="#fef2f2"
               size={compact ? 'sm' : 'md'}
@@ -292,11 +278,7 @@ export function PreferenceSummaryCard({
       {cuisinePreferences.length > 0 && (
         <Section title="Cuisines" compact={compact}>
           {cuisinePreferences.map((key) => (
-            <Badge
-              key={key}
-              label={getCuisineTypeLabel(key)}
-              size={compact ? 'sm' : 'md'}
-            />
+            <Badge key={key} label={getCuisineTypeLabel(key)} size={compact ? 'sm' : 'md'} />
           ))}
         </Section>
       )}
@@ -324,12 +306,7 @@ export function PreferenceSummaryCard({
   // Wrap in Pressable if onPress is provided (for the whole card)
   if (onPress) {
     return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [
-          { opacity: pressed ? 0.95 : 1 },
-        ]}
-      >
+      <Pressable onPress={onPress} style={({ pressed }) => [{ opacity: pressed ? 0.95 : 1 }]}>
         {content}
       </Pressable>
     );

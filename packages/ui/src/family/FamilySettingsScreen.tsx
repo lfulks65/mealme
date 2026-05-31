@@ -32,6 +32,10 @@ export interface FamilySettingsScreenProps {
   onBack?: () => void;
   /** Called after family is deleted. */
   onFamilyDeleted?: () => void;
+  /** Navigate to family preferences screen. */
+  onFamilyPreferencesPress?: () => void;
+  /** Navigate to member preferences screen. */
+  onMemberPreferencesPress?: (memberId: string) => void;
 }
 
 const ROLE_OPTIONS: { label: string; value: FamilyRole }[] = [
@@ -42,7 +46,12 @@ const ROLE_OPTIONS: { label: string; value: FamilyRole }[] = [
   { label: 'Child', value: 'child' },
 ];
 
-export function FamilySettingsScreen({ familyId, onFamilyDeleted }: FamilySettingsScreenProps) {
+export function FamilySettingsScreen({
+  familyId,
+  onFamilyDeleted,
+  onFamilyPreferencesPress,
+  onMemberPreferencesPress,
+}: FamilySettingsScreenProps) {
   const {
     currentFamily,
     members,
@@ -273,6 +282,48 @@ export function FamilySettingsScreen({ familyId, onFamilyDeleted }: FamilySettin
         >
           <ButtonText>{saving ? 'Saving...' : 'Save Name'}</ButtonText>
         </Button>
+      </Box>
+
+      {/* Preferences Section */}
+      <Box
+        bg="$backgroundLight0"
+        borderRadius="$lg"
+        p="$4"
+        mb="$4"
+        borderWidth={1}
+        borderColor="$borderLight200"
+      >
+        <Heading size="sm" mb="$3" color="$textLight900">
+          Preferences
+        </Heading>
+        {onFamilyPreferencesPress && (
+          <Button
+            size="sm"
+            variant="outline"
+            action="primary"
+            onPress={onFamilyPreferencesPress}
+            mb="$2"
+          >
+            <ButtonText>Family Preferences</ButtonText>
+          </Button>
+        )}
+        {onMemberPreferencesPress && members.length > 0 && (
+          <VStack space="sm" mt={onFamilyPreferencesPress ? '$2' : '$0'}>
+            <Text size="xs" color="$textLight500" fontWeight="$medium">
+              Member Preferences
+            </Text>
+            {members.map((member) => (
+              <Button
+                key={member.membershipId}
+                size="sm"
+                variant="outline"
+                onPress={() => onMemberPreferencesPress(member.userId)}
+              >
+                <ButtonText>{member.fullName ?? 'Unknown User'}</ButtonText>
+              </Button>
+            ))}
+          </VStack>
+        )}
       </Box>
 
       {/* Members Section */}

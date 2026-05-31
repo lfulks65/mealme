@@ -6,8 +6,8 @@
  * All preference options sourced from @mealme/shared constants.
  *
  * Features:
- *   - Family-level preference editing (dietary, allergies, cuisine, budget, household)
- *   - Per-member overrides with toggle to enable custom prefs
+ *   - Family-level preference editing (dietary, allergies, cuisine, budget)
+ *   - Per-member preference editing
  *   - Save/cancel actions with Supabase persistence
  *   - Aggregated preference preview
  */
@@ -26,43 +26,38 @@ import {
   DIETARY_RESTRICTION_KEYS,
   getDietaryRestrictionLabel,
   getCuisineTypeLabel,
-  BUDGET_TIER_KEYS,
-  getBudgetTierLabel,
-  getBudgetTierWeeklyRange,
+  ALLERGIES,
+  getAllergyLabel,
 } from '@mealme/shared';
+import type { DietaryRestriction, CuisineType, AllergyId, BudgetRange } from '@mealme/shared';
 import type {
-  DietaryRestriction,
-  CuisineType,
-  BudgetTier,
-} from '@mealme/shared';
-import type {
-  MemberPreferencesRow,
-  UpsertFamilyPreferencesInput,
-  UpsertMemberPreferencesInput,
+  MemberPreferences,
+  FamilyPreferencesInput,
+  MemberPreferencesInput,
 } from '@mealme/api';
 import {
   getFamilyPreferences,
-  upsertFamilyPreferences,
+  updateFamilyPreferences,
   getMemberPreferences,
-  upsertMemberPreferences,
+  updateMemberPreferences,
 } from '@mealme/api';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-/** A member with their preferences (or null if no override exists). */
+/** A member with their preferences (or null if none exists). */
 export interface MemberWithPreferences {
-  userId: string;
+  memberId: string;
   displayName: string;
   avatarUrl?: string;
-  preferences: MemberPreferencesRow | null;
+  preferences: MemberPreferences | null;
 }
 
 export interface PreferenceSettingsScreenProps {
   /** The family ID to manage preferences for. */
   familyId: string;
-  /** Current user ID (for own member preferences). */
-  currentUserId: string;
-  /** Members of the family (for per-member overrides). */
+  /** Current user's family member ID (for own member preferences). */
+  currentMemberId: string;
+  /** Members of the family (for per-member preferences). */
   members: MemberWithPreferences[];
   /** Called when preferences are saved successfully. */
   onSaved?: () => void;
@@ -72,20 +67,9 @@ export interface PreferenceSettingsScreenProps {
   style?: ViewStyle;
 }
 
-// ─── Common Allergies ────────────────────────────────────────────────────────
+// ─── Allergy IDs for selection ────────────────────────────────────────────────
 
-const COMMON_ALLERGIES = [
-  'Peanuts',
-  'Tree Nuts',
-  'Milk',
-  'Eggs',
-  'Wheat',
-  'Soy',
-  'Fish',
-  'Shellfish',
-  'Sesame',
-  'Sulfites',
-] as const;
+const ALLERGY_IDS = ALLERGIES.map((a) => a.id);
 
 // ─── Cuisine popularity sort ─────────────────────────────────────────────────
 
@@ -110,6 +94,7 @@ const CUISINE_POPULARITY_ORDER: CuisineType[] = [
   'filipino',
   'brazilian',
   'african',
+  'ethiopian',
 ];
 
 // ─── Tab config ──────────────────────────────────────────────────────────────
@@ -119,7 +104,7 @@ const TABS = [
   { key: 'members', label: 'Members' },
 ] as const;
 
-type TabKey = typeof TABS[number]['key'];
+type TabKey = (typeof TABS)[number]['key'];
 
 // ─── Chip ────────────────────────────────────────────────────────────────────
 
@@ -150,11 +135,13 @@ function Chip({ label, selected, onPress, size = 'md' }: ChipProps) {
       }}
     >
       <Text
-        style={{
-          fontSize,
-          fontWeight: '500',
-          color: selected ? '#ffffff' : '#374151',
-        } as TextStyle}
+        style={
+          {
+            fontSize,
+            fontWeight: '500',
+            color: selected ? '#ffffff' : '#374151',
+          } as TextStyle
+        }
       >
         {label}
       </Text>
@@ -179,73 +166,13 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
   );
 }
 
-// ─── Toggle Switch (inline) ──────────────────────────────────────────────────
-
-function ToggleSwitch({
-  value,
-  onValueChange,
-  label,
-}: {
-  value: boolean;
-  onValueChange: (v: boolean) => void;
-  label: string;
-}) {
-  return (
-    <Pressable
-      onPress={() => onValueChange(!value)}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        backgroundColor: '#ffffff',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
-        marginBottom: 8,
-      }}
-    >
-      <Text style={{ fontSize: 14, fontWeight: '500', color: '#374151' } as TextStyle}>
-        {label}
-      </Text>
-      <View
-        style={{
-          width: 44,
-          height: 24,
-          borderRadius: 12,
-          backgroundColor: value ? '#2563eb' : '#d1d5db',
-          padding: 2,
-          justifyContent: 'center',
-        }}
-      >
-        <View
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: 10,
-            backgroundColor: '#ffffff',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.15,
-            shadowRadius: 2,
-            elevation: 2,
-            transform: [{ translateX: value ? 20 : 0 }],
-          }}
-        />
-      </View>
-    </Pressable>
-  );
-}
-
 // ─── Family Preferences Form ──────────────────────────────────────────────────
 
 interface FamilyFormState {
   dietaryRestrictions: DietaryRestriction[];
-  allergies: string[];
+  allergies: AllergyId[];
   cuisinePreferences: CuisineType[];
-  budgetTier: BudgetTier;
-  householdSize: number;
+  budgetRange: BudgetRange;
   customAllergy: string;
 }
 
@@ -269,7 +196,7 @@ function FamilyPreferencesForm({
   );
 
   const toggleAllergy = useCallback(
-    (allergy: string) => {
+    (allergy: AllergyId) => {
       setForm((prev) => ({
         ...prev,
         allergies: prev.allergies.includes(allergy)
@@ -282,10 +209,10 @@ function FamilyPreferencesForm({
 
   const addCustomAllergy = useCallback(() => {
     const trimmed = form.customAllergy.trim();
-    if (trimmed && !form.allergies.includes(trimmed)) {
+    if (trimmed && !form.allergies.includes(trimmed as AllergyId)) {
       setForm((prev) => ({
         ...prev,
-        allergies: [...prev.allergies, trimmed],
+        allergies: [...prev.allergies, trimmed as AllergyId],
         customAllergy: '',
       }));
     }
@@ -303,16 +230,22 @@ function FamilyPreferencesForm({
     [setForm],
   );
 
-  const selectBudgetTier = useCallback(
-    (tier: BudgetTier) => {
-      setForm((prev) => ({ ...prev, budgetTier: tier }));
+  const updateBudgetMin = useCallback(
+    (min: number) => {
+      setForm((prev) => ({
+        ...prev,
+        budgetRange: { ...prev.budgetRange, min },
+      }));
     },
     [setForm],
   );
 
-  const setHouseholdSize = useCallback(
-    (size: number) => {
-      setForm((prev) => ({ ...prev, householdSize: size }));
+  const updateBudgetMax = useCallback(
+    (max: number) => {
+      setForm((prev) => ({
+        ...prev,
+        budgetRange: { ...prev.budgetRange, max },
+      }));
     },
     [setForm],
   );
@@ -320,7 +253,10 @@ function FamilyPreferencesForm({
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
       {/* Dietary Restrictions */}
-      <SectionHeader title="Dietary Restrictions" subtitle="Select any dietary restrictions for your household." />
+      <SectionHeader
+        title="Dietary Restrictions"
+        subtitle="Select any dietary restrictions for your household."
+      />
       <View style={{ flexWrap: 'wrap', flexDirection: 'row' }}>
         {DIETARY_RESTRICTION_KEYS.map((key) => (
           <Chip
@@ -333,18 +269,21 @@ function FamilyPreferencesForm({
       </View>
 
       {/* Allergies */}
-      <SectionHeader title="Allergies" subtitle="Select known allergies. You can add custom ones too." />
+      <SectionHeader
+        title="Allergies"
+        subtitle="Select known allergies. You can add custom ones too."
+      />
       <View style={{ flexWrap: 'wrap', flexDirection: 'row' }}>
-        {COMMON_ALLERGIES.map((allergy) => (
+        {ALLERGY_IDS.map((id) => (
           <Chip
-            key={allergy}
-            label={allergy}
-            selected={form.allergies.includes(allergy)}
-            onPress={() => toggleAllergy(allergy)}
+            key={id}
+            label={getAllergyLabel(id)}
+            selected={form.allergies.includes(id)}
+            onPress={() => toggleAllergy(id)}
           />
         ))}
         {form.allergies
-          .filter((a) => !COMMON_ALLERGIES.includes(a as any))
+          .filter((a) => !ALLERGY_IDS.includes(a))
           .map((allergy) => (
             <Chip
               key={allergy}
@@ -388,7 +327,10 @@ function FamilyPreferencesForm({
       </View>
 
       {/* Cuisine Preferences */}
-      <SectionHeader title="Cuisine Preferences" subtitle="Pick the cuisines your family enjoys most." />
+      <SectionHeader
+        title="Cuisine Preferences"
+        subtitle="Pick the cuisines your family enjoys most."
+      />
       <View style={{ flexWrap: 'wrap', flexDirection: 'row' }}>
         {CUISINE_POPULARITY_ORDER.map((key) => (
           <Chip
@@ -400,106 +342,45 @@ function FamilyPreferencesForm({
         ))}
       </View>
 
-      {/* Budget Tier */}
-      <SectionHeader title="Budget Tier" subtitle="Choose your weekly grocery budget range." />
-      {BUDGET_TIER_KEYS.map((key) => {
-        const range = getBudgetTierWeeklyRange(key);
-        const isSelected = form.budgetTier === key;
-
-        return (
-          <Pressable
-            key={key}
-            onPress={() => selectBudgetTier(key)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingVertical: 14,
-              paddingHorizontal: 18,
-              borderRadius: 12,
-              borderWidth: 2,
-              borderColor: isSelected ? '#2563eb' : '#e5e7eb',
-              backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
-              marginBottom: 8,
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: isSelected ? '#2563eb' : '#111827',
-                } as TextStyle}
-              >
-                {getBudgetTierLabel(key)}
-              </Text>
-              {range && (
-                <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 2 } as TextStyle}>
-                  ${range[0]} – ${range[1]} / week
-                </Text>
-              )}
-            </View>
-            <View
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
-                borderWidth: 2,
-                borderColor: isSelected ? '#2563eb' : '#d1d5db',
-                backgroundColor: isSelected ? '#2563eb' : 'transparent',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {isSelected && (
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#ffffff' }} />
-              )}
-            </View>
-          </Pressable>
-        );
-      })}
-
-      {/* Household Size */}
-      <SectionHeader title="Household Size" subtitle="How many people are in your household?" />
+      {/* Budget Range */}
+      <SectionHeader title="Budget Range" subtitle="Set your weekly grocery budget range." />
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
-          paddingVertical: 16,
+          justifyContent: 'space-between',
+          paddingVertical: 14,
+          paddingHorizontal: 18,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: '#e5e7eb',
+          backgroundColor: '#ffffff',
+          marginBottom: 8,
         }}
       >
-        <Pressable
-          onPress={() => setHouseholdSize(Math.max(1, form.householdSize - 1))}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            backgroundColor: '#f3f4f6',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: 20,
-          }}
-        >
-          <Text style={{ fontSize: 24, color: '#374151', fontWeight: '300' }}>−</Text>
-        </Pressable>
-        <Text style={{ fontSize: 32, fontWeight: '700', color: '#2563eb', minWidth: 40, textAlign: 'center' } as TextStyle}>
-          {form.householdSize}
-        </Text>
-        <Pressable
-          onPress={() => setHouseholdSize(Math.min(20, form.householdSize + 1))}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            backgroundColor: '#2563eb',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: 20,
-          }}
-        >
-          <Text style={{ fontSize: 24, color: '#ffffff', fontWeight: '300' }}>+</Text>
-        </Pressable>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 13, color: '#6b7280' } as TextStyle}>Min ($)</Text>
+          <TextInput
+            value={String(form.budgetRange.min)}
+            onChangeText={(text) => updateBudgetMin(Number(text) || 0)}
+            keyboardType="numeric"
+            style={
+              { fontSize: 18, fontWeight: '600', color: '#111827', paddingVertical: 4 } as TextStyle
+            }
+          />
+        </View>
+        <Text style={{ fontSize: 16, color: '#9ca3af', marginHorizontal: 12 }}>–</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 13, color: '#6b7280' } as TextStyle}>Max ($)</Text>
+          <TextInput
+            value={String(form.budgetRange.max)}
+            onChangeText={(text) => updateBudgetMax(Number(text) || 0)}
+            keyboardType="numeric"
+            style={
+              { fontSize: 18, fontWeight: '600', color: '#111827', paddingVertical: 4 } as TextStyle
+            }
+          />
+        </View>
       </View>
 
       {/* Bottom spacer */}
@@ -512,14 +393,13 @@ function FamilyPreferencesForm({
 
 interface MemberFormState {
   dietaryRestrictions: DietaryRestriction[];
-  allergies: string[];
+  allergies: AllergyId[];
   cuisinePreferences: CuisineType[];
-  isOverride: boolean;
   customAllergy: string;
 }
 
 function MemberOverrideForm({
-  member,
+  member: _member,
   form,
   setForm,
 }: {
@@ -540,7 +420,7 @@ function MemberOverrideForm({
   );
 
   const toggleAllergy = useCallback(
-    (allergy: string) => {
+    (allergy: AllergyId) => {
       setForm((prev) => ({
         ...prev,
         allergies: prev.allergies.includes(allergy)
@@ -553,10 +433,10 @@ function MemberOverrideForm({
 
   const addCustomAllergy = useCallback(() => {
     const trimmed = form.customAllergy.trim();
-    if (trimmed && !form.allergies.includes(trimmed)) {
+    if (trimmed && !form.allergies.includes(trimmed as AllergyId)) {
       setForm((prev) => ({
         ...prev,
-        allergies: [...prev.allergies, trimmed],
+        allergies: [...prev.allergies, trimmed as AllergyId],
         customAllergy: '',
       }));
     }
@@ -576,116 +456,93 @@ function MemberOverrideForm({
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
-      {/* Override toggle */}
-      <ToggleSwitch
-        value={form.isOverride}
-        onValueChange={(v) => setForm((prev) => ({ ...prev, isOverride: v }))}
-        label="Use custom preferences"
+      {/* Dietary Restrictions */}
+      <SectionHeader
+        title="Dietary Restrictions"
+        subtitle="Personal dietary restrictions (added to family-level)."
       />
+      <View style={{ flexWrap: 'wrap', flexDirection: 'row' }}>
+        {DIETARY_RESTRICTION_KEYS.map((key) => (
+          <Chip
+            key={key}
+            label={getDietaryRestrictionLabel(key)}
+            selected={form.dietaryRestrictions.includes(key)}
+            onPress={() => toggleDietary(key)}
+            size="sm"
+          />
+        ))}
+      </View>
 
-      {!form.isOverride ? (
-        <View
+      {/* Allergies */}
+      <SectionHeader title="Allergies" subtitle="Personal allergies." />
+      <View style={{ flexWrap: 'wrap', flexDirection: 'row' }}>
+        {ALLERGY_IDS.map((id) => (
+          <Chip
+            key={id}
+            label={getAllergyLabel(id)}
+            selected={form.allergies.includes(id)}
+            onPress={() => toggleAllergy(id)}
+            size="sm"
+          />
+        ))}
+        {form.allergies
+          .filter((a) => !ALLERGY_IDS.includes(a))
+          .map((allergy) => (
+            <Chip
+              key={allergy}
+              label={allergy}
+              selected={true}
+              onPress={() => toggleAllergy(allergy)}
+              size="sm"
+            />
+          ))}
+      </View>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginTop: 4,
+          borderWidth: 1,
+          borderColor: '#e5e7eb',
+          borderRadius: 12,
+          paddingHorizontal: 12,
+          backgroundColor: '#ffffff',
+        }}
+      >
+        <TextInput
+          value={form.customAllergy}
+          onChangeText={(text) => setForm((prev) => ({ ...prev, customAllergy: text }))}
+          placeholder="Add custom allergy..."
+          placeholderTextColor="#9ca3af"
+          style={{ flex: 1, paddingVertical: 10, fontSize: 13, color: '#111827' } as TextStyle}
+          onSubmitEditing={addCustomAllergy}
+        />
+        <Pressable
+          onPress={addCustomAllergy}
           style={{
-            paddingVertical: 24,
-            alignItems: 'center',
+            backgroundColor: form.customAllergy.trim() ? '#2563eb' : '#d1d5db',
+            borderRadius: 8,
+            paddingHorizontal: 10,
+            paddingVertical: 6,
           }}
         >
-          <Text style={{ fontSize: 14, color: '#9ca3af', textAlign: 'center' } as TextStyle}>
-            {member.displayName} will use family-level preferences.
-            Toggle above to set custom preferences.
-          </Text>
-        </View>
-      ) : (
-        <>
-          {/* Dietary Restrictions */}
-          <SectionHeader
-            title="Dietary Restrictions"
-            subtitle="Personal dietary restrictions (added to family-level)."
+          <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '600' }}>Add</Text>
+        </Pressable>
+      </View>
+
+      {/* Cuisine Preferences */}
+      <SectionHeader title="Cuisine Preferences" subtitle="Personal cuisine preferences." />
+      <View style={{ flexWrap: 'wrap', flexDirection: 'row' }}>
+        {CUISINE_POPULARITY_ORDER.map((key) => (
+          <Chip
+            key={key}
+            label={getCuisineTypeLabel(key)}
+            selected={form.cuisinePreferences.includes(key)}
+            onPress={() => toggleCuisine(key)}
+            size="sm"
           />
-          <View style={{ flexWrap: 'wrap', flexDirection: 'row' }}>
-            {DIETARY_RESTRICTION_KEYS.map((key) => (
-              <Chip
-                key={key}
-                label={getDietaryRestrictionLabel(key)}
-                selected={form.dietaryRestrictions.includes(key)}
-                onPress={() => toggleDietary(key)}
-                size="sm"
-              />
-            ))}
-          </View>
-
-          {/* Allergies */}
-          <SectionHeader title="Allergies" subtitle="Personal allergies." />
-          <View style={{ flexWrap: 'wrap', flexDirection: 'row' }}>
-            {COMMON_ALLERGIES.map((allergy) => (
-              <Chip
-                key={allergy}
-                label={allergy}
-                selected={form.allergies.includes(allergy)}
-                onPress={() => toggleAllergy(allergy)}
-                size="sm"
-              />
-            ))}
-            {form.allergies
-              .filter((a) => !COMMON_ALLERGIES.includes(a as any))
-              .map((allergy) => (
-                <Chip
-                  key={allergy}
-                  label={allergy}
-                  selected={true}
-                  onPress={() => toggleAllergy(allergy)}
-                  size="sm"
-                />
-              ))}
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: 4,
-              borderWidth: 1,
-              borderColor: '#e5e7eb',
-              borderRadius: 12,
-              paddingHorizontal: 12,
-              backgroundColor: '#ffffff',
-            }}
-          >
-            <TextInput
-              value={form.customAllergy}
-              onChangeText={(text) => setForm((prev) => ({ ...prev, customAllergy: text }))}
-              placeholder="Add custom allergy..."
-              placeholderTextColor="#9ca3af"
-              style={{ flex: 1, paddingVertical: 10, fontSize: 13, color: '#111827' } as TextStyle}
-              onSubmitEditing={addCustomAllergy}
-            />
-            <Pressable
-              onPress={addCustomAllergy}
-              style={{
-                backgroundColor: form.customAllergy.trim() ? '#2563eb' : '#d1d5db',
-                borderRadius: 8,
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-              }}
-            >
-              <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '600' }}>Add</Text>
-            </Pressable>
-          </View>
-
-          {/* Cuisine Preferences */}
-          <SectionHeader title="Cuisine Preferences" subtitle="Personal cuisine preferences." />
-          <View style={{ flexWrap: 'wrap', flexDirection: 'row' }}>
-            {CUISINE_POPULARITY_ORDER.map((key) => (
-              <Chip
-                key={key}
-                label={getCuisineTypeLabel(key)}
-                selected={form.cuisinePreferences.includes(key)}
-                onPress={() => toggleCuisine(key)}
-                size="sm"
-              />
-            ))}
-          </View>
-        </>
-      )}
+        ))}
+      </View>
 
       <View style={{ height: 40 }} />
     </ScrollView>
@@ -696,7 +553,7 @@ function MemberOverrideForm({
 
 export function PreferenceSettingsScreen({
   familyId,
-  currentUserId,
+  currentMemberId,
   members,
   onSaved,
   onCancel,
@@ -710,7 +567,7 @@ export function PreferenceSettingsScreen({
   // ── Active tab ─────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<TabKey>('family');
 
-  // ── Selected member for override editing ───────────────────────────────
+  // ── Selected member for editing ────────────────────────────────────────
   const [selectedMemberIdx, setSelectedMemberIdx] = useState(0);
 
   // ── Family form state ─────────────────────────────────────────────────
@@ -718,8 +575,7 @@ export function PreferenceSettingsScreen({
     dietaryRestrictions: [],
     allergies: [],
     cuisinePreferences: [],
-    budgetTier: 'moderate',
-    householdSize: 2,
+    budgetRange: { min: 0, max: 500, currency: 'USD' },
     customAllergy: '',
   });
 
@@ -729,7 +585,6 @@ export function PreferenceSettingsScreen({
       dietaryRestrictions: [],
       allergies: [],
       cuisinePreferences: [],
-      isOverride: false,
       customAllergy: '',
     })),
   );
@@ -746,11 +601,10 @@ export function PreferenceSettingsScreen({
         if (familyResult.preferences) {
           const fp = familyResult.preferences;
           setFamilyForm({
-            dietaryRestrictions: fp.dietary_restrictions as DietaryRestriction[],
-            allergies: fp.allergies as string[],
-            cuisinePreferences: fp.cuisine_preferences as CuisineType[],
-            budgetTier: fp.budget_tier as BudgetTier,
-            householdSize: fp.household_size,
+            dietaryRestrictions: fp.dietaryRestrictions as DietaryRestriction[],
+            allergies: fp.allergies as AllergyId[],
+            cuisinePreferences: fp.cuisinePreferences as CuisineType[],
+            budgetRange: fp.budgetRange ?? { min: 0, max: 500, currency: 'USD' },
             customAllergy: '',
           });
         }
@@ -758,22 +612,20 @@ export function PreferenceSettingsScreen({
         // Load each member's preferences
         const memberFormUpdates = await Promise.all(
           members.map(async (member) => {
-            const result = await getMemberPreferences(familyId, member.userId);
+            const result = await getMemberPreferences(member.memberId);
             if (result.preferences) {
               const mp = result.preferences;
               return {
-                dietaryRestrictions: mp.dietary_restrictions as DietaryRestriction[],
-                allergies: mp.allergies as string[],
-                cuisinePreferences: mp.cuisine_preferences as CuisineType[],
-                isOverride: mp.is_override,
+                dietaryRestrictions: mp.dietaryRestrictions as DietaryRestriction[],
+                allergies: mp.allergies as AllergyId[],
+                cuisinePreferences: mp.cuisinePreferences as CuisineType[],
                 customAllergy: '',
               };
             }
             return {
               dietaryRestrictions: [] as DietaryRestriction[],
-              allergies: [] as string[],
+              allergies: [] as AllergyId[],
               cuisinePreferences: [] as CuisineType[],
-              isOverride: false,
               customAllergy: '',
             };
           }),
@@ -797,34 +649,31 @@ export function PreferenceSettingsScreen({
 
     try {
       // Save family preferences
-      const familyInput: UpsertFamilyPreferencesInput = {
+      const familyInput: FamilyPreferencesInput = {
         dietaryRestrictions: familyForm.dietaryRestrictions,
         allergies: familyForm.allergies,
         cuisinePreferences: familyForm.cuisinePreferences,
-        budgetTier: familyForm.budgetTier,
-        householdSize: familyForm.householdSize,
+        budgetRange: familyForm.budgetRange,
       };
-      const familyResult = await upsertFamilyPreferences(familyId, familyInput);
+      const familyResult = await updateFamilyPreferences(familyId, familyInput);
       if (familyResult.error) {
         setError(familyResult.error);
         return;
       }
 
-      // Save member preferences (only for the current user or all if admin)
+      // Save member preferences
       for (let i = 0; i < members.length; i++) {
         const memberForm = memberForms[i];
         const member = members[i];
 
-        // Only save if the member has an override or had one before
-        const memberInput: UpsertMemberPreferencesInput = {
+        const memberInput: MemberPreferencesInput = {
           dietaryRestrictions: memberForm.dietaryRestrictions,
           allergies: memberForm.allergies,
           cuisinePreferences: memberForm.cuisinePreferences,
-          isOverride: memberForm.isOverride,
         };
 
-        const memberResult = await upsertMemberPreferences(familyId, member.userId, memberInput);
-        if (memberResult.error && member.userId === currentUserId) {
+        const memberResult = await updateMemberPreferences(member.memberId, memberInput);
+        if (memberResult.error && member.memberId === currentMemberId) {
           // Only surface errors for the current user's own prefs
           setError(memberResult.error);
           return;
@@ -837,7 +686,7 @@ export function PreferenceSettingsScreen({
     } finally {
       setSaving(false);
     }
-  }, [familyId, familyForm, members, memberForms, currentUserId, onSaved]);
+  }, [familyId, familyForm, members, memberForms, currentMemberId, onSaved]);
 
   // ── Update a single member form ───────────────────────────────────────
 
@@ -856,7 +705,12 @@ export function PreferenceSettingsScreen({
 
   if (loading) {
     return (
-      <View style={[{ flex: 1, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center' }, style]}>
+      <View
+        style={[
+          { flex: 1, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center' },
+          style,
+        ]}
+      >
         <ActivityIndicator size="large" color="#2563eb" />
         <Text style={{ marginTop: 12, fontSize: 14, color: '#6b7280' } as TextStyle}>
           Loading preferences...
@@ -877,10 +731,14 @@ export function PreferenceSettingsScreen({
           borderBottomColor: '#f3f4f6',
         }}
       >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+        >
           {onCancel ? (
             <Pressable onPress={onCancel}>
-              <Text style={{ color: '#2563eb', fontSize: 15, fontWeight: '500' } as TextStyle}>Cancel</Text>
+              <Text style={{ color: '#2563eb', fontSize: 15, fontWeight: '500' } as TextStyle}>
+                Cancel
+              </Text>
             </Pressable>
           ) : (
             <View style={{ width: 50 }} />
@@ -890,11 +748,13 @@ export function PreferenceSettingsScreen({
           </Text>
           <Pressable onPress={handleSave} disabled={saving}>
             <Text
-              style={{
-                color: saving ? '#9ca3af' : '#2563eb',
-                fontSize: 15,
-                fontWeight: '600',
-              } as TextStyle}
+              style={
+                {
+                  color: saving ? '#9ca3af' : '#2563eb',
+                  fontSize: 15,
+                  fontWeight: '600',
+                } as TextStyle
+              }
             >
               {saving ? 'Saving...' : 'Save'}
             </Text>
@@ -935,11 +795,13 @@ export function PreferenceSettingsScreen({
             }}
           >
             <Text
-              style={{
-                fontSize: 14,
-                fontWeight: activeTab === tab.key ? '600' : '400',
-                color: activeTab === tab.key ? '#2563eb' : '#6b7280',
-              } as TextStyle}
+              style={
+                {
+                  fontSize: 14,
+                  fontWeight: activeTab === tab.key ? '600' : '400',
+                  color: activeTab === tab.key ? '#2563eb' : '#6b7280',
+                } as TextStyle
+              }
             >
               {tab.label}
             </Text>
@@ -964,7 +826,7 @@ export function PreferenceSettingsScreen({
               >
                 {members.map((member, idx) => (
                   <Pressable
-                    key={member.userId}
+                    key={member.memberId}
                     onPress={() => setSelectedMemberIdx(idx)}
                     style={{
                       paddingHorizontal: 16,
@@ -977,11 +839,13 @@ export function PreferenceSettingsScreen({
                     }}
                   >
                     <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '500',
-                        color: selectedMemberIdx === idx ? '#ffffff' : '#374151',
-                      } as TextStyle}
+                      style={
+                        {
+                          fontSize: 13,
+                          fontWeight: '500',
+                          color: selectedMemberIdx === idx ? '#ffffff' : '#374151',
+                        } as TextStyle
+                      }
                     >
                       {member.displayName}
                     </Text>
@@ -997,7 +861,10 @@ export function PreferenceSettingsScreen({
                   form={memberForms[selectedMemberIdx]}
                   setForm={(updater) => {
                     if (typeof updater === 'function') {
-                      updateMemberForm(selectedMemberIdx, updater as (prev: MemberFormState) => MemberFormState);
+                      updateMemberForm(
+                        selectedMemberIdx,
+                        updater as (prev: MemberFormState) => MemberFormState,
+                      );
                     }
                   }}
                 />

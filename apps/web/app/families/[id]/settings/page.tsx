@@ -14,6 +14,12 @@ export default function FamilySettingsPage() {
       onFamilyDeleted={() => {
         router.replace('/families');
       }}
+      onFamilyPreferencesPress={() => {
+        router.push(`/families/${params.id}/preferences`);
+      }}
+      onMemberPreferencesPress={(memberId: string) => {
+        router.push(`/families/${params.id}/members/${memberId}/preferences`);
+      }}
     />
   );
 }

@@ -4,15 +4,15 @@
  * Preferences API request/response types.
  *
  * Extends the base domain types from `@mealme/shared` with
- * API-specific request/response wrappers for family and user
+ * API-specific request/response wrappers for family and member
  * preference endpoints.
  */
 
 import type {
   FamilyPreferences,
-  UserPreferences,
+  MemberPreferences,
   UpdateFamilyPreferencesInput,
-  UpdateUserPreferencesInput,
+  UpdateMemberPreferencesInput,
 } from '@mealme/shared';
 
 // ---------------------------------------------------------------------------
@@ -29,14 +29,27 @@ export type UpdateFamilyPreferencesRequest = UpdateFamilyPreferencesInput;
 export type UpdateFamilyPreferencesResponse = FamilyPreferences;
 
 // ---------------------------------------------------------------------------
-// User preferences
+// Member preferences
 // ---------------------------------------------------------------------------
 
-/** Response for getting user preferences. */
-export type GetUserPreferencesResponse = UserPreferences;
+/** Response for getting member preferences. */
+export type GetMemberPreferencesResponse = MemberPreferences;
 
-/** Request body for updating user preferences. */
-export type UpdateUserPreferencesRequest = UpdateUserPreferencesInput;
+/** Request body for updating member preferences. */
+export type UpdateMemberPreferencesRequest = UpdateMemberPreferencesInput;
 
-/** Response for updated user preferences. */
-export type UpdateUserPreferencesResponse = UserPreferences;
+/** Response for updated member preferences. */
+export type UpdateMemberPreferencesResponse = MemberPreferences;
+
+// ---------------------------------------------------------------------------
+// Backward-compatible aliases
+// ---------------------------------------------------------------------------
+
+/** @deprecated Use GetMemberPreferencesResponse instead. */
+export type GetUserPreferencesResponse = MemberPreferences;
+
+/** @deprecated Use UpdateMemberPreferencesRequest instead. */
+export type UpdateUserPreferencesRequest = UpdateMemberPreferencesInput;
+
+/** @deprecated Use UpdateMemberPreferencesResponse instead. */
+export type UpdateUserPreferencesResponse = MemberPreferences;

@@ -7,7 +7,8 @@
  * for the CRUD functions.
  */
 
-import type { DietaryRestriction, CuisineType, BudgetTier } from '@mealme/shared';
+import type { DietaryRestriction, CuisineType, AllergyId } from '@mealme/shared';
+import type { BudgetRange } from '@mealme/shared';
 
 // ---------------------------------------------------------------------------
 // Database row types (match Supabase schema exactly)
@@ -18,11 +19,9 @@ export interface FamilyPreferencesRow {
   id: string;
   family_id: string;
   dietary_restrictions: DietaryRestriction[];
-  allergies: string[];
+  allergies: AllergyId[];
   cuisine_preferences: CuisineType[];
-  budget_tier: BudgetTier;
-  household_size: number;
-  notes: string | null;
+  budget_range: BudgetRange;
   created_at: string;
   updated_at: string;
 }
@@ -30,36 +29,54 @@ export interface FamilyPreferencesRow {
 /** Row from the `member_preferences` table. */
 export interface MemberPreferencesRow {
   id: string;
-  family_id: string;
-  user_id: string;
+  member_id: string;
   dietary_restrictions: DietaryRestriction[];
-  allergies: string[];
+  allergies: AllergyId[];
   cuisine_preferences: CuisineType[];
-  is_override: boolean;
   created_at: string;
   updated_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Domain types (camelCase for API consumers)
+// ---------------------------------------------------------------------------
+
+/** Family preferences with camelCase field names. */
+export interface FamilyPreferences {
+  id: string;
+  familyId: string;
+  dietaryRestrictions: DietaryRestriction[];
+  allergies: AllergyId[];
+  cuisinePreferences: CuisineType[];
+  budgetRange: BudgetRange;
+}
+
+/** Member preferences with camelCase field names. */
+export interface MemberPreferences {
+  id: string;
+  memberId: string;
+  dietaryRestrictions: DietaryRestriction[];
+  allergies: AllergyId[];
+  cuisinePreferences: CuisineType[];
 }
 
 // ---------------------------------------------------------------------------
 // Input types
 // ---------------------------------------------------------------------------
 
-/** Payload for upserting family preferences. */
-export interface UpsertFamilyPreferencesInput {
+/** Payload for updating family preferences. */
+export interface FamilyPreferencesInput {
   dietaryRestrictions?: DietaryRestriction[];
-  allergies?: string[];
+  allergies?: AllergyId[];
   cuisinePreferences?: CuisineType[];
-  budgetTier?: BudgetTier;
-  householdSize?: number;
-  notes?: string | null;
+  budgetRange?: BudgetRange;
 }
 
-/** Payload for upserting member preferences. */
-export interface UpsertMemberPreferencesInput {
+/** Payload for updating member preferences. */
+export interface MemberPreferencesInput {
   dietaryRestrictions?: DietaryRestriction[];
-  allergies?: string[];
+  allergies?: AllergyId[];
   cuisinePreferences?: CuisineType[];
-  isOverride?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -68,15 +85,46 @@ export interface UpsertMemberPreferencesInput {
 
 /** Result wrapper for family preference operations. */
 export interface FamilyPreferencesResult {
-  preferences: FamilyPreferencesRow | null;
+  preferences: FamilyPreferences | null;
   error: string | null;
 }
 
 /** Result wrapper for member preference operations. */
 export interface MemberPreferencesResult {
-  preferences: MemberPreferencesRow | null;
+  preferences: MemberPreferences | null;
   error: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Convert a Supabase row to a camelCase domain object. */
+export function toFamilyPreferences(row: FamilyPreferencesRow): FamilyPreferences {
+  return {
+    id: row.id,
+    familyId: row.family_id,
+    dietaryRestrictions: row.dietary_restrictions,
+    allergies: row.allergies,
+    cuisinePreferences: row.cuisine_preferences,
+    budgetRange: row.budget_range,
+  };
+}
+
+/** Convert a Supabase row to a camelCase domain object. */
+export function toMemberPreferences(row: MemberPreferencesRow): MemberPreferences {
+  return {
+    id: row.id,
+    memberId: row.member_id,
+    dietaryRestrictions: row.dietary_restrictions,
+    allergies: row.allergies,
+    cuisinePreferences: row.cuisine_preferences,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Aggregated types
+// ---------------------------------------------------------------------------
 
 /**
  * Aggregated preference set that merges family defaults with
@@ -88,17 +136,13 @@ export interface AggregatedPreferences {
   /** Merged dietary restrictions (family + all members, deduplicated). */
   dietaryRestrictions: DietaryRestriction[];
   /** Merged allergies (family + all members, deduplicated). */
-  allergies: string[];
+  allergies: AllergyId[];
   /** Merged cuisine preferences (family + all members, deduplicated). */
   cuisinePreferences: CuisineType[];
-  /** Budget tier from family preferences. */
-  budgetTier: BudgetTier;
-  /** Household size from family preferences. */
-  householdSize: number;
-  /** Notes from family preferences. */
-  notes: string | null;
+  /** Budget range from family preferences. */
+  budgetRange: BudgetRange;
   /** Per-member overrides that were applied. */
-  memberOverrides: MemberPreferencesRow[];
+  memberOverrides: MemberPreferences[];
 }
 
 /** Result wrapper for aggregated preference operations. */

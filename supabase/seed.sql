@@ -163,16 +163,14 @@ BEGIN
   INSERT INTO public.family_preferences (
     family_id, tenant_id,
     dietary_restrictions, allergies, cuisine_preferences,
-    budget_tier, household_size, notes
+    budget_range
   )
   VALUES (
     v_family_id, v_org_id,
-    '["vegetarian-friendly"]'::jsonb,
+    '["vegetarian"]'::jsonb,
     '["peanuts", "shellfish"]'::jsonb,
-    '["Mexican", "Italian", "Asian"]'::jsonb,
-    'moderate',
-    4,
-    'Test family prefers home-cooked meals on weekdays.'
+    '["mexican", "italian", "japanese"]'::jsonb,
+    '{"min": 50, "max": 200, "currency": "USD"}'::jsonb
   )
   ON CONFLICT (family_id) DO NOTHING;
 

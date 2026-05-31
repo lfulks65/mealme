@@ -60,8 +60,11 @@ export {
 export {
   preferenceKeys,
   useFamilyPreferences,
-  useUserPreferences,
+  useMemberPreferences,
   useUpdateFamilyPreferences,
+  useUpdateMemberPreferences,
+  // Backward-compatible aliases
+  useUserPreferences,
   useUpdateUserPreferences,
 } from './use-preferences';
 

@@ -1,10 +1,6 @@
 import { getSupabaseClient } from '../lib/supabase';
 import { attachRelations } from './search';
-import type {
-  RecipeFull,
-  RecipeRecommendation,
-  FamilyPreferences,
-} from '@mealme/shared';
+import type { RecipeFull, RecipeRecommendation, FamilyPreferences } from '@mealme/shared';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -13,9 +9,7 @@ import type {
  * to the kebab-case format used in recipe data (e.g. "gluten-free").
  */
 function toKebabCase(str: string): string {
-  return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .toLowerCase();
+  return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
 // ── Scoring Weights ──────────────────────────────────────────────────────────
@@ -41,9 +35,7 @@ const WEIGHTS = {
  * Fetch family dietary preferences from the database.
  * Falls back to empty preferences if the family doesn't exist.
  */
-export async function getFamilyPreferences(
-  familyId: string
-): Promise<FamilyPreferences> {
+export async function getFamilyPreferences(familyId: string): Promise<FamilyPreferences> {
   const sb = getSupabaseClient();
 
   // Try to fetch from a family_preferences table if it exists
@@ -57,27 +49,25 @@ export async function getFamilyPreferences(
     // Return empty preferences — the recommendation engine will still work
     // but won't have preference-based scoring
     return {
+      id: '',
       familyId: familyId,
       dietaryRestrictions: [],
-      preferredCuisines: [],
-      budgetTier: 'moderate',
-      maxServingsPerMeal: 4,
-      activeMealSlots: [],
-      includeLibraryRecipes: true,
-      excludedIngredients: [],
+      allergies: [],
+      cuisinePreferences: [],
+      budgetRange: { min: 0, max: 500, currency: 'USD' },
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
   }
 
   return {
+    id: data.id ?? '',
     familyId: familyId,
     dietaryRestrictions: data.dietary_restrictions ?? [],
-    preferredCuisines: data.cuisine_preferences ?? [],
-    budgetTier: data.budget_tier ?? 'moderate',
-    maxServingsPerMeal: data.household_size ?? 4,
-    activeMealSlots: [],
-    includeLibraryRecipes: true,
-    excludedIngredients: data.excluded_ingredients ?? [],
+    allergies: data.allergies ?? [],
+    cuisinePreferences: data.cuisine_preferences ?? [],
+    budgetRange: data.budget_range ?? { min: 0, max: 500, currency: 'USD' },
+    createdAt: data.created_at ?? new Date().toISOString(),
     updatedAt: data.updated_at ?? new Date().toISOString(),
   };
 }
@@ -98,10 +88,7 @@ interface ScoreBreakdown {
  * Score a single recipe against family preferences.
  * Returns a breakdown with total score and human-readable reasons.
  */
-export function scoreRecipe(
-  recipe: RecipeFull,
-  preferences: FamilyPreferences
-): ScoreBreakdown {
+export function scoreRecipe(recipe: RecipeFull, preferences: FamilyPreferences): ScoreBreakdown {
   let dietaryScore = 0;
   let cuisineScore = 0;
   let allergenScore = 0;
@@ -111,44 +98,35 @@ export function scoreRecipe(
 
   // ── Dietary restriction scoring ──────────────────────────────────────────
   if (preferences.dietaryRestrictions.length > 0) {
-    const matchedRestrictions = preferences.dietaryRestrictions.filter(
-      (restriction: string) =>
-        recipe.dietary_info.some(
-          (di) => toKebabCase(restriction) === di.restriction && di.is_compliant
-        )
+    const matchedRestrictions = preferences.dietaryRestrictions.filter((restriction: string) =>
+      recipe.dietary_info.some(
+        (di) => toKebabCase(restriction) === di.restriction && di.is_compliant,
+      ),
     );
 
-    dietaryScore =
-      matchedRestrictions.length * WEIGHTS.DIETARY_MATCH;
+    dietaryScore = matchedRestrictions.length * WEIGHTS.DIETARY_MATCH;
 
     if (matchedRestrictions.length > 0) {
-      reasons.push(
-        `Matches dietary needs: ${matchedRestrictions.join(', ')}`
-      );
+      reasons.push(`Matches dietary needs: ${matchedRestrictions.join(', ')}`);
     }
 
     // Heavy penalty if recipe doesn't comply with a required restriction
     const nonCompliant = preferences.dietaryRestrictions.filter(
       (restriction: string) =>
         !recipe.dietary_info.some(
-          (di) => toKebabCase(restriction) === di.restriction && di.is_compliant
-        )
+          (di) => toKebabCase(restriction) === di.restriction && di.is_compliant,
+        ),
     );
     if (nonCompliant.length > 0) {
       dietaryScore += nonCompliant.length * WEIGHTS.ALLERGEN_PENALTY;
-      reasons.push(
-        `Does not meet: ${nonCompliant.join(', ')}`
-      );
+      reasons.push(`Does not meet: ${nonCompliant.join(', ')}`);
     }
   }
 
   // ── Cuisine preference scoring ───────────────────────────────────────────
-  if (
-    preferences.preferredCuisines.length > 0 &&
-    recipe.cuisine
-  ) {
-    const cuisineMatch = preferences.preferredCuisines.some(
-      (pref) => pref.toLowerCase() === recipe.cuisine!.toLowerCase()
+  if (preferences.cuisinePreferences.length > 0 && recipe.cuisine) {
+    const cuisineMatch = preferences.cuisinePreferences.some(
+      (pref) => pref.toLowerCase() === recipe.cuisine!.toLowerCase(),
     );
     if (cuisineMatch) {
       cuisineScore = WEIGHTS.CUISINE_MATCH;
@@ -157,19 +135,15 @@ export function scoreRecipe(
   }
 
   // ── Allergen / excluded ingredient scoring ────────────────────────────────
-  if (preferences.excludedIngredients.length > 0) {
-    const ingredientNames = recipe.ingredients.map((i) =>
-      i.name.toLowerCase()
-    );
-    const foundAllergens = preferences.excludedIngredients.filter((allergen: string) =>
-      ingredientNames.some((name) =>
-        name.includes(allergen.toLowerCase())
-      )
+  if (preferences.allergies.length > 0) {
+    const ingredientNames = recipe.ingredients.map((i) => i.name.toLowerCase());
+    const foundAllergens = preferences.allergies.filter((allergen: string) =>
+      ingredientNames.some((name) => name.includes(allergen.toLowerCase())),
     );
 
     if (foundAllergens.length > 0) {
       allergenScore = foundAllergens.length * WEIGHTS.ALLERGEN_PENALTY;
-      reasons.push(`Contains excluded ingredients: ${foundAllergens.join(', ')}`);
+      reasons.push(`Contains allergens: ${foundAllergens.join(', ')}`);
     } else {
       reasons.push('No allergens detected');
     }
@@ -179,15 +153,11 @@ export function scoreRecipe(
   // Bonus for recipes with tags that match dietary preferences
   if (recipe.tags.length > 0 && preferences.dietaryRestrictions.length > 0) {
     const matchingTags = recipe.tags.filter((t) =>
-      preferences.dietaryRestrictions.some(
-        (dr: string) => toKebabCase(dr) === t.tag.toLowerCase()
-      )
+      preferences.dietaryRestrictions.some((dr: string) => toKebabCase(dr) === t.tag.toLowerCase()),
     );
     tagScore = matchingTags.length * WEIGHTS.TAG_MATCH;
     if (matchingTags.length > 0) {
-      reasons.push(
-        `Relevant tags: ${matchingTags.map((t) => t.tag).join(', ')}`
-      );
+      reasons.push(`Relevant tags: ${matchingTags.map((t) => t.tag).join(', ')}`);
     }
   }
 
@@ -198,8 +168,7 @@ export function scoreRecipe(
     reasons.push(`Quick meal: ${totalTime} min total`);
   }
 
-  const total =
-    dietaryScore + cuisineScore + allergenScore + tagScore + quickMealScore;
+  const total = dietaryScore + cuisineScore + allergenScore + tagScore + quickMealScore;
 
   return {
     dietaryScore,
@@ -225,7 +194,7 @@ export function scoreRecipe(
  */
 export async function recommendRecipes(
   familyId: string,
-  limit = 10
+  limit = 10,
 ): Promise<RecipeRecommendation[]> {
   // 1. Fetch family preferences
   const preferences = await getFamilyPreferences(familyId);
