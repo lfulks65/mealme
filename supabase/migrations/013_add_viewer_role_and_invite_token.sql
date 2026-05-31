@@ -116,7 +116,7 @@ $$;
 -- 5. Update remove_org_member RPC to handle viewer role
 -- ---------------------------------------------------------------------------
 -- Viewers can be removed by admins/owners just like members.
--- Also allow viewers to remove themselves (leave the org).
+-- Self-removal (leave org) is handled client-side in members.ts, not by this RPC.
 -- The existing logic already handles this correctly since it only blocks
 -- removing owners and admins-by-admins. No changes needed to the core
 -- logic, but we recreate to ensure consistency.
