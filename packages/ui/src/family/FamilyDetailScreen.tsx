@@ -46,6 +46,8 @@ export interface FamilyDetailScreenProps {
   familyId: string;
   /** Navigate to family settings screen. */
   onSettingsPress: (familyId: string) => void;
+  /** Navigate to family preferences screen. */
+  onPreferencesPress?: (familyId: string) => void;
   /** Navigate back. */
   onBack?: () => void;
 }
@@ -58,7 +60,11 @@ const ROLE_OPTIONS: { label: string; value: FamilyRole }[] = [
   { label: 'Child', value: 'child' },
 ];
 
-export function FamilyDetailScreen({ familyId, onSettingsPress }: FamilyDetailScreenProps) {
+export function FamilyDetailScreen({
+  familyId,
+  onSettingsPress,
+  onPreferencesPress,
+}: FamilyDetailScreenProps) {
   const {
     currentFamily,
     members,
@@ -250,6 +256,16 @@ export function FamilyDetailScreen({ familyId, onSettingsPress }: FamilyDetailSc
           <Button size="sm" variant="outline" onPress={() => onSettingsPress(familyId)}>
             <ButtonText size="sm">Settings</ButtonText>
           </Button>
+          {onPreferencesPress && (
+            <Button
+              size="sm"
+              variant="outline"
+              action="primary"
+              onPress={() => onPreferencesPress(familyId)}
+            >
+              <ButtonText size="sm">Preferences</ButtonText>
+            </Button>
+          )}
         </HStack>
       </Box>
 

@@ -13,6 +13,9 @@ export default function FamilyDetailPage() {
       onSettingsPress={(familyId: string) => {
         router.push(`/families/${familyId}/settings`);
       }}
+      onPreferencesPress={(familyId: string) => {
+        router.push(`/families/${familyId}/preferences`);
+      }}
       onBack={() => router.back()}
     />
   );
