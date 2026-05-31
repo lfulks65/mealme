@@ -84,6 +84,10 @@ export type {
   GetFamilyPreferencesResponse,
   UpdateFamilyPreferencesRequest,
   UpdateFamilyPreferencesResponse,
+  GetMemberPreferencesResponse,
+  UpdateMemberPreferencesRequest,
+  UpdateMemberPreferencesResponse,
+  // Backward-compatible aliases
   GetUserPreferencesResponse,
   UpdateUserPreferencesRequest,
   UpdateUserPreferencesResponse,

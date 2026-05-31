@@ -85,9 +85,11 @@ function singleChain(data: any, error: any = null): MockChain {
   c.maybeSingle = vi.fn().mockResolvedValue({ data, error });
   c.single = vi.fn().mockResolvedValue({ data, error });
   // Make the chain thenable so `await query` works
-  c.then = vi.fn().mockImplementation((resolve: any, _reject?: any) =>
-    Promise.resolve({ data, error }).then(resolve),
-  );
+  c.then = vi
+    .fn()
+    .mockImplementation((resolve: any, _reject?: any) =>
+      Promise.resolve({ data, error }).then(resolve),
+    );
   return c;
 }
 
@@ -108,9 +110,11 @@ function arrayChain(data: any[], error: any = null): MockChain {
   c.maybeSingle = vi.fn().mockResolvedValue({ data, error });
   c.single = vi.fn().mockResolvedValue({ data, error });
   // Make the chain thenable so `await query` works
-  c.then = vi.fn().mockImplementation((resolve: any, _reject?: any) =>
-    Promise.resolve({ data, error }).then(resolve),
-  );
+  c.then = vi
+    .fn()
+    .mockImplementation((resolve: any, _reject?: any) =>
+      Promise.resolve({ data, error }).then(resolve),
+    );
   return c;
 }
 
@@ -126,9 +130,11 @@ function recipeQueryChain(data: any[], error: any = null): MockChain {
   c.in = vi.fn().mockReturnValue(c);
   c.limit = vi.fn().mockReturnValue(c);
   // Make the chain thenable so `await query` works
-  c.then = vi.fn().mockImplementation((resolve: any, _reject?: any) =>
-    Promise.resolve({ data, error }).then(resolve),
-  );
+  c.then = vi
+    .fn()
+    .mockImplementation((resolve: any, _reject?: any) =>
+      Promise.resolve({ data, error }).then(resolve),
+    );
   return c;
 }
 
@@ -179,9 +185,7 @@ const aggregatedPrefs = {
   dietaryRestrictions: ['vegetarian'],
   allergies: ['peanuts'],
   cuisinePreferences: ['italian', 'mexican'],
-  budgetTier: 'moderate',
-  householdSize: 4,
-  notes: null,
+  budgetRange: { min: 0, max: 500, currency: 'USD' },
   memberOverrides: [],
 };
 
@@ -251,7 +255,7 @@ describe('getMealPlan', () => {
     const recipeChain = singleChain(recipeSummary);
 
     mockFrom
-      .mockReturnValueOnce(planChain)   // meal_plans select
+      .mockReturnValueOnce(planChain) // meal_plans select
       .mockReturnValueOnce(entriesChain) // meal_plan_entries select
       .mockReturnValueOnce(recipeChain); // recipes select
 
@@ -290,9 +294,7 @@ describe('getMealPlan', () => {
     const planChain = singleChain(mealPlanRow);
     const entriesChain = arrayChain([]);
 
-    mockFrom
-      .mockReturnValueOnce(planChain)
-      .mockReturnValueOnce(entriesChain);
+    mockFrom.mockReturnValueOnce(planChain).mockReturnValueOnce(entriesChain);
 
     const result = await getMealPlan(PLAN_ID);
 
@@ -352,16 +354,9 @@ describe('addMealEntry', () => {
     const entryChain = singleChain(entryRow);
     const recipeChain = singleChain(recipeSummary);
 
-    mockFrom
-      .mockReturnValueOnce(entryChain)
-      .mockReturnValueOnce(recipeChain);
+    mockFrom.mockReturnValueOnce(entryChain).mockReturnValueOnce(recipeChain);
 
-    const result = await addMealEntry(
-      PLAN_ID,
-      '2025-01-13',
-      'breakfast',
-      'recipe-001',
-    );
+    const result = await addMealEntry(PLAN_ID, '2025-01-13', 'breakfast', 'recipe-001');
 
     expect(mockFrom).toHaveBeenCalledWith('meal_plan_entries');
     expect(entryChain.insert).toHaveBeenCalledWith(
@@ -382,17 +377,9 @@ describe('addMealEntry', () => {
     const entryChain = singleChain({ ...entryRow, servings: 6 });
     const recipeChain = singleChain(recipeSummary);
 
-    mockFrom
-      .mockReturnValueOnce(entryChain)
-      .mockReturnValueOnce(recipeChain);
+    mockFrom.mockReturnValueOnce(entryChain).mockReturnValueOnce(recipeChain);
 
-    const result = await addMealEntry(
-      PLAN_ID,
-      '2025-01-13',
-      'dinner',
-      'recipe-001',
-      6,
-    );
+    const result = await addMealEntry(PLAN_ID, '2025-01-13', 'dinner', 'recipe-001', 6);
 
     expect(entryChain.insert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -472,9 +459,7 @@ describe('updateMealEntry', () => {
     const updateChain = singleChain(updatedRow);
     const recipeChain = singleChain(recipeSummary);
 
-    mockFrom
-      .mockReturnValueOnce(updateChain)
-      .mockReturnValueOnce(recipeChain);
+    mockFrom.mockReturnValueOnce(updateChain).mockReturnValueOnce(recipeChain);
 
     const result = await updateMealEntry('entry-001', {
       servings: 2,
@@ -500,9 +485,7 @@ describe('updateMealEntry', () => {
     const updateChain = singleChain(updatedRow);
     const recipeChain = singleChain(newRecipeSummary);
 
-    mockFrom
-      .mockReturnValueOnce(updateChain)
-      .mockReturnValueOnce(recipeChain);
+    mockFrom.mockReturnValueOnce(updateChain).mockReturnValueOnce(recipeChain);
 
     const result = await updateMealEntry('entry-001', {
       recipeId: 'recipe-002',

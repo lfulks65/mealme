@@ -20,66 +20,53 @@ vi.mock('../lib/supabase', () => ({
  * so we can test it without needing a full Supabase mock chain.
  */
 
-function filterByDietaryRestrictions(
-  recipes: RecipeFull[],
-  restrictions: string[]
-): RecipeFull[] {
+function filterByDietaryRestrictions(recipes: RecipeFull[], restrictions: string[]): RecipeFull[] {
   return recipes.filter((recipe) =>
     restrictions.every((restriction: string) =>
-      recipe.dietary_info.some(
-        (di) => di.restriction === restriction && di.is_compliant
-      )
-    )
+      recipe.dietary_info.some((di) => di.restriction === restriction && di.is_compliant),
+    ),
   );
 }
 
-function filterByTags(
-  recipes: RecipeFull[],
-  tags: string[]
-): RecipeFull[] {
+function filterByTags(recipes: RecipeFull[], tags: string[]): RecipeFull[] {
   return recipes.filter((recipe) =>
-    tags.every((tag: string) =>
-      recipe.tags.some((t) => t.tag.toLowerCase() === tag.toLowerCase())
-    )
+    tags.every((tag: string) => recipe.tags.some((t) => t.tag.toLowerCase() === tag.toLowerCase())),
   );
 }
 
-function filterByAllergens(
-  recipes: RecipeFull[],
-  allergies: string[]
-): RecipeFull[] {
+function filterByAllergens(recipes: RecipeFull[], allergies: string[]): RecipeFull[] {
   return recipes.filter((recipe) => {
     const ingredientNames = recipe.ingredients.map((i) => i.name.toLowerCase());
     return allergies.every((allergen: string) =>
-      ingredientNames.every((name) => !name.includes(allergen.toLowerCase()))
+      ingredientNames.every((name) => !name.includes(allergen.toLowerCase())),
     );
   });
 }
 
-function filterByExcludedIngredients(
-  recipes: RecipeFull[],
-  excluded: string[]
-): RecipeFull[] {
+function filterByExcludedIngredients(recipes: RecipeFull[], excluded: string[]): RecipeFull[] {
   return recipes.filter((recipe) => {
     const ingredientNames = recipe.ingredients.map((i) => i.name.toLowerCase());
     return excluded.every((exc: string) =>
-      ingredientNames.every((name) => !name.includes(exc.toLowerCase()))
+      ingredientNames.every((name) => !name.includes(exc.toLowerCase())),
     );
   });
 }
 
 function applyAllPreferenceFilters(
   recipes: RecipeFull[],
-  preferences: FamilyPreferences
+  preferences: FamilyPreferences,
 ): RecipeFull[] {
   let filtered = recipes;
 
   if (preferences.dietaryRestrictions.length > 0) {
-    filtered = filterByDietaryRestrictions(filtered, preferences.dietaryRestrictions as unknown as string[]);
+    filtered = filterByDietaryRestrictions(
+      filtered,
+      preferences.dietaryRestrictions as unknown as string[],
+    );
   }
 
-  if (preferences.excludedIngredients.length > 0) {
-    filtered = filterByAllergens(filtered, preferences.excludedIngredients);
+  if (preferences.allergies.length > 0) {
+    filtered = filterByAllergens(filtered, preferences.allergies);
   }
 
   return filtered;
@@ -102,14 +89,33 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
     created_by: null,
     created_at: '2025-01-01T00:00:00Z',
     ingredients: [
-      { id: 'i1', recipe_id: 'recipe-1', name: 'spaghetti', quantity: '1', unit: 'lb', optional: false },
-      { id: 'i2', recipe_id: 'recipe-1', name: 'parmesan cheese', quantity: '1', unit: 'cup', optional: false },
-      { id: 'i3', recipe_id: 'recipe-1', name: 'bacon', quantity: '6', unit: 'slice', optional: false },
+      {
+        id: 'i1',
+        recipe_id: 'recipe-1',
+        name: 'spaghetti',
+        quantity: '1',
+        unit: 'lb',
+        optional: false,
+      },
+      {
+        id: 'i2',
+        recipe_id: 'recipe-1',
+        name: 'parmesan cheese',
+        quantity: '1',
+        unit: 'cup',
+        optional: false,
+      },
+      {
+        id: 'i3',
+        recipe_id: 'recipe-1',
+        name: 'bacon',
+        quantity: '6',
+        unit: 'slice',
+        optional: false,
+      },
     ],
     instructions: [],
-    tags: [
-      { id: 't1', recipe_id: 'recipe-1', tag: 'comfort-food' },
-    ],
+    tags: [{ id: 't1', recipe_id: 'recipe-1', tag: 'comfort-food' }],
     dietary_info: [
       { id: 'd1', recipe_id: 'recipe-1', restriction: 'gluten-free', is_compliant: false },
       { id: 'd2', recipe_id: 'recipe-1', restriction: 'dairy-free', is_compliant: false },
@@ -213,9 +219,7 @@ describe('filterByTags', () => {
     const recipes = [
       makeRecipe({
         id: 'r1',
-        tags: [
-          { id: 't1', recipe_id: 'r1', tag: 'quick' },
-        ],
+        tags: [{ id: 't1', recipe_id: 'r1', tag: 'quick' }],
       }),
     ];
 
@@ -227,9 +231,7 @@ describe('filterByTags', () => {
     const recipes = [
       makeRecipe({
         id: 'r1',
-        tags: [
-          { id: 't1', recipe_id: 'r1', tag: 'Quick' },
-        ],
+        tags: [{ id: 't1', recipe_id: 'r1', tag: 'Quick' }],
       }),
     ];
 
@@ -246,7 +248,14 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'peanut butter', quantity: '2', unit: 'tbsp', optional: false },
+          {
+            id: 'i1',
+            recipe_id: 'r1',
+            name: 'peanut butter',
+            quantity: '2',
+            unit: 'tbsp',
+            optional: false,
+          },
         ],
       }),
     ];
@@ -260,7 +269,14 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'chicken breast', quantity: '1', unit: 'lb', optional: false },
+          {
+            id: 'i1',
+            recipe_id: 'r1',
+            name: 'chicken breast',
+            quantity: '1',
+            unit: 'lb',
+            optional: false,
+          },
         ],
       }),
     ];
@@ -274,7 +290,14 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'Peanut Oil', quantity: '1', unit: 'tbsp', optional: false },
+          {
+            id: 'i1',
+            recipe_id: 'r1',
+            name: 'Peanut Oil',
+            quantity: '1',
+            unit: 'tbsp',
+            optional: false,
+          },
         ],
       }),
     ];
@@ -288,13 +311,27 @@ describe('filterByAllergens', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'peanut butter', quantity: '2', unit: 'tbsp', optional: false },
+          {
+            id: 'i1',
+            recipe_id: 'r1',
+            name: 'peanut butter',
+            quantity: '2',
+            unit: 'tbsp',
+            optional: false,
+          },
         ],
       }),
       makeRecipe({
         id: 'r2',
         ingredients: [
-          { id: 'i2', recipe_id: 'r2', name: 'chicken', quantity: '1', unit: 'lb', optional: false },
+          {
+            id: 'i2',
+            recipe_id: 'r2',
+            name: 'chicken',
+            quantity: '1',
+            unit: 'lb',
+            optional: false,
+          },
         ],
       }),
     ];
@@ -314,7 +351,14 @@ describe('filterByExcludedIngredients', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'cilantro', quantity: '1', unit: 'cup', optional: false },
+          {
+            id: 'i1',
+            recipe_id: 'r1',
+            name: 'cilantro',
+            quantity: '1',
+            unit: 'cup',
+            optional: false,
+          },
         ],
       }),
     ];
@@ -328,7 +372,14 @@ describe('filterByExcludedIngredients', () => {
       makeRecipe({
         id: 'r1',
         ingredients: [
-          { id: 'i1', recipe_id: 'r1', name: 'parsley', quantity: '1', unit: 'cup', optional: false },
+          {
+            id: 'i1',
+            recipe_id: 'r1',
+            name: 'parsley',
+            quantity: '1',
+            unit: 'cup',
+            optional: false,
+          },
         ],
       }),
     ];
@@ -358,7 +409,14 @@ describe('applyAllPreferenceFilters', () => {
       makeRecipe({
         id: 'r2',
         ingredients: [
-          { id: 'i3', recipe_id: 'r2', name: 'peanut sauce', quantity: '2', unit: 'tbsp', optional: false },
+          {
+            id: 'i3',
+            recipe_id: 'r2',
+            name: 'peanut sauce',
+            quantity: '2',
+            unit: 'tbsp',
+            optional: false,
+          },
         ],
         dietary_info: [
           { id: 'd3', recipe_id: 'r2', restriction: 'gluten-free', is_compliant: true },
@@ -368,7 +426,14 @@ describe('applyAllPreferenceFilters', () => {
       makeRecipe({
         id: 'r3',
         ingredients: [
-          { id: 'i4', recipe_id: 'r3', name: 'chicken', quantity: '1', unit: 'lb', optional: false },
+          {
+            id: 'i4',
+            recipe_id: 'r3',
+            name: 'chicken',
+            quantity: '1',
+            unit: 'lb',
+            optional: false,
+          },
         ],
         dietary_info: [
           { id: 'd4', recipe_id: 'r3', restriction: 'gluten-free', is_compliant: false },
@@ -377,16 +442,17 @@ describe('applyAllPreferenceFilters', () => {
     ];
 
     const prefs: FamilyPreferences = {
+      id: '',
       familyId: 'f1',
       dietaryRestrictions: ['gluten-free'] as any,
-      preferredCuisines: [],
-      budgetTier: 'moderate',
-      maxServingsPerMeal: 4,
-      activeMealSlots: [],
-      includeLibraryRecipes: true,
-      excludedIngredients: ['peanut'],
+      allergies: [],
+      cuisinePreferences: [],
+      budgetRange: { min: 0, max: 500, currency: 'USD' },
+      createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     };
+    // Add peanut allergy for the test
+    (prefs as any).allergies = ['peanut'];
 
     const result = applyAllPreferenceFilters(recipes, prefs);
 
@@ -399,14 +465,13 @@ describe('applyAllPreferenceFilters', () => {
     const recipes = [makeRecipe({ id: 'r1' }), makeRecipe({ id: 'r2' })];
 
     const prefs: FamilyPreferences = {
+      id: '',
       familyId: 'f1',
       dietaryRestrictions: [],
-      preferredCuisines: [],
-      budgetTier: 'moderate',
-      maxServingsPerMeal: 4,
-      activeMealSlots: [],
-      includeLibraryRecipes: true,
-      excludedIngredients: [],
+      allergies: [],
+      cuisinePreferences: [],
+      budgetRange: { min: 0, max: 500, currency: 'USD' },
+      createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     };
 

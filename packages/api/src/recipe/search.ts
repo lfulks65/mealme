@@ -17,9 +17,7 @@ import type {
  * Fetch all nested relations for a set of recipe IDs and attach them.
  * This avoids N+1 queries by batching the lookups.
  */
-export async function attachRelations(
-  recipes: RecipeFull[]
-): Promise<RecipeFull[]> {
+export async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
   if (recipes.length === 0) return recipes;
 
   const sb = getSupabaseClient();
@@ -41,19 +39,10 @@ export async function attachRelations(
   if (tags.error) throw tags.error;
   if (dietaryInfo.error) throw dietaryInfo.error;
 
-  const ingredientMap = groupBy<RecipeIngredientDB>(
-    ingredients.data,
-    'recipe_id'
-  );
-  const instructionMap = groupBy<RecipeInstruction>(
-    instructions.data,
-    'recipe_id'
-  );
+  const ingredientMap = groupBy<RecipeIngredientDB>(ingredients.data, 'recipe_id');
+  const instructionMap = groupBy<RecipeInstruction>(instructions.data, 'recipe_id');
   const tagMap = groupBy<RecipeTag>(tags.data, 'recipe_id');
-  const dietaryMap = groupBy<RecipeDietaryInfo>(
-    dietaryInfo.data,
-    'recipe_id'
-  );
+  const dietaryMap = groupBy<RecipeDietaryInfo>(dietaryInfo.data, 'recipe_id');
 
   return recipes.map((r) => ({
     ...r,
@@ -64,10 +53,7 @@ export async function attachRelations(
   }));
 }
 
-function groupBy<T extends Record<string, any>>(
-  items: T[],
-  key: string
-): Record<string, T[]> {
+function groupBy<T extends Record<string, any>>(items: T[], key: string): Record<string, T[]> {
   return items.reduce<Record<string, T[]>>((acc, item) => {
     const k = item[key] as string;
     if (!acc[k]) acc[k] = [];
@@ -79,10 +65,7 @@ function groupBy<T extends Record<string, any>>(
 /**
  * Build a Supabase query with filter chain from RecipeSearchFilters.
  */
-function applyFilters(
-  query: any,
-  filters: RecipeSearchFilters
-) {
+function applyFilters(query: any, filters: RecipeSearchFilters) {
   if (filters.cuisine) {
     query = query.eq('cuisine', filters.cuisine);
   }
@@ -111,7 +94,7 @@ export async function searchRecipes(
   query?: string,
   filters?: RecipeSearchFilters,
   limit = 20,
-  offset = 0
+  offset = 0,
 ): Promise<RecipeSearchResult> {
   const sb = getSupabaseClient();
 
@@ -151,10 +134,8 @@ export async function searchRecipes(
   if (filters?.dietary_restrictions && filters.dietary_restrictions.length > 0) {
     filtered = withRelations.filter((recipe) =>
       filters.dietary_restrictions!.every((restriction: string) =>
-        recipe.dietary_info.some(
-          (di) => di.restriction === restriction && di.is_compliant
-        )
-      )
+        recipe.dietary_info.some((di) => di.restriction === restriction && di.is_compliant),
+      ),
     );
   }
 
@@ -162,8 +143,8 @@ export async function searchRecipes(
   if (filters?.tags && filters.tags.length > 0) {
     filtered = filtered.filter((recipe) =>
       filters.tags!.every((tag: string) =>
-        recipe.tags.some((t) => t.tag.toLowerCase() === tag.toLowerCase())
-      )
+        recipe.tags.some((t) => t.tag.toLowerCase() === tag.toLowerCase()),
+      ),
     );
   }
 
@@ -199,15 +180,15 @@ export async function getRecipe(id: string): Promise<RecipeFull | null> {
 export async function getRecipesByPreferences(
   preferences: FamilyPreferences,
   limit = 20,
-  offset = 0
+  offset = 0,
 ): Promise<RecipeSearchResult> {
   const sb = getSupabaseClient();
 
   // Start with all recipes, optionally filtered by preferred cuisines
   let q: any = sb.from('recipes').select('*', { count: 'exact' });
 
-  if (preferences.preferredCuisines.length > 0) {
-    q = q.in('cuisine', preferences.preferredCuisines);
+  if (preferences.cuisinePreferences.length > 0) {
+    q = q.in('cuisine', preferences.cuisinePreferences);
   }
 
   q = q.range(offset, offset + limit - 1).order('created_at', { ascending: false });
@@ -223,23 +204,17 @@ export async function getRecipesByPreferences(
   if (preferences.dietaryRestrictions.length > 0) {
     withRelations = withRelations.filter((recipe) =>
       preferences.dietaryRestrictions.every((restriction: string) =>
-        recipe.dietary_info.some(
-          (di) => di.restriction === restriction && di.is_compliant
-        )
-      )
+        recipe.dietary_info.some((di) => di.restriction === restriction && di.is_compliant),
+      ),
     );
   }
 
-  // Filter OUT recipes with excluded ingredients (allergies + explicitly excluded)
-  if (preferences.excludedIngredients.length > 0) {
+  // Filter OUT recipes with allergens
+  if (preferences.allergies.length > 0) {
     withRelations = withRelations.filter((recipe) => {
-      const ingredientNames = recipe.ingredients.map((i) =>
-        i.name.toLowerCase()
-      );
-      return preferences.excludedIngredients.every((excluded: string) =>
-        ingredientNames.every(
-          (name) => !name.includes(excluded.toLowerCase())
-        )
+      const ingredientNames = recipe.ingredients.map((i) => i.name.toLowerCase());
+      return preferences.allergies.every((allergen: string) =>
+        ingredientNames.every((name) => !name.includes(allergen.toLowerCase())),
       );
     });
   }
@@ -258,7 +233,7 @@ export async function getRecipesByPreferences(
 export async function listRecipesByCategory(
   category: string,
   limit = 20,
-  offset = 0
+  offset = 0,
 ): Promise<RecipeSearchResult> {
   const sb = getSupabaseClient();
 
@@ -288,10 +263,7 @@ export async function listRecipesByCategory(
 export async function listCategories(): Promise<RecipeCategory[]> {
   const sb = getSupabaseClient();
 
-  const { data, error } = await sb
-    .from('recipes')
-    .select('cuisine')
-    .not('cuisine', 'is', null);
+  const { data, error } = await sb.from('recipes').select('cuisine').not('cuisine', 'is', null);
 
   if (error) throw error;
 

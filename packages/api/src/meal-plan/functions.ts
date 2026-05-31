@@ -39,11 +39,7 @@ function mapError(error: { message?: string }, fallback: string): string {
 }
 
 /** Meal slots used when generating a full-week proposal. */
-const PROPOSAL_MEAL_SLOTS: MealSlot[] = [
-  'breakfast',
-  'lunch',
-  'dinner',
-];
+const PROPOSAL_MEAL_SLOTS: MealSlot[] = ['breakfast', 'lunch', 'dinner'];
 
 // ---------------------------------------------------------------------------
 // createMealPlan
@@ -102,9 +98,7 @@ export async function createMealPlan(
  * @param id - The meal plan UUID.
  * @returns The meal plan with entries and recipe summaries, or an error.
  */
-export async function getMealPlan(
-  id: string,
-): Promise<MealPlanResult> {
+export async function getMealPlan(id: string): Promise<MealPlanResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { mealPlan: null, error: 'Not authenticated' };
@@ -250,10 +244,7 @@ export async function removeMealEntry(
     return { entryId: null, error: 'Not authenticated' };
   }
 
-  const { error } = await supabase
-    .from('meal_plan_entries')
-    .delete()
-    .eq('id', entryId);
+  const { error } = await supabase.from('meal_plan_entries').delete().eq('id', entryId);
 
   if (error) {
     return { entryId: null, error: mapError(error, 'Failed to remove meal entry') };
@@ -345,8 +336,7 @@ export async function generatePlanProposal(
   }
 
   // 1. Fetch aggregated preferences
-  const { preferences: aggPrefs, error: prefsError } =
-    await getAggregatedPreferences(familyId);
+  const { preferences: aggPrefs, error: prefsError } = await getAggregatedPreferences(familyId);
 
   if (prefsError || !aggPrefs) {
     return {
@@ -413,20 +403,12 @@ export async function generatePlanProposal(
     const usedToday = usedRecipeIdsByDay.get(date)!;
 
     for (const slot of PROPOSAL_MEAL_SLOTS) {
-      const recipe = selectBestRecipe(
-        candidateRecipes,
-        usedToday,
-        usedRecipeIdsGlobal,
-        aggPrefs,
-      );
+      const recipe = selectBestRecipe(candidateRecipes, usedToday, usedRecipeIdsGlobal, aggPrefs);
 
       if (!recipe) continue;
 
       usedToday.add(recipe.id);
-      usedRecipeIdsGlobal.set(
-        recipe.id,
-        (usedRecipeIdsGlobal.get(recipe.id) ?? 0) + 1,
-      );
+      usedRecipeIdsGlobal.set(recipe.id, (usedRecipeIdsGlobal.get(recipe.id) ?? 0) + 1);
 
       const { data: entryData, error: entryError } = await supabase
         .from('meal_plan_entries')
@@ -435,7 +417,9 @@ export async function generatePlanProposal(
           date,
           meal_slot: slot,
           recipe_id: recipe.id,
-          servings: aggPrefs.householdSize ?? 4,
+          servings: aggPrefs.budgetRange?.max
+            ? Math.min(Math.max(2, Math.round(aggPrefs.budgetRange.max / 50)), 8)
+            : 4,
         })
         .select('*')
         .single();
@@ -468,9 +452,7 @@ export async function generatePlanProposal(
 /**
  * Fetch all entries for a meal plan, with joined recipe summaries.
  */
-async function fetchEntriesWithRecipes(
-  mealPlanId: string,
-): Promise<MealPlanEntryWithRecipe[]> {
+async function fetchEntriesWithRecipes(mealPlanId: string): Promise<MealPlanEntryWithRecipe[]> {
   const { data, error } = await supabase
     .from('meal_plan_entries')
     .select('*')
@@ -498,9 +480,7 @@ async function fetchEntriesWithRecipes(
  *
  * Returns null if the recipe is not found.
  */
-async function fetchRecipeSummary(
-  recipeId: string,
-): Promise<MealPlanEntryWithRecipe['recipe']> {
+async function fetchRecipeSummary(recipeId: string): Promise<MealPlanEntryWithRecipe['recipe']> {
   const { data, error } = await supabase
     .from('recipes')
     .select(
@@ -542,15 +522,12 @@ interface CandidateRecipe {
  *
  * Falls back to all recipes if no specific filters match.
  */
-async function fetchCandidateRecipes(
-  prefs: {
-    dietaryRestrictions: string[];
-    cuisinePreferences: string[];
-    allergies: string[];
-    budgetTier: string;
-    householdSize: number;
-  },
-): Promise<CandidateRecipe[]> {
+async function fetchCandidateRecipes(prefs: {
+  dietaryRestrictions: string[];
+  cuisinePreferences: string[];
+  allergies: string[];
+  budgetRange: { min: number; max: number; currency: string };
+}): Promise<CandidateRecipe[]> {
   // Try to find recipes matching dietary restrictions
   let query = supabase
     .from('recipes')

@@ -1,29 +1,31 @@
 /**
  * @module preferences
- * Preference CRUD API and aggregation for the MealMe platform.
+ * Preference CRUD API for the MealMe platform.
  *
- * Provides functions to manage family and member preferences,
- * and to compute the aggregated preference set by merging
- * family defaults with member overrides.
+ * Provides functions to manage family and member preferences.
  */
 
 // Types
 export type {
   FamilyPreferencesRow,
   MemberPreferencesRow,
-  UpsertFamilyPreferencesInput,
-  UpsertMemberPreferencesInput,
+  FamilyPreferences,
+  MemberPreferences,
+  FamilyPreferencesInput,
+  MemberPreferencesInput,
   FamilyPreferencesResult,
   MemberPreferencesResult,
   AggregatedPreferences,
   AggregatedPreferencesResult,
 } from './types';
 
+export { toFamilyPreferences, toMemberPreferences } from './types';
+
 // CRUD functions
 export {
   getFamilyPreferences,
-  upsertFamilyPreferences,
+  updateFamilyPreferences,
   getMemberPreferences,
-  upsertMemberPreferences,
+  updateMemberPreferences,
   getAggregatedPreferences,
 } from './functions';

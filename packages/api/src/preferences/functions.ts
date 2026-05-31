@@ -1,6 +1,6 @@
 /**
  * @module preferences/functions
- * Preference CRUD and aggregation functions for the MealMe API client.
+ * Preference CRUD functions for the MealMe API client.
  *
  * All functions interact with Supabase directly and rely on RLS
  * policies for authorization. The current user's session is used
@@ -11,14 +11,15 @@ import { supabase } from '../supabase';
 import type {
   FamilyPreferencesRow,
   MemberPreferencesRow,
-  UpsertFamilyPreferencesInput,
-  UpsertMemberPreferencesInput,
+  FamilyPreferencesInput,
+  MemberPreferencesInput,
   FamilyPreferencesResult,
   MemberPreferencesResult,
   AggregatedPreferences,
   AggregatedPreferencesResult,
 } from './types';
-import type { DietaryRestriction, CuisineType, BudgetTier } from '@mealme/shared';
+import { toFamilyPreferences, toMemberPreferences } from './types';
+import type { DietaryRestriction, CuisineType, AllergyId } from '@mealme/shared';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -37,22 +38,6 @@ function mapError(error: { message?: string }, fallback: string): string {
   return error.message ?? fallback;
 }
 
-/**
- * Deduplicate and merge string arrays, preserving order.
- * First occurrence wins for ordering.
- */
-function mergeUnique<T>(base: T[], ...overrides: T[]): T[] {
-  const seen = new Set<T>();
-  const result: T[] = [];
-  for (const item of [...base, ...overrides]) {
-    if (!seen.has(item)) {
-      seen.add(item);
-      result.push(item);
-    }
-  }
-  return result;
-}
-
 // ---------------------------------------------------------------------------
 // getFamilyPreferences
 // ---------------------------------------------------------------------------
@@ -62,9 +47,7 @@ function mergeUnique<T>(base: T[], ...overrides: T[]): T[] {
  *
  * RLS ensures only family members can read these preferences.
  */
-export async function getFamilyPreferences(
-  familyId: string,
-): Promise<FamilyPreferencesResult> {
+export async function getFamilyPreferences(familyId: string): Promise<FamilyPreferencesResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { preferences: null, error: 'Not authenticated' };
@@ -80,22 +63,22 @@ export async function getFamilyPreferences(
     return { preferences: null, error: mapError(error, 'Family preferences not found') };
   }
 
-  return { preferences: data as FamilyPreferencesRow, error: null };
+  return { preferences: toFamilyPreferences(data as FamilyPreferencesRow), error: null };
 }
 
 // ---------------------------------------------------------------------------
-// upsertFamilyPreferences
+// updateFamilyPreferences
 // ---------------------------------------------------------------------------
 
 /**
  * Create or update family preferences for a given family.
  *
  * Uses Supabase upsert on the `family_id` unique constraint.
- * RLS ensures only family members can write these preferences.
+ * RLS ensures only family owners/admins can write these preferences.
  */
-export async function upsertFamilyPreferences(
+export async function updateFamilyPreferences(
   familyId: string,
-  input: UpsertFamilyPreferencesInput,
+  input: FamilyPreferencesInput,
 ): Promise<FamilyPreferencesResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
@@ -116,14 +99,8 @@ export async function upsertFamilyPreferences(
   if (input.cuisinePreferences !== undefined) {
     payload.cuisine_preferences = input.cuisinePreferences;
   }
-  if (input.budgetTier !== undefined) {
-    payload.budget_tier = input.budgetTier;
-  }
-  if (input.householdSize !== undefined) {
-    payload.household_size = input.householdSize;
-  }
-  if (input.notes !== undefined) {
-    payload.notes = input.notes;
+  if (input.budgetRange !== undefined) {
+    payload.budget_range = input.budgetRange;
   }
 
   const { data, error } = await supabase
@@ -133,10 +110,10 @@ export async function upsertFamilyPreferences(
     .single();
 
   if (error) {
-    return { preferences: null, error: mapError(error, 'Failed to upsert family preferences') };
+    return { preferences: null, error: mapError(error, 'Failed to update family preferences') };
   }
 
-  return { preferences: data as FamilyPreferencesRow, error: null };
+  return { preferences: toFamilyPreferences(data as FamilyPreferencesRow), error: null };
 }
 
 // ---------------------------------------------------------------------------
@@ -144,63 +121,51 @@ export async function upsertFamilyPreferences(
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch the member preferences for a specific user within a family.
+ * Fetch the member preferences for a specific family member.
  *
- * RLS ensures only family members can read, and users can only
- * write their own preferences.
+ * RLS ensures only the member themselves can read their preferences.
  */
-export async function getMemberPreferences(
-  familyId: string,
-  userId: string,
-): Promise<MemberPreferencesResult> {
-  const currentUserId = await getCurrentUserId();
-  if (!currentUserId) {
+export async function getMemberPreferences(memberId: string): Promise<MemberPreferencesResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
     return { preferences: null, error: 'Not authenticated' };
   }
 
   const { data, error } = await supabase
     .from('member_preferences')
     .select('*')
-    .eq('family_id', familyId)
-    .eq('user_id', userId)
+    .eq('member_id', memberId)
     .single();
 
   if (error) {
     return { preferences: null, error: mapError(error, 'Member preferences not found') };
   }
 
-  return { preferences: data as MemberPreferencesRow, error: null };
+  return { preferences: toMemberPreferences(data as MemberPreferencesRow), error: null };
 }
 
 // ---------------------------------------------------------------------------
-// upsertMemberPreferences
+// updateMemberPreferences
 // ---------------------------------------------------------------------------
 
 /**
- * Create or update member preferences for a specific user within a family.
+ * Create or update member preferences for a specific family member.
  *
- * Uses Supabase upsert on the `(family_id, user_id)` unique constraint.
+ * Uses Supabase upsert on the `member_id` unique constraint.
  * RLS ensures users can only write their own preferences.
  */
-export async function upsertMemberPreferences(
-  familyId: string,
-  userId: string,
-  input: UpsertMemberPreferencesInput,
+export async function updateMemberPreferences(
+  memberId: string,
+  input: MemberPreferencesInput,
 ): Promise<MemberPreferencesResult> {
-  const currentUserId = await getCurrentUserId();
-  if (!currentUserId) {
+  const userId = await getCurrentUserId();
+  if (!userId) {
     return { preferences: null, error: 'Not authenticated' };
-  }
-
-  // Users can only upsert their own member preferences
-  if (userId !== currentUserId) {
-    return { preferences: null, error: 'You can only update your own preferences' };
   }
 
   // Build the upsert payload — only include defined fields
   const payload: Record<string, unknown> = {
-    family_id: familyId,
-    user_id: userId,
+    member_id: memberId,
   };
 
   if (input.dietaryRestrictions !== undefined) {
@@ -212,21 +177,38 @@ export async function upsertMemberPreferences(
   if (input.cuisinePreferences !== undefined) {
     payload.cuisine_preferences = input.cuisinePreferences;
   }
-  if (input.isOverride !== undefined) {
-    payload.is_override = input.isOverride;
-  }
 
   const { data, error } = await supabase
     .from('member_preferences')
-    .upsert(payload, { onConflict: 'family_id,user_id' })
+    .upsert(payload, { onConflict: 'member_id' })
     .select('*')
     .single();
 
   if (error) {
-    return { preferences: null, error: mapError(error, 'Failed to upsert member preferences') };
+    return { preferences: null, error: mapError(error, 'Failed to update member preferences') };
   }
 
-  return { preferences: data as MemberPreferencesRow, error: null };
+  return { preferences: toMemberPreferences(data as MemberPreferencesRow), error: null };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers for aggregation
+// ---------------------------------------------------------------------------
+
+/**
+ * Deduplicate and merge arrays, preserving order.
+ * First occurrence wins for ordering.
+ */
+function mergeUnique<T>(base: T[], ...overrides: T[]): T[] {
+  const seen = new Set<T>();
+  const result: T[] = [];
+  for (const item of [...base, ...overrides]) {
+    if (!seen.has(item)) {
+      seen.add(item);
+      result.push(item);
+    }
+  }
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -242,9 +224,8 @@ export async function upsertMemberPreferences(
  *   - `allergies`: union of family + all member overrides
  *   - `cuisinePreferences`: family list, then any member-only
  *     cuisines appended (deduplicated)
- *   - `budgetTier`, `householdSize`, `notes`: from family only
- *   - `memberOverrides`: list of all member preference rows that
- *     have `is_override = true`
+ *   - `budgetRange`: from family only
+ *   - `memberOverrides`: list of all member preference rows
  */
 export async function getAggregatedPreferences(
   familyId: string,
@@ -267,35 +248,38 @@ export async function getAggregatedPreferences(
 
   const familyPrefs = familyData as FamilyPreferencesRow;
 
-  // Fetch all member preferences for this family
+  // Fetch all member preferences for this family via family_members join
   const { data: memberData, error: memberError } = await supabase
-    .from('member_preferences')
-    .select('*')
+    .from('family_members')
+    .select('id, member_preferences(*)')
     .eq('family_id', familyId);
 
   if (memberError) {
-    return { preferences: null, error: mapError(memberError, 'Failed to fetch member preferences') };
+    return {
+      preferences: null,
+      error: mapError(memberError, 'Failed to fetch member preferences'),
+    };
   }
 
-  const memberPrefs = (memberData ?? []) as MemberPreferencesRow[];
+  // Extract member preferences rows from the join result
+  const memberPrefs: MemberPreferencesRow[] = (memberData ?? []).flatMap(
+    (fm: any) => fm.member_preferences ?? [],
+  ) as MemberPreferencesRow[];
 
-  // Filter to only override members
-  const overrideMembers = memberPrefs.filter((m) => m.is_override);
-
-  // Merge dietary restrictions: family + all override members
-  const allDietaryRestrictions = overrideMembers.reduce<DietaryRestriction[]>(
+  // Merge dietary restrictions: family + all members
+  const allDietaryRestrictions = memberPrefs.reduce<DietaryRestriction[]>(
     (acc, m) => mergeUnique(acc, ...(m.dietary_restrictions as DietaryRestriction[])),
     [...(familyPrefs.dietary_restrictions as DietaryRestriction[])],
   );
 
-  // Merge allergies: family + all override members
-  const allAllergies = overrideMembers.reduce<string[]>(
-    (acc, m) => mergeUnique(acc, ...(m.allergies as string[])),
-    [...(familyPrefs.allergies as string[])],
+  // Merge allergies: family + all members
+  const allAllergies = memberPrefs.reduce<AllergyId[]>(
+    (acc, m) => mergeUnique(acc, ...(m.allergies as AllergyId[])),
+    [...(familyPrefs.allergies as AllergyId[])],
   );
 
   // Merge cuisine preferences: family first, then member additions
-  const allCuisinePreferences = overrideMembers.reduce<CuisineType[]>(
+  const allCuisinePreferences = memberPrefs.reduce<CuisineType[]>(
     (acc, m) => mergeUnique(acc, ...(m.cuisine_preferences as CuisineType[])),
     [...(familyPrefs.cuisine_preferences as CuisineType[])],
   );
@@ -305,10 +289,8 @@ export async function getAggregatedPreferences(
     dietaryRestrictions: allDietaryRestrictions,
     allergies: allAllergies,
     cuisinePreferences: allCuisinePreferences,
-    budgetTier: familyPrefs.budget_tier as BudgetTier,
-    householdSize: familyPrefs.household_size,
-    notes: familyPrefs.notes,
-    memberOverrides: overrideMembers,
+    budgetRange: familyPrefs.budget_range,
+    memberOverrides: memberPrefs.map(toMemberPreferences),
   };
 
   return { preferences: aggregated, error: null };
