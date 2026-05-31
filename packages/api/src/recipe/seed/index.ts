@@ -2,17 +2,12 @@ import type { SeedRecipe } from './types';
 
 import { mexicanRecipes } from './mexican';
 import { italianRecipes } from './italian';
-// import { chineseRecipes } from './chinese';
-// import { japaneseRecipes } from './japanese';
-// import { koreanRecipes } from './korean';
-// import { thaiRecipes } from './thai';
-// import { vietnameseRecipes } from './vietnamese';
-// import { indianRecipes } from './indian';
-// import { mediterraneanRecipes } from './mediterranean';
-// import { americanRecipes } from './american';
-// import { frenchRecipes } from './french';
-// import { middleEasternRecipes } from './middle-eastern';
-// import { southernUSRecipes } from './southern-us';
+import { latinAmericanRecipes } from './latin-american';
+import { africanRecipes } from './african';
+import { caribbeanRecipes } from './caribbean';
+import { britishRecipes } from './british';
+import { greekRecipes } from './greek';
+import { scandinavianRecipes } from './scandinavian';
 
 import { getSupabaseClient } from '../../lib/supabase';
 
@@ -21,17 +16,12 @@ import { getSupabaseClient } from '../../lib/supabase';
 const recipes: SeedRecipe[] = [
   ...mexicanRecipes,
   ...italianRecipes,
-  // ...chineseRecipes,
-  // ...japaneseRecipes,
-  // ...koreanRecipes,
-  // ...thaiRecipes,
-  // ...vietnameseRecipes,
-  // ...indianRecipes,
-  // ...mediterraneanRecipes,
-  // ...americanRecipes,
-  // ...frenchRecipes,
-  // ...middleEasternRecipes,
-  // ...southernUSRecipes,
+  ...latinAmericanRecipes,
+  ...africanRecipes,
+  ...caribbeanRecipes,
+  ...britishRecipes,
+  ...greekRecipes,
+  ...scandinavianRecipes,
 ];
 
 // ── Seed function ────────────────────────────────────────────────────────────
