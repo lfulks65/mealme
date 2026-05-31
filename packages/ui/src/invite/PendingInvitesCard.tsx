@@ -3,6 +3,7 @@
  * Shows pending org invites for the current user.
  *
  * Used on the dashboard/home screen to display invites awaiting action.
+ * Each invite shows org name, role badge, and accept/reject buttons.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -59,6 +60,7 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
   const [orgNames, setOrgNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState<string | null>(null);
+  const [dismissing, setDismissing] = useState<Set<string>>(new Set());
 
   const loadInvites = useCallback(async () => {
     setLoading(true);
@@ -110,6 +112,20 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
     [onAcceptSuccess],
   );
 
+  const handleDismiss = useCallback((inviteId: string) => {
+    // Dismiss just removes from local view (doesn't reject the invite server-side)
+    setDismissing((prev) => new Set(prev).add(inviteId));
+    // Remove after a brief moment
+    setTimeout(() => {
+      setInvites((prev) => prev.filter((i) => i.id !== inviteId));
+      setDismissing((prev) => {
+        const next = new Set(prev);
+        next.delete(inviteId);
+        return next;
+      });
+    }, 300);
+  }, []);
+
   if (loading) {
     return (
       <Box p="$4">
@@ -130,6 +146,7 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
   const renderInviteItem = ({ item }: { item: InviteRow }) => {
     const roleBadgeColor = ROLE_BADGE_COLORS[item.role] ?? ROLE_BADGE_COLORS.member;
     const isAccepting = accepting === item.id;
+    const isDismissing = dismissing.has(item.id);
 
     return (
       <Box
@@ -138,6 +155,7 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
         borderBottomWidth={1}
         borderBottomColor="$borderLight200"
         bg="$backgroundLight0"
+        opacity={isDismissing ? 0.5 : 1}
       >
         <HStack space="md" alignItems="center" justifyContent="space-between">
           <VStack space="xs" flex={1}>
@@ -159,15 +177,26 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
               </Badge>
             </HStack>
           </VStack>
-          <Button
-            size="sm"
-            variant="solid"
-            action="primary"
-            onPress={() => handleAccept(item)}
-            isDisabled={isAccepting}
-          >
-            <ButtonText size="sm">{isAccepting ? 'Accepting…' : 'Accept'}</ButtonText>
-          </Button>
+          <HStack space="sm">
+            <Button
+              size="sm"
+              variant="solid"
+              action="primary"
+              onPress={() => handleAccept(item)}
+              isDisabled={isAccepting}
+            >
+              <ButtonText size="sm">{isAccepting ? 'Accepting…' : 'Accept'}</ButtonText>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              action="secondary"
+              onPress={() => handleDismiss(item.id)}
+              isDisabled={isDismissing}
+            >
+              <ButtonText size="sm">Dismiss</ButtonText>
+            </Button>
+          </HStack>
         </HStack>
       </Box>
     );
@@ -178,8 +207,11 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
       <VStack space="sm">
         <Box px="$4" pt="$4" pb="$2">
           <Heading size="sm" color="$textLight900">
-            Pending Invites
+            Pending Invitations
           </Heading>
+          <Text size="xs" color="$textLight500" mt="$1">
+            You have {invites.length} invitation{invites.length !== 1 ? 's' : ''} waiting
+          </Text>
         </Box>
         <FlatList
           data={invites}

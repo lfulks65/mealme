@@ -473,6 +473,62 @@ export async function listInvites(orgId: string): Promise<InviteListResult> {
 }
 
 // ---------------------------------------------------------------------------
+// revokeInvite
+// ---------------------------------------------------------------------------
+
+/**
+ * Revoke (delete) a pending invite.
+ *
+ * Only admins/owners of the org can revoke invites. The invite row
+ * is deleted from the `invites` table, making the invite link unusable.
+ */
+export async function revokeInvite(inviteId: string): Promise<OrgMemberResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  // Fetch the invite to verify the caller is admin+ in the org
+  const { data: inviteRow, error: fetchError } = await supabase
+    .from('invites')
+    .select('org_id')
+    .eq('id', inviteId)
+    .single();
+
+  if (fetchError || !inviteRow) {
+    return { success: false, error: 'Invite not found' };
+  }
+
+  const orgId = (inviteRow as any).org_id as string;
+
+  // Verify the caller is admin+ in this org
+  const { data: callerMembership, error: membershipError } = await supabase
+    .from('organization_members')
+    .select('role')
+    .eq('org_id', orgId)
+    .eq('user_id', userId)
+    .single();
+
+  if (membershipError || !callerMembership) {
+    return { success: false, error: 'Not a member of this organization' };
+  }
+
+  const callerRole = callerMembership.role as OrgRole;
+  if (callerRole !== 'owner' && callerRole !== 'admin') {
+    return { success: false, error: 'Only admins and owners can revoke invites' };
+  }
+
+  // Delete the invite
+  const { error: deleteError } = await supabase.from('invites').delete().eq('id', inviteId);
+
+  if (deleteError) {
+    return { success: false, error: mapError(deleteError, 'Failed to revoke invite') };
+  }
+
+  return { success: true, error: null };
+}
+
+// ---------------------------------------------------------------------------
 // listPendingInvitesForUser
 // ---------------------------------------------------------------------------
 

@@ -39,6 +39,7 @@ export {
   listMembers,
   listInvites,
   listPendingInvitesForUser,
+  revokeInvite,
 } from './members';
 
 // React context & hook

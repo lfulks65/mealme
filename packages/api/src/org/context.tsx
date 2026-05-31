@@ -28,6 +28,7 @@ import {
   listMembers as apiListMembers,
   listInvites as apiListInvites,
   listPendingInvitesForUser as apiListPendingInvitesForUser,
+  revokeInvite as apiRevokeInvite,
 } from './members';
 import type {
   OrgWithRole,
@@ -91,6 +92,8 @@ export interface OrgContextType {
   removeMember: (userId: string) => Promise<OrgMemberResult>;
   /** Update a member's role (admin+ only). */
   updateMemberRole: (input: UpdateMemberRoleInput) => Promise<OrgMemberResult>;
+  /** Revoke a pending invite (admin+ only). */
+  revokeInvite: (inviteId: string) => Promise<OrgMemberResult>;
   /** Refresh the member list for the current org. */
   refreshMembers: () => Promise<void>;
   /** Refresh the invite list for the current org. */
@@ -533,6 +536,23 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentOrg]);
 
+  // ----- revokeInvite -----
+  const handleRevokeInvite = useCallback(async (inviteId: string): Promise<OrgMemberResult> => {
+    setError(null);
+
+    const result = await apiRevokeInvite(inviteId);
+
+    if (result.error) {
+      setError(result.error);
+      return result;
+    }
+
+    // Remove the invite from the local list
+    setInvites((prev) => prev.filter((i) => i.id !== inviteId));
+
+    return result;
+  }, []);
+
   // ----- listPendingInvitesForUser -----
   const handleListPendingInvitesForUser = useCallback(async (): Promise<InviteListResult> => {
     return apiListPendingInvitesForUser();
@@ -558,6 +578,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     acceptInviteByToken: handleAcceptInviteByToken,
     removeMember: handleRemoveMember,
     updateMemberRole: handleUpdateMemberRole,
+    revokeInvite: handleRevokeInvite,
     refreshMembers,
     refreshInvites,
     listPendingInvitesForUser: handleListPendingInvitesForUser,
