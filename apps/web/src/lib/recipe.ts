@@ -54,10 +54,7 @@ function mapError(error: { message?: string }, fallback: string): string {
 /**
  * Group an array of objects by a key.
  */
-function groupBy<T>(
-  items: T[],
-  key: string & keyof T,
-): Record<string, T[]> {
+function groupBy<T>(items: T[], key: string & keyof T): Record<string, T[]> {
   return items.reduce<Record<string, T[]>>((acc, item) => {
     const k = item[key] as string;
     if (!acc[k]) acc[k] = [];
@@ -70,9 +67,7 @@ function groupBy<T>(
  * Fetch all nested relations for a set of recipe IDs and attach them.
  * This avoids N+1 queries by batching the lookups.
  */
-async function attachRelations(
-  recipes: RecipeFull[],
-): Promise<RecipeFull[]> {
+async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
   if (recipes.length === 0) return recipes;
 
   const supabase = createServerClient();
@@ -149,16 +144,10 @@ function applyFilters(query: any, filters: RecipeSearchFilters) {
  * @param id - The recipe UUID.
  * @returns The recipe with relations, or an error.
  */
-export async function getRecipe(
-  id: string,
-): Promise<ServerRecipeResult> {
+export async function getRecipe(id: string): Promise<ServerRecipeResult> {
   const supabase = createServerClient();
 
-  const { data, error } = await supabase
-    .from('recipes')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const { data, error } = await supabase.from('recipes').select('*').eq('id', id).single();
 
   if (error) {
     if (error.code === 'PGRST116') {
@@ -223,9 +212,7 @@ export async function searchRecipes(
   }
 
   // Pagination
-  q = q
-    .range(offset, offset + limit - 1)
-    .order('created_at', { ascending: false });
+  q = q.range(offset, offset + limit - 1).order('created_at', { ascending: false });
 
   const { data, error, count } = await q;
 
@@ -282,9 +269,7 @@ export async function searchRecipes(
  * @param limit - Max results to return.
  * @returns List of recipes with relations, or an error.
  */
-export async function getPopularRecipes(
-  limit = 12,
-): Promise<ServerRecipeListResult> {
+export async function getPopularRecipes(limit = 12): Promise<ServerRecipeListResult> {
   const supabase = createServerClient();
 
   const { data, error, count } = await supabase
@@ -412,9 +397,14 @@ export async function getRecipeCategories(): Promise<ServerCategoryResult> {
  * @param limit - Max IDs to return.
  * @returns Array of recipe IDs.
  */
-export async function getPopularRecipeIds(
-  limit = 20,
-): Promise<string[]> {
+export async function getPopularRecipeIds(limit = 20): Promise<string[]> {
+  // Skip Supabase queries when env vars are missing (e.g. at build time)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    return [];
+  }
+
   const supabase = createServerClient();
 
   const { data, error } = await supabase

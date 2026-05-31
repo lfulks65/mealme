@@ -6,13 +6,7 @@
  * visual states and press handlers for the cell and individual meals.
  */
 import { useCallback } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import type { MealSlot } from '@mealme/shared';
 
 // ── Public Types ────────────────────────────────────────────────────────────
@@ -48,12 +42,12 @@ export interface CalendarDayProps {
 // ── Color Helpers ───────────────────────────────────────────────────────────
 
 const MEAL_SLOT_COLORS: Record<string, { bg: string; text: string }> = {
-  breakfast: { bg: '#fef3c7', text: '#92400e' },       // orange
-  morningSnack: { bg: '#fce7f3', text: '#9d174d' },    // purple-ish
-  lunch: { bg: '#dcfce7', text: '#166534' },           // green
-  afternoonSnack: { bg: '#fce7f3', text: '#9d174d' },  // purple-ish
-  dinner: { bg: '#dbeafe', text: '#1e40af' },          // blue
-  eveningSnack: { bg: '#fce7f3', text: '#9d174d' },    // purple-ish
+  breakfast: { bg: '#fef3c7', text: '#92400e' }, // orange
+  morningSnack: { bg: '#fce7f3', text: '#9d174d' }, // purple-ish
+  lunch: { bg: '#dcfce7', text: '#166534' }, // green
+  afternoonSnack: { bg: '#fce7f3', text: '#9d174d' }, // purple-ish
+  dinner: { bg: '#dbeafe', text: '#1e40af' }, // blue
+  eveningSnack: { bg: '#fce7f3', text: '#9d174d' }, // purple-ish
 };
 
 const MAX_VISIBLE_MEALS = 3;
@@ -118,15 +112,9 @@ export function CalendarDay({
             const chip = (
               <View
                 key={`${meal.mealSlot}-${meal.recipeId}`}
-                style={[
-                  styles.mealChip,
-                  { backgroundColor: colors.bg },
-                ]}
+                style={[styles.mealChip, { backgroundColor: colors.bg }]}
               >
-                <Text
-                  style={[styles.mealChipText, { color: colors.text }]}
-                  numberOfLines={1}
-                >
+                <Text style={[styles.mealChipText, { color: colors.text }]} numberOfLines={1}>
                   {meal.recipeTitle}
                 </Text>
               </View>
@@ -148,11 +136,7 @@ export function CalendarDay({
           })}
 
           {/* Overflow indicator */}
-          {overflowCount > 0 && (
-            <Text style={styles.overflowText}>
-              +{overflowCount} more
-            </Text>
-          )}
+          {overflowCount > 0 && <Text style={styles.overflowText}>+{overflowCount} more</Text>}
         </View>
       )}
     </Pressable>
@@ -163,64 +147,64 @@ export function CalendarDay({
 
 const styles = StyleSheet.create({
   cell: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
     minHeight: 80,
     padding: 6,
-    borderRadius: 8,
-    backgroundColor: '#ffffff',
-  },
-  cellSelected: {
-    backgroundColor: '#eff6ff',
   },
   cellMuted: {
     opacity: 0.4,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginBottom: 4,
+  cellSelected: {
+    backgroundColor: '#eff6ff',
   },
   dayNumber: {
+    color: '#111827',
     fontSize: 13,
     fontWeight: '600',
-    color: '#111827',
     lineHeight: 16,
-  },
-  dayNumberSelected: {
-    color: '#2563eb',
   },
   dayNumberMuted: {
     color: '#9ca3af',
   },
-  todayDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#2563eb',
-    marginLeft: 4,
+  dayNumberSelected: {
+    color: '#2563eb',
   },
-  mealsContainer: {
-    gap: 3,
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 4,
+  },
+  mealChip: {
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   mealChipPressable: {
     // Wrapper so Pressable doesn't interfere with chip layout
-  },
-  mealChip: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
   },
   mealChipText: {
     fontSize: 10,
     fontWeight: '500',
     lineHeight: 14,
   },
+  mealsContainer: {
+    gap: 3,
+  },
   overflowText: {
-    fontSize: 10,
     color: '#6b7280',
+    fontSize: 10,
     fontWeight: '500',
     paddingLeft: 2,
     paddingTop: 1,
+  },
+  todayDot: {
+    backgroundColor: '#2563eb',
+    borderRadius: 2.5,
+    height: 5,
+    marginLeft: 4,
+    width: 5,
   },
 });
 

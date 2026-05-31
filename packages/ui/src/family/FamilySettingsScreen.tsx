@@ -1,11 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  Alert,
-  ScrollView,
-} from 'react-native';
+import { View, StyleSheet, FlatList, Alert, ScrollView } from 'react-native';
 import {
   Box,
   Text,
@@ -48,10 +42,7 @@ const ROLE_OPTIONS: { label: string; value: FamilyRole }[] = [
   { label: 'Child', value: 'child' },
 ];
 
-export function FamilySettingsScreen({
-  familyId,
-  onFamilyDeleted,
-}: FamilySettingsScreenProps) {
+export function FamilySettingsScreen({ familyId, onFamilyDeleted }: FamilySettingsScreenProps) {
   const {
     currentFamily,
     members,
@@ -229,13 +220,30 @@ export function FamilySettingsScreen({
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* Error Banner */}
       {error && (
-        <Box bg="$error50" px="$4" py="$3" borderRadius="$md" borderWidth={1} borderColor="$error500" mb="$4">
-          <Text size="sm" color="$error600">{error}</Text>
+        <Box
+          bg="$error50"
+          px="$4"
+          py="$3"
+          borderRadius="$md"
+          borderWidth={1}
+          borderColor="$error500"
+          mb="$4"
+        >
+          <Text size="sm" color="$error600">
+            {error}
+          </Text>
         </Box>
       )}
 
       {/* Edit Family Name Section */}
-      <Box bg="$backgroundLight0" borderRadius="$lg" p="$4" mb="$4" borderWidth={1} borderColor="$borderLight200">
+      <Box
+        bg="$backgroundLight0"
+        borderRadius="$lg"
+        p="$4"
+        mb="$4"
+        borderWidth={1}
+        borderColor="$borderLight200"
+      >
         <Heading size="sm" mb="$3" color="$textLight900">
           Family Name
         </Heading>
@@ -268,7 +276,13 @@ export function FamilySettingsScreen({
       </Box>
 
       {/* Members Section */}
-      <Box bg="$backgroundLight0" borderRadius="$lg" borderWidth={1} borderColor="$borderLight200" mb="$4">
+      <Box
+        bg="$backgroundLight0"
+        borderRadius="$lg"
+        borderWidth={1}
+        borderColor="$borderLight200"
+        mb="$4"
+      >
         <Box px="$4" pt="$4" pb="$2">
           <Heading size="sm" color="$textLight900">
             Members ({members.length})
@@ -288,8 +302,8 @@ export function FamilySettingsScreen({
           Danger Zone
         </Heading>
         <Text size="sm" color="$textLight500" mb="$3">
-          Deleting a family is permanent and cannot be undone. All associated
-          meal plans, shopping lists, and preferences will be lost.
+          Deleting a family is permanent and cannot be undone. All associated meal plans, shopping
+          lists, and preferences will be lost.
         </Text>
         <Button
           size="sm"
@@ -307,18 +321,18 @@ export function FamilySettingsScreen({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#F5F5F5',
-  },
-  scrollContent: {
-    padding: 16,
+    flex: 1,
   },
   loadingContainer: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
   },
   roleSelect: {
     minWidth: 100,
+  },
+  scrollContent: {
+    padding: 16,
   },
 });

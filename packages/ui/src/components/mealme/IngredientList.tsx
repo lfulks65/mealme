@@ -52,10 +52,7 @@ export function IngredientList({
   onDelete,
   style,
 }: IngredientListProps) {
-  const keyExtractor = useCallback(
-    (item: RecipeIngredient) => item.id,
-    [],
-  );
+  const keyExtractor = useCallback((item: RecipeIngredient) => item.id, []);
 
   const renderItem = useCallback(
     (info: ListRenderItemInfo<RecipeIngredient>) => {
@@ -86,11 +83,7 @@ export function IngredientList({
                 <Text style={styles.optionalTag}> (optional)</Text>
               ) : null}
             </Text>
-            <Text
-              style={[styles.quantity, isChecked && styles.strikethrough]}
-            >
-              {quantityStr}
-            </Text>
+            <Text style={[styles.quantity, isChecked && styles.strikethrough]}>{quantityStr}</Text>
             {showPreparation && ingredient.preparation ? (
               <Text style={styles.preparation}>{ingredient.preparation}</Text>
             ) : null}
@@ -106,29 +99,15 @@ export function IngredientList({
           onPress: () => onDelete(ingredient.id),
         };
 
-        return (
-          <SwipeableRow rightActions={[deleteAction]}>
-            {rowContent}
-          </SwipeableRow>
-        );
+        return <SwipeableRow rightActions={[deleteAction]}>{rowContent}</SwipeableRow>;
       }
 
       return rowContent;
     },
-    [
-      checkedIds,
-      onToggleCheck,
-      showOptional,
-      showPreparation,
-      editable,
-      onDelete,
-    ],
+    [checkedIds, onToggleCheck, showOptional, showPreparation, editable, onDelete],
   );
 
-  const contentContainerStyle = useMemo(
-    () => [styles.listContent, style],
-    [style],
-  );
+  const contentContainerStyle = useMemo(() => [styles.listContent, style], [style]);
 
   return (
     <FlatList
@@ -145,29 +124,16 @@ export function IngredientList({
 // ── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  listContent: {
-    paddingHorizontal: 4,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    minHeight: 48,
-  },
-  rowChecked: {
-    opacity: 0.7,
-  },
   checkbox: {
-    width: 22,
-    height: 22,
+    alignItems: 'center',
+    borderColor: '#d1d5db',
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#d1d5db',
-    alignItems: 'center',
+    height: 22,
     justifyContent: 'center',
     marginRight: 12,
     marginTop: 1,
+    width: 22,
   },
   checkboxChecked: {
     backgroundColor: '#2563eb',
@@ -179,34 +145,47 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 18,
   },
-  textContainer: {
-    flex: 1,
-  },
   ingredientName: {
+    color: '#111827',
     fontSize: 14,
     fontWeight: '500',
-    color: '#111827',
     lineHeight: 18,
   },
-  quantity: {
+  listContent: {
+    paddingHorizontal: 4,
+  },
+  optionalTag: {
+    color: '#9ca3af',
     fontSize: 13,
-    color: '#6b7280',
-    marginTop: 1,
+    fontWeight: '400',
   },
   preparation: {
-    fontSize: 12,
     color: '#9ca3af',
+    fontSize: 12,
     fontStyle: 'italic',
     marginTop: 2,
   },
-  optionalTag: {
+  quantity: {
+    color: '#6b7280',
     fontSize: 13,
-    color: '#9ca3af',
-    fontWeight: '400',
+    marginTop: 1,
+  },
+  row: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    minHeight: 48,
+    paddingHorizontal: 4,
+    paddingVertical: 10,
+  },
+  rowChecked: {
+    opacity: 0.7,
   },
   strikethrough: {
-    textDecorationLine: 'line-through',
     color: '#9ca3af',
+    textDecorationLine: 'line-through',
+  },
+  textContainer: {
+    flex: 1,
   },
 });
 

@@ -52,12 +52,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         ) : null}
       </View>
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={2}>{title}</Text>
+        <Text style={styles.title} numberOfLines={2}>
+          {title}
+        </Text>
         {subtitle ? (
-          <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {subtitle}
+          </Text>
         ) : null}
         {metadata ? (
-          <Text style={styles.metadata} numberOfLines={1}>{metadata}</Text>
+          <Text style={styles.metadata} numberOfLines={1}>
+            {metadata}
+          </Text>
         ) : null}
       </View>
     </Pressable>
@@ -65,68 +71,68 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    flex: 1,
-    maxWidth: '50%',
-    margin: 4,
-  },
-  imageContainer: {
-    position: 'relative',
-    height: 140,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  imagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderText: {
-    fontSize: 32,
-  },
   badgeContainer: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
     backgroundColor: '#FF6B35',
     borderRadius: 6,
+    left: 8,
     paddingHorizontal: 8,
     paddingVertical: 2,
+    position: 'absolute',
+    top: 8,
   },
   badgeText: {
     color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '700',
   },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    elevation: 2,
+    flex: 1,
+    margin: 4,
+    maxWidth: '50%',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+  },
   content: {
     padding: 10,
   },
-  title: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    lineHeight: 18,
+  image: {
+    height: '100%',
+    width: '100%',
   },
-  subtitle: {
-    fontSize: 12,
-    color: '#666666',
-    marginTop: 2,
+  imageContainer: {
+    height: 140,
+    position: 'relative',
+  },
+  imagePlaceholder: {
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%',
   },
   metadata: {
-    fontSize: 11,
     color: '#999999',
+    fontSize: 11,
     marginTop: 4,
+  },
+  placeholderText: {
+    fontSize: 32,
+  },
+  subtitle: {
+    color: '#666666',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  title: {
+    color: '#1A1A1A',
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 18,
   },
 });

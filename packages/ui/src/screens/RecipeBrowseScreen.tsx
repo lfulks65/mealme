@@ -35,7 +35,9 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onPress }) => (
     <View style={styles.categoryIconContainer}>
       <Text style={styles.categoryIcon}>{getCuisineEmoji(category.cuisine)}</Text>
     </View>
-    <Text style={styles.categoryName} numberOfLines={1}>{category.cuisine}</Text>
+    <Text style={styles.categoryName} numberOfLines={1}>
+      {category.cuisine}
+    </Text>
     <Text style={styles.categoryCount}>{category.count} recipes</Text>
   </Pressable>
 );
@@ -58,7 +60,7 @@ function getCuisineEmoji(cuisine: string): string {
 
 function recipeToCarouselItems(
   recipes: RecipeFull[],
-  onRecipePress?: (recipeId: string) => void
+  onRecipePress?: (recipeId: string) => void,
 ): CarouselItem[] {
   return recipes.map((recipe) => {
     const totalTime = (recipe.prep_minutes ?? 0) + (recipe.cook_minutes ?? 0);
@@ -131,7 +133,7 @@ export const RecipeBrowseScreen: React.FC<RecipeBrowseScreenProps> = ({
           onSeeAll={() => {}}
           items={recipeToCarouselItems(
             recommendations.map((r) => r.recipe),
-            onRecipePress
+            onRecipePress,
           )}
         />
       ) : null}
@@ -194,98 +196,98 @@ export const RecipeBrowseScreen: React.FC<RecipeBrowseScreenProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FAFAFA',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FAFAFA',
-  },
-  loadingText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#666666',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
   backButton: {
     marginRight: 12,
   },
   backText: {
-    fontSize: 16,
     color: '#FF6B35',
+    fontSize: 16,
     fontWeight: '600',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1A1A1A',
+  bottomSpacer: {
+    height: 40,
+  },
+  categoriesDivider: {
+    backgroundColor: '#FF6B35',
+    borderRadius: 1,
+    height: 2,
+    marginBottom: 12,
+    marginTop: 4,
+    width: 40,
   },
   categoriesSection: {
     paddingHorizontal: 16,
     paddingTop: 20,
   },
   categoriesTitle: {
+    color: '#1A1A1A',
     fontSize: 18,
     fontWeight: '700',
-    color: '#1A1A1A',
   },
-  categoriesDivider: {
-    height: 2,
-    backgroundColor: '#FF6B35',
-    width: 40,
-    marginTop: 4,
-    marginBottom: 12,
-    borderRadius: 1,
+  categoryCard: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E5E5',
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10,
+    padding: 14,
+    width: '48%',
+  },
+  categoryCount: {
+    color: '#999999',
+    fontSize: 12,
+    marginTop: 2,
   },
   categoryGrid: {
     paddingBottom: 8,
   },
-  categoryRow: {
-    justifyContent: 'space-between',
-  },
-  categoryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
-    width: '48%',
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  categoryIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#FFF3E0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
   categoryIcon: {
     fontSize: 24,
   },
+  categoryIconContainer: {
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    borderRadius: 24,
+    height: 48,
+    justifyContent: 'center',
+    marginBottom: 8,
+    width: 48,
+  },
   categoryName: {
+    color: '#1A1A1A',
     fontSize: 14,
     fontWeight: '600',
-    color: '#1A1A1A',
     textAlign: 'center',
   },
-  categoryCount: {
-    fontSize: 12,
-    color: '#999999',
-    marginTop: 2,
+  categoryRow: {
+    justifyContent: 'space-between',
   },
-  bottomSpacer: {
-    height: 40,
+  container: {
+    backgroundColor: '#FAFAFA',
+    flex: 1,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  headerTitle: {
+    color: '#1A1A1A',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: '#FAFAFA',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: '#666666',
+    fontSize: 14,
+    marginTop: 8,
   },
 });

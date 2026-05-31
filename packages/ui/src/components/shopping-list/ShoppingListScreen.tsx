@@ -27,11 +27,7 @@ import { Toggle } from '../synapsis/Toggle';
 import { SwipeableRow, type SwipeAction } from '../bna/SwipeableRow';
 import { HapticButton } from '../bna/HapticButton';
 import { BottomSheet } from '../bna/BottomSheet';
-import {
-  useShoppingList,
-  CATEGORY_META,
-  type CategorizedItems,
-} from './useShoppingList';
+import { useShoppingList, CATEGORY_META, type CategorizedItems } from './useShoppingList';
 import type { ShoppingItemCategory, ShoppingListItemRow } from '@mealme/api';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -70,9 +66,7 @@ function CategorySection({
   const rotateAnim = useState(new Animated.Value(0))[0];
 
   const toggleCollapse = useCallback(() => {
-    LayoutAnimation.configureNext(
-      LayoutAnimation.Presets.easeInEaseOut,
-    );
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setCollapsed((prev) => !prev);
     Animated.spring(rotateAnim, {
       toValue: collapsed ? 0 : 1,
@@ -93,10 +87,7 @@ function CategorySection({
   return (
     <View style={styles.categorySection}>
       {/* Section Header */}
-      <Pressable
-        onPress={toggleCollapse}
-        style={styles.categoryHeader}
-      >
+      <Pressable onPress={toggleCollapse} style={styles.categoryHeader}>
         <View style={styles.categoryHeaderLeft}>
           <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
             <Text style={styles.chevron}>▼</Text>
@@ -174,12 +165,7 @@ function ShoppingItemRow({
 
   return (
     <SwipeableRow rightActions={swipeActions}>
-      <View
-        style={[
-          styles.itemRow,
-          item.checked && styles.itemRowChecked,
-        ]}
-      >
+      <View style={[styles.itemRow, item.checked && styles.itemRowChecked]}>
         {/* Toggle */}
         <Toggle
           value={item.checked}
@@ -190,13 +176,7 @@ function ShoppingItemRow({
 
         {/* Item info */}
         <View style={styles.itemInfo}>
-          <Text
-            style={[
-              styles.itemName,
-              item.checked && styles.itemNameChecked,
-            ]}
-            numberOfLines={1}
-          >
+          <Text style={[styles.itemName, item.checked && styles.itemNameChecked]} numberOfLines={1}>
             {item.ingredient_name}
           </Text>
 
@@ -225,17 +205,13 @@ function ShoppingItemRow({
             {!editingQty && (
               <View style={styles.qtyButtons}>
                 <Pressable
-                  onPress={() =>
-                    onUpdateQuantity(item.id, Math.max(0.25, item.quantity - 1))
-                  }
+                  onPress={() => onUpdateQuantity(item.id, Math.max(0.25, item.quantity - 1))}
                   style={styles.qtyButton}
                 >
                   <Text style={styles.qtyButtonText}>−</Text>
                 </Pressable>
                 <Pressable
-                  onPress={() =>
-                    onUpdateQuantity(item.id, item.quantity + 1)
-                  }
+                  onPress={() => onUpdateQuantity(item.id, item.quantity + 1)}
                   style={styles.qtyButton}
                 >
                   <Text style={styles.qtyButtonText}>+</Text>
@@ -285,7 +261,13 @@ function AddItemModal({ visible, onClose, onAdd }: AddItemModalProps) {
   }, [name, quantity, unit, category, onAdd, onClose]);
 
   const categories: ShoppingItemCategory[] = [
-    'produce', 'dairy', 'meat', 'bakery', 'frozen', 'pantry', 'other',
+    'produce',
+    'dairy',
+    'meat',
+    'bakery',
+    'frozen',
+    'pantry',
+    'other',
   ];
 
   return (
@@ -332,10 +314,7 @@ function AddItemModal({ visible, onClose, onAdd }: AddItemModalProps) {
               <Pressable
                 key={cat}
                 onPress={() => setCategory(cat)}
-                style={[
-                  styles.categoryChip,
-                  category === cat && styles.categoryChipSelected,
-                ]}
+                style={[styles.categoryChip, category === cat && styles.categoryChipSelected]}
               >
                 <Text
                   style={[
@@ -432,17 +411,10 @@ export function ShoppingListScreen({
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{displayName}</Text>
-        {mealPlanRef && (
-          <Text style={styles.headerSubtitle}>📋 {mealPlanRef}</Text>
-        )}
+        {mealPlanRef && <Text style={styles.headerSubtitle}>📋 {mealPlanRef}</Text>}
         <View style={styles.progressRow}>
           <View style={styles.progressBarBg}>
-            <View
-              style={[
-                styles.progressBarFill,
-                { width: `${progressPercent}%` },
-              ]}
-            />
+            <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
           </View>
           <Text style={styles.progressText}>
             {checkedCount}/{totalCount} items ({progressPercent}%)
@@ -468,9 +440,7 @@ export function ShoppingListScreen({
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>🛒</Text>
             <Text style={styles.emptyText}>No items yet</Text>
-            <Text style={styles.emptySubtext}>
-              Tap + to add your first item
-            </Text>
+            <Text style={styles.emptySubtext}>Tap + to add your first item</Text>
           </View>
         }
       />
@@ -482,12 +452,7 @@ export function ShoppingListScreen({
         onPressOut={handleFabPressOut}
         style={styles.fabPosition}
       >
-        <Animated.View
-          style={[
-            styles.fab,
-            { transform: [{ scale: fabScale }] },
-          ]}
-        >
+        <Animated.View style={[styles.fab, { transform: [{ scale: fabScale }] }]}>
           <Text style={styles.fabText}>+</Text>
         </Animated.View>
       </Pressable>
@@ -505,120 +470,157 @@ export function ShoppingListScreen({
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
+  categoryChip: {
+    backgroundColor: '#f3f4f6',
+    borderColor: '#e5e7eb',
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
+  categoryChipSelected: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#2563eb',
   },
-  loadingText: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#ef4444',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  header: {
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e5e7eb',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-  } as TextStyle,
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 2,
-  } as TextStyle,
-  progressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  progressBarBg: {
-    flex: 1,
-    height: 8,
-    backgroundColor: '#e5e7eb',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginRight: 10,
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#22c55e',
-    borderRadius: 4,
-  },
-  progressText: {
+  categoryChipText: {
     fontSize: 13,
     color: '#6b7280',
+  } as TextStyle,
+  categoryChipTextSelected: {
+    color: '#2563eb',
     fontWeight: '500',
-  } as TextStyle,
-  listContent: {
-    paddingBottom: 100,
-  },
-  categorySection: {
-    marginTop: 8,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    overflow: 'hidden',
-  },
-  categoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#f9fafb',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e5e7eb',
-  },
-  categoryHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  chevron: {
-    fontSize: 12,
-    color: '#9ca3af',
-    marginRight: 6,
-  } as TextStyle,
-  categoryEmoji: {
-    fontSize: 18,
-    marginRight: 8,
-  } as TextStyle,
-  categoryLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
   } as TextStyle,
   categoryCount: {
     fontSize: 13,
     color: '#9ca3af',
     fontWeight: '500',
   } as TextStyle,
-  itemRow: {
+  categoryEmoji: {
+    fontSize: 18,
+    marginRight: 8,
+  } as TextStyle,
+  categoryHeader: {
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderBottomColor: '#e5e7eb',
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f3f4f6',
-    backgroundColor: '#ffffff',
   },
-  itemRowChecked: {
-    backgroundColor: '#f0fdf4',
+  categoryHeaderLeft: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  categoryLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  } as TextStyle,
+  categoryPicker: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categorySection: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  centered: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  chevron: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginRight: 6,
+  } as TextStyle,
+  container: {
+    backgroundColor: '#f9fafb',
+    flex: 1,
+  },
+  emptyEmoji: {
+    fontSize: 48,
+  } as TextStyle,
+  emptyState: {
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 4,
+  } as TextStyle,
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#374151',
+    marginTop: 12,
+  } as TextStyle,
+  errorText: {
+    color: '#ef4444',
+    fontSize: 16,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  fab: {
+    alignItems: 'center',
+    backgroundColor: '#2563eb',
+    borderRadius: 28,
+    elevation: 8,
+    height: 56,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    width: 56,
+  },
+  fabPosition: {
+    bottom: 24,
+    position: 'absolute',
+    right: 20,
+  },
+  fabText: {
+    fontSize: 28,
+    fontWeight: '300',
+    color: '#ffffff',
+    marginTop: -2,
+  } as TextStyle,
+  header: {
+    backgroundColor: '#ffffff',
+    borderBottomColor: '#e5e7eb',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 2,
+  } as TextStyle,
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+  } as TextStyle,
+  inputGroup: {
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 4,
+  } as TextStyle,
+  inputRow: {
+    flexDirection: 'row',
   },
   itemInfo: {
     flex: 1,
@@ -633,16 +635,75 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
     color: '#9ca3af',
   } as TextStyle,
-  quantityRow: {
+  itemRow: {
+    alignItems: 'flex-start',
+    backgroundColor: '#ffffff',
+    borderBottomColor: '#f3f4f6',
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  quantityText: {
+  itemRowChecked: {
+    backgroundColor: '#f0fdf4',
+  },
+  listContent: {
+    paddingBottom: 100,
+  },
+  loadingText: {
+    color: '#6b7280',
+    fontSize: 16,
+  },
+  modalContent: {
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+  } as TextStyle,
+  progressBarBg: {
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    flex: 1,
+    height: 8,
+    marginRight: 10,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    backgroundColor: '#22c55e',
+    borderRadius: 4,
+    height: '100%',
+  },
+  progressRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginTop: 10,
+  },
+  progressText: {
     fontSize: 13,
     color: '#6b7280',
-    fontWeight: '400',
+    fontWeight: '500',
   } as TextStyle,
+  qtyButton: {
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 13,
+    height: 26,
+    justifyContent: 'center',
+    marginLeft: 4,
+    width: 26,
+  },
+  qtyButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  } as TextStyle,
+  qtyButtons: {
+    flexDirection: 'row',
+    marginLeft: 8,
+  },
   qtyInput: {
     fontSize: 13,
     color: '#111827',
@@ -653,89 +714,21 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     minWidth: 60,
   } as TextStyle,
-  qtyButtons: {
-    flexDirection: 'row',
-    marginLeft: 8,
-  },
-  qtyButton: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#f3f4f6',
-    justifyContent: 'center',
+  quantityRow: {
     alignItems: 'center',
-    marginLeft: 4,
+    flexDirection: 'row',
+    marginTop: 4,
   },
-  qtyButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
+  quantityText: {
+    fontSize: 13,
+    color: '#6b7280',
+    fontWeight: '400',
   } as TextStyle,
   recipeSource: {
     fontSize: 12,
     color: '#2563eb',
     marginTop: 4,
     fontWeight: '400',
-  } as TextStyle,
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 60,
-  },
-  emptyEmoji: {
-    fontSize: 48,
-  } as TextStyle,
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
-    marginTop: 12,
-  } as TextStyle,
-  emptySubtext: {
-    fontSize: 14,
-    color: '#9ca3af',
-    marginTop: 4,
-  } as TextStyle,
-  fabPosition: {
-    position: 'absolute',
-    right: 20,
-    bottom: 24,
-  },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#2563eb',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  fabText: {
-    fontSize: 28,
-    fontWeight: '300',
-    color: '#ffffff',
-    marginTop: -2,
-  } as TextStyle,
-  modalContent: {
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
-  } as TextStyle,
-  inputGroup: {
-    marginBottom: 12,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: 4,
   } as TextStyle,
   textInput: {
     borderWidth: 1,
@@ -746,34 +739,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#111827',
     backgroundColor: '#ffffff',
-  } as TextStyle,
-  inputRow: {
-    flexDirection: 'row',
-  },
-  categoryPicker: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  categoryChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#f3f4f6',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  categoryChipSelected: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#2563eb',
-  },
-  categoryChipText: {
-    fontSize: 13,
-    color: '#6b7280',
-  } as TextStyle,
-  categoryChipTextSelected: {
-    color: '#2563eb',
-    fontWeight: '500',
   } as TextStyle,
 });
 

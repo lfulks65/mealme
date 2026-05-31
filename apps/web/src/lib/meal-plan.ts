@@ -81,9 +81,7 @@ function mapError(error: { message?: string }, fallback: string): string {
 /**
  * Fetch all entries for a meal plan, with joined recipe summaries.
  */
-async function fetchEntriesWithRecipes(
-  mealPlanId: string,
-): Promise<MealPlanEntryWithRecipe[]> {
+async function fetchEntriesWithRecipes(mealPlanId: string): Promise<MealPlanEntryWithRecipe[]> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
@@ -101,9 +99,7 @@ async function fetchEntriesWithRecipes(
   const results: MealPlanEntryWithRecipe[] = [];
 
   for (const row of rows) {
-    const recipe = row.recipe_id
-      ? await fetchRecipeSummary(row.recipe_id)
-      : null;
+    const recipe = row.recipe_id ? await fetchRecipeSummary(row.recipe_id) : null;
     results.push({ ...row, recipe });
   }
 
@@ -113,16 +109,12 @@ async function fetchEntriesWithRecipes(
 /**
  * Fetch a recipe summary by ID for embedding in meal plan entries.
  */
-async function fetchRecipeSummary(
-  recipeId: string,
-): Promise<RecipeSummary | null> {
+async function fetchRecipeSummary(recipeId: string): Promise<RecipeSummary | null> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
     .from('recipes')
-    .select(
-      'id, title, description, prep_minutes, cook_minutes, servings, image_url, cuisine',
-    )
+    .select('id, title, description, prep_minutes, cook_minutes, servings, image_url, cuisine')
     .eq('id', recipeId)
     .single();
 
@@ -159,12 +151,12 @@ export async function getWeeklyMealPlan(
     .eq('week_start_date', monday)
     .single();
 
-  if (error) {
+  if (error || !data) {
     // No plan for this week is not necessarily an error
-    if (error.code === 'PGRST116') {
+    if (error && error.code === 'PGRST116') {
       return { mealPlan: null, error: null };
     }
-    return { mealPlan: null, error: mapError(error, 'Failed to fetch weekly plan') };
+    return { mealPlan: null, error: error ? mapError(error, 'Failed to fetch weekly plan') : null };
   }
 
   const plan = data as MealPlanRow;
@@ -301,16 +293,10 @@ export async function getMealPlanEntry(
  * @param id - The meal plan UUID.
  * @returns The meal plan with entries, or an error.
  */
-export async function getMealPlan(
-  id: string,
-): Promise<ServerMealPlanResult> {
+export async function getMealPlan(id: string): Promise<ServerMealPlanResult> {
   const supabase = createServerClient();
 
-  const { data, error } = await supabase
-    .from('meal_plans')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const { data, error } = await supabase.from('meal_plans').select('*').eq('id', id).single();
 
   if (error) {
     return { mealPlan: null, error: mapError(error, 'Meal plan not found') };

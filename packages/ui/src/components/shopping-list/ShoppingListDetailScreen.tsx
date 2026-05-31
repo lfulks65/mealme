@@ -28,10 +28,7 @@ import { Toggle } from '../synapsis/Toggle';
 import { SwipeableRow, type SwipeAction } from '../bna/SwipeableRow';
 import { HapticButton } from '../bna/HapticButton';
 import { NativeCard } from '../bna/NativeCard';
-import {
-  useShoppingList,
-  type CategorizedItems,
-} from './useShoppingList';
+import { useShoppingList, type CategorizedItems } from './useShoppingList';
 import type { ShoppingListItemRow } from '@mealme/api';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -60,10 +57,7 @@ interface CircularProgressProps {
   fillColor?: string;
 }
 
-function CircularProgress({
-  progress,
-  fillColor = '#22c55e',
-}: CircularProgressProps) {
+function CircularProgress({ progress, fillColor = '#22c55e' }: CircularProgressProps) {
   const animatedWidth = useMemo(() => {
     return new Animated.Value(0);
   }, []);
@@ -93,10 +87,7 @@ function CircularProgress({
       {/* Progress bar below circle */}
       <View style={styles.linearProgressBg}>
         <Animated.View
-          style={[
-            styles.linearProgressFill,
-            { width: barWidth, backgroundColor: fillColor },
-          ]}
+          style={[styles.linearProgressFill, { width: barWidth, backgroundColor: fillColor }]}
         />
       </View>
     </View>
@@ -235,12 +226,7 @@ function DetailItemRow({
 
   return (
     <SwipeableRow rightActions={swipeActions}>
-      <View
-        style={[
-          styles.detailItemRow,
-          item.checked && styles.detailItemRowChecked,
-        ]}
-      >
+      <View style={[styles.detailItemRow, item.checked && styles.detailItemRowChecked]}>
         {/* Toggle */}
         <Toggle
           value={item.checked}
@@ -252,10 +238,7 @@ function DetailItemRow({
         {/* Item info */}
         <View style={styles.detailItemInfo}>
           <Text
-            style={[
-              styles.detailItemName,
-              item.checked && styles.detailItemNameChecked,
-            ]}
+            style={[styles.detailItemName, item.checked && styles.detailItemNameChecked]}
             numberOfLines={1}
           >
             {item.ingredient_name}
@@ -285,9 +268,7 @@ function DetailItemRow({
             {!editingQty && (
               <View style={styles.detailQtyButtons}>
                 <Pressable
-                  onPress={() =>
-                    onUpdateQuantity(item.id, Math.max(0.25, item.quantity - 1))
-                  }
+                  onPress={() => onUpdateQuantity(item.id, Math.max(0.25, item.quantity - 1))}
                   style={styles.detailQtyButton}
                 >
                   <Text style={styles.detailQtyButtonText}>−</Text>
@@ -356,12 +337,7 @@ export function ShoppingListDetailScreen({
     return (
       <View style={[styles.container, styles.centered, style]}>
         <Text style={styles.errorText}>{error}</Text>
-        <HapticButton
-          title="Retry"
-          onPress={refresh}
-          variant="outline"
-          size="sm"
-        />
+        <HapticButton title="Retry" onPress={refresh} variant="outline" size="sm" />
       </View>
     );
   }
@@ -376,9 +352,7 @@ export function ShoppingListDetailScreen({
           </Pressable>
         )}
         <Text style={styles.detailHeaderTitle}>{displayName}</Text>
-        {mealPlanRef && (
-          <Text style={styles.detailHeaderSubtitle}>📋 {mealPlanRef}</Text>
-        )}
+        {mealPlanRef && <Text style={styles.detailHeaderSubtitle}>📋 {mealPlanRef}</Text>}
       </View>
 
       {/* Progress Section */}
@@ -391,16 +365,12 @@ export function ShoppingListDetailScreen({
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: '#22c55e' }]}>
-              {checkedCount}
-            </Text>
+            <Text style={[styles.statValue, { color: '#22c55e' }]}>{checkedCount}</Text>
             <Text style={styles.statLabel}>Checked</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: '#f59e0b' }]}>
-              {remainingCount}
-            </Text>
+            <Text style={[styles.statValue, { color: '#f59e0b' }]}>{remainingCount}</Text>
             <Text style={styles.statLabel}>Remaining</Text>
           </View>
         </View>
@@ -424,9 +394,7 @@ export function ShoppingListDetailScreen({
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>🛒</Text>
             <Text style={styles.emptyText}>No items yet</Text>
-            <Text style={styles.emptySubtext}>
-              Add items from a meal plan or manually
-            </Text>
+            <Text style={styles.emptySubtext}>Add items from a meal plan or manually</Text>
           </View>
         }
       />
@@ -438,12 +406,12 @@ export function ShoppingListDetailScreen({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#f9fafb',
+    flex: 1,
   },
   centered: {
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 24,
   },
   loadingText: {
@@ -460,11 +428,11 @@ const styles = StyleSheet.create({
   // Header
   detailHeader: {
     backgroundColor: '#ffffff',
+    borderBottomColor: '#e5e7eb',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: 12,
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e5e7eb',
   },
   backButton: {
     marginBottom: 8,
@@ -487,12 +455,12 @@ const styles = StyleSheet.create({
 
   // Progress section
   progressSection: {
+    alignItems: 'center',
     backgroundColor: '#ffffff',
+    borderBottomColor: '#e5e7eb',
+    borderBottomWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e5e7eb',
   },
   progressCircleContainer: {
     alignItems: 'center',
@@ -512,25 +480,25 @@ const styles = StyleSheet.create({
     marginTop: -4,
   } as TextStyle,
   linearProgressBg: {
-    width: '100%',
-    height: 8,
     backgroundColor: '#e5e7eb',
     borderRadius: 4,
-    overflow: 'hidden',
+    height: 8,
     marginTop: 8,
+    overflow: 'hidden',
+    width: '100%',
   },
   linearProgressFill: {
-    height: '100%',
     borderRadius: 4,
+    height: '100%',
   },
 
   // Stats row
   statsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     marginTop: 16,
     width: '100%',
-    justifyContent: 'space-around',
   },
   statItem: {
     alignItems: 'center',
@@ -546,9 +514,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   } as TextStyle,
   statDivider: {
-    width: 1,
-    height: 32,
     backgroundColor: '#e5e7eb',
+    height: 32,
+    width: 1,
   },
 
   // List
@@ -564,18 +532,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   detailCategoryHeader: {
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderBottomColor: '#e5e7eb',
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#f9fafb',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e5e7eb',
   },
   detailCategoryHeaderLeft: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
   },
   chevron: {
     fontSize: 12,
@@ -592,21 +560,21 @@ const styles = StyleSheet.create({
     color: '#374151',
   } as TextStyle,
   detailCategoryRight: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
   },
   miniProgressBg: {
-    width: 40,
-    height: 4,
     backgroundColor: '#e5e7eb',
     borderRadius: 2,
-    overflow: 'hidden',
+    height: 4,
     marginRight: 8,
+    overflow: 'hidden',
+    width: 40,
   },
   miniProgressFill: {
-    height: '100%',
     backgroundColor: '#22c55e',
     borderRadius: 2,
+    height: '100%',
   },
   detailCategoryCount: {
     fontSize: 13,
@@ -616,13 +584,13 @@ const styles = StyleSheet.create({
 
   // Item row
   detailItemRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
+    backgroundColor: '#ffffff',
+    borderBottomColor: '#f3f4f6',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f3f4f6',
-    backgroundColor: '#ffffff',
   },
   detailItemRowChecked: {
     backgroundColor: '#f0fdf4',
@@ -641,8 +609,8 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
   } as TextStyle,
   detailQuantityRow: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     marginTop: 4,
   },
   detailQuantityText: {
@@ -664,13 +632,13 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   detailQtyButton: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#f3f4f6',
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 13,
+    height: 26,
+    justifyContent: 'center',
     marginLeft: 4,
+    width: 26,
   },
   detailQtyButtonText: {
     fontSize: 16,

@@ -121,8 +121,7 @@ export function MealPrepTimerView({
     }
   }, [isComplete, pulseAnim]);
 
-  const progressPercent =
-    totalSeconds > 0 ? (remainingSeconds / totalSeconds) * 100 : 0;
+  const progressPercent = totalSeconds > 0 ? (remainingSeconds / totalSeconds) * 100 : 0;
 
   // Determine button state
   const showStart = !isRunning && !isComplete && remainingSeconds === 0;
@@ -154,31 +153,17 @@ export function MealPrepTimerView({
 
         {/* Timer Display */}
         <View style={styles.timerSection}>
-          <Animated.View
-            style={[
-              styles.timerCircle,
-              { transform: [{ scale: pulseAnim }] },
-            ]}
-          >
+          <Animated.View style={[styles.timerCircle, { transform: [{ scale: pulseAnim }] }]}>
             {/* Progress ring (simulated with border) */}
             <View
               style={[
                 styles.timerRing,
                 {
-                  borderColor: isComplete
-                    ? '#22c55e'
-                    : isRunning
-                      ? '#2563eb'
-                      : '#9ca3af',
+                  borderColor: isComplete ? '#22c55e' : isRunning ? '#2563eb' : '#9ca3af',
                 },
               ]}
             >
-              <Text
-                style={[
-                  styles.timerText,
-                  isComplete && styles.timerTextComplete,
-                ]}
-              >
+              <Text style={[styles.timerText, isComplete && styles.timerTextComplete]}>
                 {isComplete ? 'Done!' : formatTime(remainingSeconds)}
               </Text>
             </View>
@@ -211,14 +196,7 @@ export function MealPrepTimerView({
 
         {/* Controls */}
         <View style={styles.controlsSection}>
-          {showStart && (
-            <HapticButton
-              title="Start Timer"
-              onPress={onStart}
-              size="lg"
-              fullWidth
-            />
-          )}
+          {showStart && <HapticButton title="Start Timer" onPress={onStart} size="lg" fullWidth />}
 
           {showPause && (
             <View style={styles.controlRow}>
@@ -287,22 +265,22 @@ export function MealPrepTimerView({
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#0f172a',
+    flex: 1,
+    justifyContent: 'center',
     paddingHorizontal: 24,
   },
   closeButton: {
-    position: 'absolute',
-    top: 56,
-    right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 20,
+    top: 56,
+    width: 40,
   },
   closeButtonText: {
     fontSize: 20,
@@ -335,20 +313,20 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   timerCircle: {
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 120,
+    height: 240,
+    justifyContent: 'center',
+    width: 240,
   },
   timerRing: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    borderWidth: 6,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 110,
+    borderWidth: 6,
+    height: 220,
+    justifyContent: 'center',
+    width: 220,
   },
   timerText: {
     fontSize: 56,
@@ -362,25 +340,25 @@ const styles = StyleSheet.create({
 
   // Progress bar
   progressRow: {
-    width: 240,
     marginTop: 16,
+    width: 240,
   },
   progressBarBg: {
-    width: '100%',
-    height: 4,
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 2,
+    height: 4,
     overflow: 'hidden',
+    width: '100%',
   },
   progressBarFill: {
-    height: '100%',
     borderRadius: 2,
+    height: '100%',
   },
 
   // Instruction
   instructionSection: {
-    maxWidth: 320,
     marginBottom: 32,
+    maxWidth: 320,
   },
   instructionText: {
     fontSize: 15,
@@ -391,13 +369,13 @@ const styles = StyleSheet.create({
 
   // Controls
   controlsSection: {
-    width: '100%',
     maxWidth: 360,
+    width: '100%',
   },
   controlRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
     gap: 12,
+    justifyContent: 'center',
   },
   controlButton: {
     flex: 1,

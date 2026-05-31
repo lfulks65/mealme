@@ -19,7 +19,12 @@ interface DietaryBadgeProps {
 
 const DietaryBadge: React.FC<DietaryBadgeProps> = ({ restriction, compliant }) => (
   <View style={[styles.dietaryBadge, compliant ? styles.badgeCompliant : styles.badgeNonCompliant]}>
-    <Text style={[styles.dietaryBadgeText, compliant ? styles.badgeCompliantText : styles.badgeNonCompliantText]}>
+    <Text
+      style={[
+        styles.dietaryBadgeText,
+        compliant ? styles.badgeCompliantText : styles.badgeNonCompliantText,
+      ]}
+    >
       {compliant ? '✓' : '✗'} {restriction}
     </Text>
   </View>
@@ -68,7 +73,11 @@ const StepTimer: React.FC<StepTimerProps> = ({ minutes }) => {
 
   return (
     <Pressable
-      style={[styles.timerButton, running && styles.timerButtonRunning, secondsLeft === 0 && styles.timerButtonDone]}
+      style={[
+        styles.timerButton,
+        running && styles.timerButtonRunning,
+        secondsLeft === 0 && styles.timerButtonDone,
+      ]}
       onPress={toggle}
       accessibilityRole="button"
       accessibilityLabel={`Timer: ${timeDisplay}. ${running ? 'Running' : 'Paused'}`}
@@ -106,10 +115,7 @@ export interface RecipeDetailScreenProps {
   onBack?: () => void;
 }
 
-export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
-  recipeId,
-  onBack,
-}) => {
+export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ recipeId, onBack }) => {
   const { recipe, loading, error } = useRecipeDetail(recipeId);
 
   if (loading) {
@@ -160,20 +166,14 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       {/* Title & Description */}
       <View style={styles.titleSection}>
         <Text style={styles.title}>{recipe.title}</Text>
-        {recipe.description ? (
-          <Text style={styles.description}>{recipe.description}</Text>
-        ) : null}
+        {recipe.description ? <Text style={styles.description}>{recipe.description}</Text> : null}
       </View>
 
       {/* Dietary Badges */}
       {recipe.dietary_info.length > 0 ? (
         <View style={styles.badgesRow}>
           {recipe.dietary_info.map((di) => (
-            <DietaryBadge
-              key={di.id}
-              restriction={di.restriction}
-              compliant={di.is_compliant}
-            />
+            <DietaryBadge key={di.id} restriction={di.restriction} compliant={di.is_compliant} />
           ))}
         </View>
       ) : null}
@@ -186,7 +186,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       </View>
 
       {/* Cuisine & Tags */}
-      {(recipe.cuisine || recipe.tags.length > 0) ? (
+      {recipe.cuisine || recipe.tags.length > 0 ? (
         <View style={styles.tagsSection}>
           {recipe.cuisine ? (
             <View style={styles.cuisineTag}>
@@ -231,9 +231,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
             </View>
             <View style={styles.stepContent}>
               <Text style={styles.stepInstruction}>{step.instruction}</Text>
-              {step.timer_minutes !== null ? (
-                <StepTimer minutes={step.timer_minutes} />
-              ) : null}
+              {step.timer_minutes !== null ? <StepTimer minutes={step.timer_minutes} /> : null}
             </View>
           </View>
         ))}
@@ -246,158 +244,51 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FAFAFA',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FAFAFA',
-  },
-  loadingText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#666666',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FAFAFA',
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#CC0000',
-    marginBottom: 8,
-  },
   backLink: {
-    fontSize: 14,
     color: '#FF6B35',
+    fontSize: 14,
     fontWeight: '600',
   },
   backOverlay: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    zIndex: 10,
     backgroundColor: 'rgba(255,255,255,0.85)',
     borderRadius: 8,
+    left: 12,
     paddingHorizontal: 10,
     paddingVertical: 6,
+    position: 'absolute',
+    top: 12,
+    zIndex: 10,
   },
   backOverlayText: {
-    fontSize: 14,
     color: '#FF6B35',
+    fontSize: 14,
     fontWeight: '600',
-  },
-  heroContainer: {
-    position: 'relative',
-    height: 260,
-  },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-  },
-  heroPlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#F0F0F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroPlaceholderIcon: {
-    fontSize: 64,
-  },
-  heroGradient: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 80,
-    backgroundColor: 'rgba(250,250,250,0.8)',
-  },
-  titleSection: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    lineHeight: 30,
-  },
-  description: {
-    fontSize: 15,
-    color: '#666666',
-    marginTop: 6,
-    lineHeight: 22,
-  },
-  badgesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    gap: 6,
-  },
-  dietaryBadge: {
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
   },
   badgeCompliant: {
     backgroundColor: '#E8F5E9',
   },
-  badgeNonCompliant: {
-    backgroundColor: '#FFEBEE',
-  },
-  dietaryBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
   badgeCompliantText: {
     color: '#2E7D32',
+  },
+  badgeNonCompliant: {
+    backgroundColor: '#FFEBEE',
   },
   badgeNonCompliantText: {
     color: '#C62828',
   },
-  metadataRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    gap: 12,
-  },
-  metadataPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    gap: 8,
-    flex: 1,
-  },
-  metadataIcon: {
-    fontSize: 20,
-  },
-  metadataValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  metadataLabel: {
-    fontSize: 11,
-    color: '#999999',
-  },
-  tagsSection: {
+  badgesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 6,
     paddingHorizontal: 16,
     paddingTop: 10,
-    gap: 6,
+  },
+  bottomSpacer: {
+    height: 40,
+  },
+  container: {
+    backgroundColor: '#FAFAFA',
+    flex: 1,
   },
   cuisineTag: {
     backgroundColor: '#FF6B35',
@@ -406,9 +297,168 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   cuisineTagText: {
-    fontSize: 12,
     color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '600',
+  },
+  description: {
+    color: '#666666',
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 6,
+  },
+  dietaryBadge: {
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  dietaryBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    backgroundColor: '#FAFAFA',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  errorText: {
+    color: '#CC0000',
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  heroContainer: {
+    height: 260,
+    position: 'relative',
+  },
+  heroGradient: {
+    backgroundColor: 'rgba(250,250,250,0.8)',
+    bottom: 0,
+    height: 80,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  heroImage: {
+    height: '100%',
+    width: '100%',
+  },
+  heroPlaceholder: {
+    alignItems: 'center',
+    backgroundColor: '#F0F0F0',
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  heroPlaceholderIcon: {
+    fontSize: 64,
+  },
+  ingredientBullet: {
+    alignItems: 'center',
+    width: 20,
+  },
+  ingredientBulletText: {
+    color: '#FF6B35',
+    fontSize: 16,
+  },
+  ingredientContent: {
+    flex: 1,
+  },
+  ingredientName: {
+    color: '#333333',
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  ingredientRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    paddingVertical: 6,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: '#FAFAFA',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: '#666666',
+    fontSize: 14,
+    marginTop: 8,
+  },
+  metadataIcon: {
+    fontSize: 20,
+  },
+  metadataLabel: {
+    color: '#999999',
+    fontSize: 11,
+  },
+  metadataPill: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E5E5',
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    flex: 1,
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  metadataRow: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  metadataValue: {
+    color: '#1A1A1A',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  section: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+  },
+  sectionDivider: {
+    backgroundColor: '#FF6B35',
+    borderRadius: 1,
+    height: 2,
+    marginBottom: 12,
+    marginTop: 4,
+    width: 40,
+  },
+  sectionTitle: {
+    color: '#1A1A1A',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  stepContent: {
+    flex: 1,
+  },
+  stepInstruction: {
+    color: '#333333',
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 4,
+  },
+  stepNumber: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  stepNumberContainer: {
+    alignItems: 'center',
+    backgroundColor: '#FF6B35',
+    borderRadius: 16,
+    height: 32,
+    justifyContent: 'center',
+    marginRight: 12,
+    width: 32,
+  },
+  stepRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    paddingVertical: 10,
   },
   tag: {
     backgroundColor: '#F0F0F0',
@@ -417,102 +467,50 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   tagText: {
-    fontSize: 12,
     color: '#666666',
+    fontSize: 12,
   },
-  section: {
+  tagsSection: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
     paddingHorizontal: 16,
-    paddingTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  sectionDivider: {
-    height: 2,
-    backgroundColor: '#FF6B35',
-    width: 40,
-    marginTop: 4,
-    marginBottom: 12,
-    borderRadius: 1,
-  },
-  ingredientRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 6,
-  },
-  ingredientBullet: {
-    width: 20,
-    alignItems: 'center',
-  },
-  ingredientBulletText: {
-    fontSize: 16,
-    color: '#FF6B35',
-  },
-  ingredientContent: {
-    flex: 1,
-  },
-  ingredientName: {
-    fontSize: 15,
-    color: '#333333',
-    lineHeight: 22,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 10,
-  },
-  stepNumberContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FF6B35',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  stepNumber: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  stepContent: {
-    flex: 1,
-  },
-  stepInstruction: {
-    fontSize: 15,
-    color: '#333333',
-    lineHeight: 22,
-    marginTop: 4,
+    paddingTop: 10,
   },
   timerButton: {
-    flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     backgroundColor: '#FFF3E0',
     borderRadius: 8,
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginTop: 8,
-    gap: 6,
-    alignSelf: 'flex-start',
-  },
-  timerButtonRunning: {
-    backgroundColor: '#FFE0B2',
   },
   timerButtonDone: {
     backgroundColor: '#E8F5E9',
   },
+  timerButtonRunning: {
+    backgroundColor: '#FFE0B2',
+  },
+  timerDisplay: {
+    color: '#E65100',
+    fontSize: 16,
+    fontVariant: ['tabular-nums'],
+    fontWeight: '700',
+  },
   timerIcon: {
     fontSize: 16,
   },
-  timerDisplay: {
-    fontSize: 16,
+  title: {
+    color: '#1A1A1A',
+    fontSize: 24,
     fontWeight: '700',
-    color: '#E65100',
-    fontVariant: ['tabular-nums'],
+    lineHeight: 30,
   },
-  bottomSpacer: {
-    height: 40,
+  titleSection: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
 });

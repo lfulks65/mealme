@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Box } from '@gluestack-ui/themed';
-import { FormControl, FormControlLabel, FormControlError, FormControlErrorText } from '@gluestack-ui/themed';
+import {
+  FormControl,
+  FormControlLabel,
+  FormControlError,
+  FormControlErrorText,
+} from '@gluestack-ui/themed';
 import { Input, InputField } from '@gluestack-ui/themed';
 import { Button, ButtonText, ButtonSpinner } from '@gluestack-ui/themed';
 import { Text } from '@gluestack-ui/themed';
@@ -21,7 +26,8 @@ export function LoginScreen({
   onNavigateToForgotPassword,
   onLoginSuccess,
 }: LoginScreenProps) {
-  const { signIn, signInWithGoogle, signInWithApple, isLoading, error, resetPasswordState } = useAuth();
+  const { signIn, signInWithGoogle, signInWithApple, isLoading, error, resetPasswordState } =
+    useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -85,10 +91,7 @@ export function LoginScreen({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <VStack space="xl" style={styles.formContainer}>
           {/* Header */}
           <VStack space="xs" style={styles.header}>
@@ -240,7 +243,7 @@ export function LoginScreen({
           {/* Sign Up Link */}
           <HStack justifyContent="center" space="xs" mt="$4">
             <Text size="sm" color="$textLight500">
-              Don't have an account?
+              Don&apos;t have an account?
             </Text>
             <Button variant="link" size="sm" onPress={onNavigateToSignup}>
               <ButtonText size="sm" color="$primary500" fontWeight="$semibold">
@@ -256,25 +259,25 @@ export function LoginScreen({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 32,
+    flex: 1,
   },
   formContainer: {
+    alignSelf: 'center',
     maxWidth: 400,
     width: '100%',
-    alignSelf: 'center',
   },
   header: {
     marginBottom: 8,
   },
   primaryButton: {
     width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 32,
   },
   socialButton: {
     width: '100%',

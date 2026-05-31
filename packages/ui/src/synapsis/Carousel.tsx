@@ -1,11 +1,5 @@
 import React, { useRef } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Pressable,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
 
 // ── SynapsisUI Carousel ──────────────────────────────────────────────────────
 // A horizontal scrolling carousel with section header.
@@ -40,9 +34,7 @@ export const Carousel: React.FC<CarouselProps> = ({
   const flatListRef = useRef<FlatList>(null);
 
   const renderItem = ({ item }: { item: CarouselItem }) => (
-    <View style={{ width: itemWidth, marginRight: itemGap }}>
-      {item.element}
-    </View>
+    <View style={{ width: itemWidth, marginRight: itemGap }}>{item.element}</View>
   );
 
   return (
@@ -73,23 +65,23 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   headerRow: {
+    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
     marginBottom: 10,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  seeAll: {
-    fontSize: 14,
-    color: '#FF6B35',
-    fontWeight: '600',
+    paddingHorizontal: 16,
   },
   scrollContent: {
     paddingHorizontal: 16,
+  },
+  seeAll: {
+    color: '#FF6B35',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  title: {
+    color: '#1A1A1A',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });
