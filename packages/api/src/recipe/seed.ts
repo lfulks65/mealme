@@ -29,6 +29,16 @@ interface SeedStep {
   timer_minutes?: number;
 }
 
+interface NutritionData {
+  calories: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g: number;
+  sugar_g: number;
+  sodium_mg: number;
+}
+
 interface SeedRecipe {
   title: string;
   description: string;
@@ -42,6 +52,7 @@ interface SeedRecipe {
   steps: SeedStep[];
   tags: string[];
   dietary_info: { restriction: string; is_compliant: boolean }[];
+  nutrition: NutritionData;
 }
 
 // ── Recipe Data ──────────────────────────────────────────────────────────────
@@ -96,6 +107,15 @@ const recipes: SeedRecipe[] = [
       { restriction: 'vegan', is_compliant: false },
       { restriction: 'keto', is_compliant: false },
     ],
+    nutrition: {
+      calories: 380,
+      protein_g: 28,
+      carbs_g: 32,
+      fat_g: 16,
+      fiber_g: 4,
+      sugar_g: 5,
+      sodium_mg: 520,
+    },
   },
   {
     title: 'Chicken Enchiladas',
@@ -3105,6 +3125,23 @@ export async function seedRecipes(): Promise<void> {
     const { error: dietError } = await sb.from('recipe_dietary_info').insert(dietaryRows);
     if (dietError) {
       console.error(`  Dietary info error for "${recipe.title}":`, dietError.message);
+    }
+
+    // 6. Insert nutrition data
+    if (recipe.nutrition) {
+      const { error: nutError } = await sb.from('recipe_nutrition').insert({
+        recipe_id: recipeId,
+        calories: recipe.nutrition.calories,
+        protein_g: recipe.nutrition.protein_g,
+        carbs_g: recipe.nutrition.carbs_g,
+        fat_g: recipe.nutrition.fat_g,
+        fiber_g: recipe.nutrition.fiber_g,
+        sugar_g: recipe.nutrition.sugar_g,
+        sodium_mg: recipe.nutrition.sodium_mg,
+      });
+      if (nutError) {
+        console.error(`  Nutrition error for "${recipe.title}":`, nutError.message);
+      }
     }
 
     console.log(`✓ Seeded: ${recipe.title}`);
