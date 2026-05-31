@@ -44,12 +44,18 @@ interface UseWeeklyMealPlanReturn {
  *
  * Fetches the plan for a given family and week, and provides
  * methods for assigning, removing, and moving recipes between slots.
+ *
+ * @param familyId - The family ID to fetch plans for.
+ * @param weekStartDate - The Monday of the plan week (YYYY-MM-DD).
+ * @param initialMealPlan - Optional server-fetched data to use as initial state
+ *   instead of fetching on mount. When provided, the initial fetch is skipped.
  */
 export function useWeeklyMealPlan(
   familyId: string | null,
   weekStartDate: string,
+  initialMealPlan?: MealPlanWithEntries | null,
 ): UseWeeklyMealPlanReturn {
-  const [mealPlan, setMealPlan] = useState<MealPlanWithEntries | null>(null);
+  const [mealPlan, setMealPlan] = useState<MealPlanWithEntries | null>(initialMealPlan ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -194,13 +200,20 @@ interface UseMealPlanMonthReturn {
  * Hook for fetching monthly plan indicators.
  *
  * Checks each week of the given month for existing plans.
+ *
+ * @param familyId - The family ID to fetch plans for.
+ * @param year - The year (e.g. 2024).
+ * @param month - The month (0-indexed, 0 = January).
+ * @param initialDays - Optional server-fetched day indicators to use as initial state
+ *   instead of fetching on mount. When provided, the initial fetch is skipped.
  */
 export function useMealPlanMonth(
   familyId: string | null,
   year: number,
   month: number, // 0-indexed
+  initialDays?: DayPlanIndicator[],
 ): UseMealPlanMonthReturn {
-  const [days, setDays] = useState<DayPlanIndicator[]>([]);
+  const [days, setDays] = useState<DayPlanIndicator[]>(initialDays ?? []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
