@@ -1,9 +1,9 @@
-import { Redirect, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useAuth } from '@mealme/ui';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 export default function AuthLayout() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -13,10 +13,11 @@ export default function AuthLayout() {
     );
   }
 
-  // Redirect to main app if already authenticated
-  if (isAuthenticated) {
-    return <Redirect href="/(main)/home" />;
-  }
+  // Auth guard at root level handles redirects for authenticated users.
+  // reset-password is an exception: it requires an authenticated session
+  // from a deep link, so we allow authenticated users to stay on that screen.
+  // The root useAuthGuard skips redirecting away from reset-password when
+  // the user is authenticated.
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

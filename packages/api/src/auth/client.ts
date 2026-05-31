@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SecureStorageAdapter } from './secureStorage';
 
 const SUPABASE_URL =
   process.env.EXPO_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
@@ -29,7 +30,14 @@ export function getSupabase(): SupabaseClient {
           'or NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY.',
       );
     }
-    _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        storage: SecureStorageAdapter,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+      },
+    });
   }
   return _supabase;
 }
@@ -49,7 +57,14 @@ function getSupab(): SupabaseClient {
     return createNoOp();
   }
   if (!_supabase) {
-    _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        storage: SecureStorageAdapter,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+      },
+    });
   }
   return _supabase;
 }
