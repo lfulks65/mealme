@@ -22,6 +22,7 @@
     "@mealme/shared": "workspace:*",
     "@mealme/ui": "workspace:*",
     "@supabase/ssr": "^0.10.3",
+    "@tanstack/react-query": "^5.0.0",
     "@supabase/supabase-js": "^2.42.0",
     "next": "^14.2.0",
     "react": "^18.2.0",

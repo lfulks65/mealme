@@ -1,9 +1,16 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useCallback } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import type { Session } from '@supabase/supabase-js';
 import {
-  useAuth as useApiAuth,
-  AuthProvider as ApiAuthProvider,
-  resetPasswordForEmail,
+  useSession,
+  useCurrentUser,
+  useSignUp as useSignUpMutation,
+  useSignIn as useSignInMutation,
+  useSignOut as useSignOutMutation,
+  useSignInWithProvider as useSignInWithProviderMutation,
+  useResetPassword as useResetPasswordMutation,
+  AuthQueryProvider,
 } from '@mealme/api';
 
 // ---------------------------------------------------------------------------
@@ -40,104 +47,138 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // ---------------------------------------------------------------------------
-// Provider – wraps the API AuthProvider and extends it
+// Provider – wraps QueryClientProvider + AuthQueryProvider and delegates
+// to React Query hooks internally
 // ---------------------------------------------------------------------------
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({
+  children,
+  queryClient,
+}: {
+  children: React.ReactNode;
+  queryClient: QueryClient;
+}) {
   return (
-    <ApiAuthProvider>
-      <AuthProviderInner>{children}</AuthProviderInner>
-    </ApiAuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthQueryProvider queryClient={queryClient}>
+        <AuthProviderInner>{children}</AuthProviderInner>
+      </AuthQueryProvider>
+    </QueryClientProvider>
   );
 }
 
 function AuthProviderInner({ children }: { children: React.ReactNode }) {
-  const api = useApiAuth();
+  // ----- React Query hooks -----
+  const { data: session, isLoading: sessionLoading } = useSession();
+  const { data: currentUser } = useCurrentUser();
 
-  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
-  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
+  const signUpMutation = useSignUpMutation();
+  const signInMutation = useSignInMutation();
+  const signOutMutation = useSignOutMutation();
+  const signInWithProviderMutation = useSignInWithProviderMutation();
+  const resetPasswordMutation = useResetPasswordMutation();
 
-  const user: User | null = api.user
+  // Derive the active error from whichever mutation was used last
+  const getMutationError = (mutation: { error: Error | null }): string | null =>
+    mutation.error?.message ?? null;
+
+  // ----- Derived state -----
+
+  const user: User | null = currentUser
     ? {
-        id: api.user.id,
-        name: api.user.name,
-        email: api.user.email,
-        avatarUrl: api.user.avatarUrl,
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        avatarUrl: currentUser.avatarUrl,
       }
     : null;
 
   const isAuthenticated = user !== null;
-  const isLoading = api.loading || forgotPasswordLoading;
-  // Show forgot-password error when present, otherwise fall back to API error
-  const error = forgotPasswordError ?? api.error;
+  const isLoading = sessionLoading;
+
+  // ----- Reset all mutation state -----
+
+  const resetPasswordState = useCallback(() => {
+    signUpMutation.reset();
+    signInMutation.reset();
+    signOutMutation.reset();
+    signInWithProviderMutation.reset();
+    resetPasswordMutation.reset();
+  }, [
+    signUpMutation,
+    signInMutation,
+    signOutMutation,
+    signInWithProviderMutation,
+    resetPasswordMutation,
+  ]);
+
+  // ----- Auth actions -----
+  // Each action resets all mutation state first to prevent stale errors
+  // from a different auth flow from leaking into the current screen.
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      await api.signIn(email, password);
+      resetPasswordState();
+      await signInMutation.mutateAsync({ email, password });
     },
-    [api.signIn],
+    [signInMutation, resetPasswordState],
   );
 
   const signUp = useCallback(
     async (name: string, email: string, password: string) => {
-      await api.signUp(email, password, name);
+      resetPasswordState();
+      await signUpMutation.mutateAsync({ email, password, name });
     },
-    [api.signUp],
+    [signUpMutation, resetPasswordState],
   );
 
   const signOut = useCallback(async () => {
-    await api.signOut();
-  }, [api.signOut]);
+    resetPasswordState();
+    await signOutMutation.mutateAsync();
+  }, [signOutMutation, resetPasswordState]);
 
   const signInWithProvider = useCallback(
     async (provider: 'google' | 'apple') => {
-      await api.signInWithProvider(provider);
+      resetPasswordState();
+      await signInWithProviderMutation.mutateAsync({ provider });
     },
-    [api.signInWithProvider],
+    [signInWithProviderMutation, resetPasswordState],
   );
 
   const signInWithGoogle = useCallback(async () => {
-    await api.signInWithProvider('google');
-  }, [api.signInWithProvider]);
+    resetPasswordState();
+    await signInWithProviderMutation.mutateAsync({ provider: 'google' });
+  }, [signInWithProviderMutation, resetPasswordState]);
 
   const signInWithApple = useCallback(async () => {
-    await api.signInWithProvider('apple');
-  }, [api.signInWithProvider]);
+    resetPasswordState();
+    await signInWithProviderMutation.mutateAsync({ provider: 'apple' });
+  }, [signInWithProviderMutation, resetPasswordState]);
 
   const forgotPassword = useCallback(
     async (email: string) => {
       if (!email.trim()) {
         throw new Error('Please enter your email');
       }
-      setForgotPasswordLoading(true);
-      setForgotPasswordError(null);
-      try {
-        const { error: resetError } = await resetPasswordForEmail(email);
-        if (resetError) {
-          setForgotPasswordError(resetError);
-          throw new Error(resetError);
-        }
-      } catch (err: any) {
-        const msg = err.message || 'Failed to send reset email';
-        setForgotPasswordError(msg);
-        throw err;
-      } finally {
-        setForgotPasswordLoading(false);
-      }
+      resetPasswordState();
+      await resetPasswordMutation.mutateAsync({ email });
     },
-    [],
+    [resetPasswordMutation, resetPasswordState],
   );
 
-  const resetPasswordState = useCallback(() => {
-    setForgotPasswordError(null);
-    api.clearError();
-  }, [api.clearError]);
+  // Compute the visible error from whichever mutation was used last.
+  const error =
+    getMutationError(signInMutation) ??
+    getMutationError(signUpMutation) ??
+    getMutationError(signOutMutation) ??
+    getMutationError(signInWithProviderMutation) ??
+    getMutationError(resetPasswordMutation);
 
   const value: AuthContextType = {
     user,
     isAuthenticated,
     isLoading,
-    session: api.session,
+    session: session ?? null,
     signIn,
     signUp,
     signOut,

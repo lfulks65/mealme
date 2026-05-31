@@ -12,11 +12,7 @@ export {
   onAuthStateChange,
 } from './functions';
 
-export type {
-  AuthUser,
-  AuthResult,
-  AuthStateCallback,
-} from './functions';
+export type { AuthUser, AuthResult, AuthStateCallback } from './functions';
 
 // Profile functions
 export { getProfile, updateProfile } from './profile';
@@ -25,3 +21,21 @@ export type { Profile, ProfileUpdate, ProfileResult } from './profile';
 // React context & hook
 export { AuthProvider, useAuth } from './context';
 export type { AuthContextType } from './context';
+
+// Auth state listener
+export { startAuthListener } from './authListener';
+
+// Auth Query Provider
+export { AuthQueryProvider } from './AuthQueryProvider';
+
+// React Query auth hooks — also available via ../hooks barrel
+export {
+  authKeys,
+  useSession,
+  useCurrentUser,
+  useSignUp,
+  useSignIn,
+  useSignInWithProvider,
+  useSignOut,
+  useResetPassword,
+} from './authQueries';

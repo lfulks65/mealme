@@ -5,15 +5,15 @@ import type { NextRequest } from 'next/server';
 const protectedRoutes = ['/dashboard', '/meal-plan'];
 
 // Routes that should redirect away if already authenticated
-const authRoutes = ['/login', '/signup', '/forgot-password'];
+const authRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check for auth session cookie (Supabase sets sb-<ref>-auth-token)
-  const hasSession = request.cookies.getAll().some((c) =>
-    c.name.startsWith('sb-') && c.name.includes('-auth-token'),
-  );
+  const hasSession = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'));
 
   // Redirect unauthenticated users from protected routes to login
   if (protectedRoutes.some((route) => pathname.startsWith(route))) {
@@ -41,5 +41,6 @@ export const config = {
     '/login',
     '/signup',
     '/forgot-password',
+    '/reset-password',
   ],
 };

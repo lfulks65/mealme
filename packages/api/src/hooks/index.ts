@@ -13,11 +13,7 @@
  */
 
 // Query client setup
-export {
-  createQueryClient,
-  QueryClientProvider,
-  useQueryClient,
-} from './query-client';
+export { createQueryClient, QueryClientProvider, useQueryClient } from './query-client';
 
 // Recipe hooks
 export {
@@ -69,12 +65,9 @@ export {
   useUpdateUserPreferences,
 } from './use-preferences';
 
-// Auth hooks
-export {
-  authKeys,
-  useAuth,
-  useSignUp,
-  useSignIn,
-  useSignOut,
-} from './use-auth';
-export type { AuthContextType } from './use-auth';
+// Auth hooks — now exported directly from the auth module via authQueries
+// (useSignUp, useSignIn, useSignOut, useSignInWithProvider, useResetPassword,
+//  useSession, useCurrentUser, authKeys are available from '@mealme/api/auth')
+// Re-export useAuth and AuthContextType for backward compatibility
+export { useAuth } from '../auth/context';
+export type { AuthContextType } from '../auth/context';

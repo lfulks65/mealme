@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Box } from '@gluestack-ui/themed';
 import {
@@ -7,13 +7,51 @@ import {
   FormControlError,
   FormControlErrorText,
 } from '@gluestack-ui/themed';
-import { Input, InputField } from '@gluestack-ui/themed';
+import { Input, InputField, InputSlot, InputIcon } from '@gluestack-ui/themed';
 import { Button, ButtonText, ButtonSpinner } from '@gluestack-ui/themed';
 import { Text } from '@gluestack-ui/themed';
 import { VStack } from '@gluestack-ui/themed';
 import { HStack } from '@gluestack-ui/themed';
 import { Divider } from '@gluestack-ui/themed';
+import { EyeIcon, EyeOffIcon } from '@gluestack-ui/themed';
 import { useAuth } from './AuthContext';
+
+// ---------------------------------------------------------------------------
+// Password strength calculation
+// ---------------------------------------------------------------------------
+
+type PasswordStrength = 'weak' | 'medium' | 'strong';
+
+function getPasswordStrength(password: string): PasswordStrength {
+  if (!password) return 'weak';
+
+  const hasNumber = /\d/.test(password);
+  const hasSymbol = /[!@#$%^&*(),.?":{}|<>_\-[\]\\/~`+=;']/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasMixedCase = hasUpper && hasLower;
+
+  if (password.length >= 8 && hasNumber && hasSymbol && hasMixedCase) {
+    return 'strong';
+  }
+  if (password.length >= 8 && (hasNumber || hasSymbol)) {
+    return 'medium';
+  }
+  return 'weak';
+}
+
+const STRENGTH_CONFIG: Record<
+  PasswordStrength,
+  { label: string; color: string; flexValue: number }
+> = {
+  weak: { label: 'Weak', color: '$error500', flexValue: 1 },
+  medium: { label: 'Medium', color: '$warning500', flexValue: 2 },
+  strong: { label: 'Strong', color: '$success500', flexValue: 3 },
+};
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export interface SignupScreenProps {
   onNavigateToLogin: () => void;
@@ -27,15 +65,23 @@ export function SignupScreen({ onNavigateToLogin, onSignupSuccess }: SignupScree
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+  const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+  const strengthConfig = STRENGTH_CONFIG[passwordStrength];
 
   const validate = (): boolean => {
     let valid = true;
     setNameError('');
     setEmailError('');
     setPasswordError('');
+    setConfirmPasswordError('');
 
     if (!name.trim()) {
       setNameError('Name is required');
@@ -61,6 +107,14 @@ export function SignupScreen({ onNavigateToLogin, onSignupSuccess }: SignupScree
       valid = false;
     }
 
+    if (!confirmPassword) {
+      setConfirmPasswordError('Please confirm your password');
+      valid = false;
+    } else if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      valid = false;
+    }
+
     return valid;
   };
 
@@ -70,7 +124,7 @@ export function SignupScreen({ onNavigateToLogin, onSignupSuccess }: SignupScree
       await signUp(name.trim(), email.trim(), password);
       onSignupSuccess?.();
     } catch {
-      // Error is set in context
+      // Error is set in context from React Query mutation
     }
   };
 
@@ -79,7 +133,7 @@ export function SignupScreen({ onNavigateToLogin, onSignupSuccess }: SignupScree
       await signInWithGoogle();
       onSignupSuccess?.();
     } catch {
-      // Error is set in context
+      // Error is set in context from React Query mutation
     }
   };
 
@@ -88,7 +142,7 @@ export function SignupScreen({ onNavigateToLogin, onSignupSuccess }: SignupScree
       await signInWithApple();
       onSignupSuccess?.();
     } catch {
-      // Error is set in context
+      // Error is set in context from React Query mutation
     }
   };
 
@@ -199,15 +253,68 @@ export function SignupScreen({ onNavigateToLogin, onSignupSuccess }: SignupScree
                   setPasswordError('');
                   resetPasswordState();
                 }}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 editable={!isLoading}
                 aria-label="Password"
               />
+              <InputSlot pr="$3" onPress={() => setShowPassword(!showPassword)}>
+                <InputIcon as={showPassword ? EyeOffIcon : EyeIcon} color="$textLight400" />
+              </InputSlot>
             </Input>
             {passwordError && (
               <FormControlError>
                 <FormControlErrorText>{passwordError}</FormControlErrorText>
+              </FormControlError>
+            )}
+          </FormControl>
+
+          {/* Password Strength Indicator */}
+          {password.length > 0 && (
+            <VStack space="xs">
+              <HStack space="sm" alignItems="center">
+                <HStack style={styles.strengthBarBackground}>
+                  <Box
+                    bg={strengthConfig.color}
+                    flex={strengthConfig.flexValue}
+                    style={styles.strengthBarFill}
+                  />
+                </HStack>
+                <Text size="xs" color={strengthConfig.color} fontWeight="$medium">
+                  {strengthConfig.label}
+                </Text>
+              </HStack>
+            </VStack>
+          )}
+
+          {/* Confirm Password Field */}
+          <FormControl isInvalid={!!confirmPasswordError}>
+            <FormControlLabel>
+              <Text size="sm" fontWeight="$medium" color="$textLight900">
+                Confirm Password
+              </Text>
+            </FormControlLabel>
+            <Input variant="outline" size="md">
+              <InputField
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChangeText={(text: string) => {
+                  setConfirmPassword(text);
+                  setConfirmPasswordError('');
+                  resetPasswordState();
+                }}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize="none"
+                editable={!isLoading}
+                aria-label="Confirm Password"
+              />
+              <InputSlot pr="$3" onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <InputIcon as={showConfirmPassword ? EyeOffIcon : EyeIcon} color="$textLight400" />
+              </InputSlot>
+            </Input>
+            {confirmPasswordError && (
+              <FormControlError>
+                <FormControlErrorText>{confirmPasswordError}</FormControlErrorText>
               </FormControlError>
             )}
           </FormControl>
@@ -306,5 +413,16 @@ const styles = StyleSheet.create({
   },
   socialButton: {
     width: '100%',
+  },
+  strengthBarBackground: {
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    flex: 1,
+    height: 4,
+    overflow: 'hidden',
+  },
+  strengthBarFill: {
+    borderRadius: 4,
+    height: 4,
   },
 });

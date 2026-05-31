@@ -67,6 +67,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.42.0
         version: 2.106.2
+      '@tanstack/react-query':
+        specifier: ^5.0.0
+        version: 5.100.14(react@18.3.1)
       expo:
         specifier: ~50.0.0
         version: 50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.85.3(@babel/core@7.29.7))(react-native@0.73.11(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.3.1))(react@18.3.1)
@@ -131,6 +134,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.42.0
         version: 2.106.2
+      '@tanstack/react-query':
+        specifier: ^5.0.0
+        version: 5.100.14(react@18.3.1)
       next:
         specifier: ^14.2.0
         version: 14.2.35(@babel/core@7.29.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -267,6 +273,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.42.0
         version: 2.106.2
+      '@tanstack/react-query':
+        specifier: ^5.0.0
+        version: 5.100.14(react@18.3.1)
       nativewind:
         specifier: ^4.0.0
         version: 4.2.4(react-native-reanimated@4.4.0(react-native-worklets@0.9.1(@babel/core@7.29.7)(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(react-native@0.73.11(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.3.1))(react@18.3.1))(react-native@0.73.11(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.3.1))(react@18.3.1))(react-native-safe-area-context@4.14.1(react-native@0.73.11(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.3.1))(react@18.3.1))(react-native-svg@15.15.5(react-native@0.73.11(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.3.1))(react@18.3.1))(react-native@0.73.11(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.3.1))(react@18.3.1)(tailwindcss@3.4.19(tsx@4.22.3)(yaml@2.9.0))
@@ -2152,7 +2161,7 @@ packages:
       {
         integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==,
       }
-    engines: { node: '>=0.10.0' }
+    engines: { '0': node >=0.10.0 }
 
   '@expo/cli@0.17.13':
     resolution:

@@ -1,4 +1,6 @@
 import React, { useEffect } from 'react';
+import { StyleSheet, ActivityIndicator, View } from 'react-native';
+import { Text } from '@gluestack-ui/themed';
 import { useAuth, User } from './AuthContext';
 import { LoginScreen } from './LoginScreen';
 import { SignupScreen } from './SignupScreen';
@@ -15,7 +17,7 @@ export interface AuthNavigatorProps {
 }
 
 export function AuthNavigator({ onAuthenticated, children }: AuthNavigatorProps) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const [currentScreen, setCurrentScreen] = React.useState<AuthScreen>('login');
 
   // Redirect to main app when authenticated
@@ -24,6 +26,18 @@ export function AuthNavigator({ onAuthenticated, children }: AuthNavigatorProps)
       onAuthenticated(user);
     }
   }, [isAuthenticated, user, onAuthenticated]);
+
+  // Show a loading/splash screen while the session is being resolved
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6366F1" />
+        <Text size="md" color="$textLight500" mt="$4">
+          Loading...
+        </Text>
+      </View>
+    );
+  }
 
   // If authenticated, render children (main app)
   if (isAuthenticated && children) {
@@ -43,11 +57,7 @@ export function AuthNavigator({ onAuthenticated, children }: AuthNavigatorProps)
       );
 
     case 'forgotPassword':
-      return (
-        <ForgotPasswordScreen
-          onNavigateToLogin={() => setCurrentScreen('login')}
-        />
-      );
+      return <ForgotPasswordScreen onNavigateToLogin={() => setCurrentScreen('login')} />;
 
     case 'login':
     default:
@@ -82,3 +92,12 @@ export function useRequireAuth(redirectToLogin: () => void): {
 
   return { user, isAuthenticated, isLoading };
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    flex: 1,
+    justifyContent: 'center',
+  },
+});
