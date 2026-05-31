@@ -35,6 +35,8 @@ const MOCK_RECIPES: RecipeFull[] = [
     source_url: null,
     created_by: null,
     created_at: '2026-01-01T00:00:00Z',
+    difficulty: 'easy' as const,
+    avg_rating: 4.5,
     ingredients: [
       { id: 'i1', recipe_id: '1', name: 'Quinoa', quantity: '1', unit: 'cup', optional: false },
       {
@@ -56,7 +58,7 @@ const MOCK_RECIPES: RecipeFull[] = [
       { id: 'i4', recipe_id: '1', name: 'Feta Cheese', quantity: '2', unit: 'oz', optional: true },
       { id: 'i5', recipe_id: '1', name: 'Tahini', quantity: '2', unit: 'tbsp', optional: false },
     ],
-    instructions: [
+    steps: [
       {
         id: 's1',
         recipe_id: '1',
@@ -110,6 +112,8 @@ const MOCK_RECIPES: RecipeFull[] = [
     source_url: null,
     created_by: null,
     created_at: '2026-01-02T00:00:00Z',
+    difficulty: 'medium' as const,
+    avg_rating: 4.2,
     ingredients: [
       {
         id: 'i6',
@@ -145,7 +149,7 @@ const MOCK_RECIPES: RecipeFull[] = [
         optional: true,
       },
     ],
-    instructions: [
+    steps: [
       {
         id: 's5',
         recipe_id: '2',
@@ -197,6 +201,8 @@ const MOCK_RECIPES: RecipeFull[] = [
     source_url: null,
     created_by: null,
     created_at: '2026-01-03T00:00:00Z',
+    difficulty: 'medium' as const,
+    avg_rating: 4.7,
     ingredients: [
       {
         id: 'i11',
@@ -231,7 +237,7 @@ const MOCK_RECIPES: RecipeFull[] = [
         optional: false,
       },
     ],
-    instructions: [
+    steps: [
       {
         id: 's9',
         recipe_id: '3',
@@ -287,6 +293,8 @@ const MOCK_RECIPES: RecipeFull[] = [
     source_url: null,
     created_by: null,
     created_at: '2026-01-04T00:00:00Z',
+    difficulty: 'easy' as const,
+    avg_rating: 4.0,
     ingredients: [
       {
         id: 'i15',
@@ -307,7 +315,7 @@ const MOCK_RECIPES: RecipeFull[] = [
         optional: true,
       },
     ],
-    instructions: [
+    steps: [
       {
         id: 's14',
         recipe_id: '4',
@@ -356,6 +364,8 @@ const MOCK_RECIPES: RecipeFull[] = [
     source_url: null,
     created_by: null,
     created_at: '2026-01-05T00:00:00Z',
+    difficulty: 'hard' as const,
+    avg_rating: 4.8,
     ingredients: [
       {
         id: 'i19',
@@ -391,7 +401,7 @@ const MOCK_RECIPES: RecipeFull[] = [
         optional: false,
       },
     ],
-    instructions: [
+    steps: [
       {
         id: 's18',
         recipe_id: '5',
@@ -447,6 +457,8 @@ const MOCK_RECIPES: RecipeFull[] = [
     source_url: null,
     created_by: null,
     created_at: '2026-01-06T00:00:00Z',
+    difficulty: 'easy' as const,
+    avg_rating: 4.3,
     ingredients: [
       {
         id: 'i24',
@@ -482,7 +494,7 @@ const MOCK_RECIPES: RecipeFull[] = [
         optional: true,
       },
     ],
-    instructions: [
+    steps: [
       {
         id: 's23',
         recipe_id: '6',
