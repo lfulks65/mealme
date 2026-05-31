@@ -126,5 +126,3 @@ export interface FamilyMemberResult {
   success: boolean;
   error: string | null;
 }
-;
-}
