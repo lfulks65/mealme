@@ -79,6 +79,21 @@ export function DashboardClient() {
             Meal Plan
           </button>
           <button
+            onClick={() => router.push('/recipes')}
+            style={{
+              padding: '8px 16px',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#FFFFFF',
+              backgroundColor: '#D97706',
+              borderRadius: 6,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Recipes
+          </button>
+          <button
             onClick={signOut}
             disabled={isLoading}
             style={{
