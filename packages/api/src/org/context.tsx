@@ -22,6 +22,7 @@ import {
 import {
   inviteMember as apiInviteMember,
   acceptInvite as apiAcceptInvite,
+  acceptInviteByToken as apiAcceptInviteByToken,
   removeMember as apiRemoveMember,
   updateMemberRole as apiUpdateMemberRole,
   listMembers as apiListMembers,
@@ -84,6 +85,8 @@ export interface OrgContextType {
   inviteMember: (input: InviteMemberInput) => Promise<InviteResult>;
   /** Accept a pending invite. */
   acceptInvite: (inviteId: string) => Promise<AcceptInviteResult>;
+  /** Accept a pending invite by token (for shareable invite links). */
+  acceptInviteByToken: (token: string) => Promise<AcceptInviteResult>;
   /** Remove a member from the current org (owner cannot be removed). */
   removeMember: (userId: string) => Promise<OrgMemberResult>;
   /** Update a member's role (admin+ only). */
@@ -421,6 +424,26 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     [refreshOrgs],
   );
 
+  // ----- acceptInviteByToken -----
+  const handleAcceptInviteByToken = useCallback(
+    async (token: string): Promise<AcceptInviteResult> => {
+      setError(null);
+
+      const result = await apiAcceptInviteByToken(token);
+
+      if (result.error) {
+        setError(result.error);
+        return result;
+      }
+
+      // Refresh orgs and members since membership changed
+      await refreshOrgs();
+
+      return result;
+    },
+    [refreshOrgs],
+  );
+
   // ----- removeMember -----
   const handleRemoveMember = useCallback(
     async (userId: string): Promise<OrgMemberResult> => {
@@ -532,6 +555,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     membersLoading,
     inviteMember: handleInviteMember,
     acceptInvite: handleAcceptInvite,
+    acceptInviteByToken: handleAcceptInviteByToken,
     removeMember: handleRemoveMember,
     updateMemberRole: handleUpdateMemberRole,
     refreshMembers,

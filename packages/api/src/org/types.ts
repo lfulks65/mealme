@@ -32,7 +32,7 @@ export interface OrgMemberRow {
 // ---------------------------------------------------------------------------
 
 /** Role a user may hold within an organization. */
-export type OrgRole = 'owner' | 'admin' | 'member';
+export type OrgRole = 'owner' | 'admin' | 'member' | 'viewer';
 
 /**
  * An organization with its current user's membership role.
@@ -95,6 +95,7 @@ export interface InviteRow {
   accepted_at: string | null;
   expires_at: string;
   created_at: string;
+  invite_token: string;
 }
 
 /**

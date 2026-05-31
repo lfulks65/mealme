@@ -27,18 +27,13 @@ export type {
 } from './types';
 
 // CRUD functions
-export {
-  createOrg,
-  getOrg,
-  listUserOrgs,
-  updateOrg,
-  deleteOrg,
-} from './functions';
+export { createOrg, getOrg, listUserOrgs, updateOrg, deleteOrg } from './functions';
 
 // Member management functions
 export {
   inviteMember,
   acceptInvite,
+  acceptInviteByToken,
   removeMember,
   updateMemberRole,
   listMembers,

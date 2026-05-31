@@ -57,12 +57,14 @@ export interface OrgDetailScreenProps {
 const ROLE_OPTIONS: { label: string; value: OrgRole }[] = [
   { label: 'Admin', value: 'admin' },
   { label: 'Member', value: 'member' },
+  { label: 'Viewer', value: 'viewer' },
 ];
 
 const ROLE_COLORS: Record<OrgRole, { bg: string; text: string }> = {
   owner: { bg: '$warning100', text: '$warning700' },
   admin: { bg: '$info100', text: '$info700' },
   member: { bg: '$backgroundLight200', text: '$textLight700' },
+  viewer: { bg: '$backgroundLight100', text: '$textLight500' },
 };
 
 // ---------------------------------------------------------------------------
@@ -70,15 +72,7 @@ const ROLE_COLORS: Record<OrgRole, { bg: string; text: string }> = {
 // ---------------------------------------------------------------------------
 
 export function OrgDetailScreen({ orgId, onSettingsPress }: OrgDetailScreenProps) {
-  const {
-    currentOrg,
-    members,
-    loading,
-    error,
-    switchOrg,
-    inviteMember,
-    removeMember,
-  } = useOrg();
+  const { currentOrg, members, loading, error, switchOrg, inviteMember, removeMember } = useOrg();
 
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -162,14 +156,7 @@ export function OrgDetailScreen({ orgId, onSettingsPress }: OrgDetailScreenProps
             </Text>
           </VStack>
           <HStack space="sm" alignItems="center">
-            <Badge
-              size="sm"
-              variant="solid"
-              bg={roleColor.bg}
-              borderRadius="$md"
-              px="$2"
-              py="$1"
-            >
+            <Badge size="sm" variant="solid" bg={roleColor.bg} borderRadius="$md" px="$2" py="$1">
               <BadgeText size="xs" color={roleColor.text}>
                 {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
               </BadgeText>

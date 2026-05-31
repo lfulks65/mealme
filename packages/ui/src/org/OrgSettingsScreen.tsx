@@ -47,12 +47,14 @@ export interface OrgSettingsScreenProps {
 const ROLE_OPTIONS: { label: string; value: OrgRole }[] = [
   { label: 'Admin', value: 'admin' },
   { label: 'Member', value: 'member' },
+  { label: 'Viewer', value: 'viewer' },
 ];
 
 const ROLE_COLORS: Record<OrgRole, { bg: string; text: string }> = {
   owner: { bg: '$warning100', text: '$warning700' },
   admin: { bg: '$info100', text: '$info700' },
   member: { bg: '$backgroundLight200', text: '$textLight700' },
+  viewer: { bg: '$backgroundLight100', text: '$textLight500' },
 };
 
 // ---------------------------------------------------------------------------
@@ -242,14 +244,7 @@ export function OrgSettingsScreen({ orgId, onOrgDeleted }: OrgSettingsScreenProp
                 </SelectContent>
               </Select>
             ) : (
-              <Badge
-                size="sm"
-                variant="solid"
-                bg={roleColor.bg}
-                borderRadius="$md"
-                px="$2"
-                py="$1"
-              >
+              <Badge size="sm" variant="solid" bg={roleColor.bg} borderRadius="$md" px="$2" py="$1">
                 <BadgeText size="xs" color={roleColor.text}>
                   Owner
                 </BadgeText>
@@ -294,14 +289,7 @@ export function OrgSettingsScreen({ orgId, onOrgDeleted }: OrgSettingsScreenProp
               {isExpired ? 'Expired' : `Expires ${expiresAt.toLocaleDateString()}`}
             </Text>
           </VStack>
-          <Badge
-            size="sm"
-            variant="solid"
-            bg={roleColor.bg}
-            borderRadius="$md"
-            px="$2"
-            py="$1"
-          >
+          <Badge size="sm" variant="solid" bg={roleColor.bg} borderRadius="$md" px="$2" py="$1">
             <BadgeText size="xs" color={roleColor.text}>
               {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
             </BadgeText>

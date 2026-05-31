@@ -60,9 +60,7 @@ function mapError(error: { message?: string }, fallback: string): string {
  * Note: The `role` must be 'admin' or 'member' — you cannot invite
  * someone as 'owner'.
  */
-export async function inviteMember(
-  input: InviteMemberInput,
-): Promise<InviteResult> {
+export async function inviteMember(input: InviteMemberInput): Promise<InviteResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { invite: null, error: 'Not authenticated' };
@@ -73,8 +71,8 @@ export async function inviteMember(
     return { invite: null, error: 'Cannot invite a user as owner' };
   }
 
-  if (input.role !== 'admin' && input.role !== 'member') {
-    return { invite: null, error: 'Invalid role. Must be "admin" or "member"' };
+  if (input.role !== 'admin' && input.role !== 'member' && input.role !== 'viewer') {
+    return { invite: null, error: 'Invalid role. Must be "admin", "member", or "viewer"' };
   }
 
   // Verify the caller is admin+ in this org
@@ -103,7 +101,9 @@ export async function inviteMember(
       role: input.role,
       invited_by: userId,
     })
-    .select('id, org_id, email, role, invited_by, accepted_at, expires_at, created_at')
+    .select(
+      'id, org_id, email, role, invited_by, accepted_at, expires_at, created_at, invite_token',
+    )
     .single();
 
   if (inviteError) {
@@ -123,6 +123,7 @@ export async function inviteMember(
     accepted_at: inviteData.accepted_at,
     expires_at: inviteData.expires_at,
     created_at: inviteData.created_at,
+    invite_token: inviteData.invite_token,
   };
 
   return { invite, error: null };
@@ -139,9 +140,7 @@ export async function inviteMember(
  * validates the invite, checks expiration, and inserts the membership
  * row in a single transaction.
  */
-export async function acceptInvite(
-  inviteId: string,
-): Promise<AcceptInviteResult> {
+export async function acceptInvite(inviteId: string): Promise<AcceptInviteResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { success: false, orgId: null, role: null, error: 'Not authenticated' };
@@ -149,6 +148,55 @@ export async function acceptInvite(
 
   const { data, error } = await supabase.rpc('accept_invite', {
     p_invite_id: inviteId,
+    p_user_id: userId,
+  });
+
+  if (error) {
+    return {
+      success: false,
+      orgId: null,
+      role: null,
+      error: mapError(error, 'Failed to accept invite'),
+    };
+  }
+
+  const result = data as Record<string, unknown>;
+  if (result.success === false) {
+    return {
+      success: false,
+      orgId: null,
+      role: null,
+      error: (result.error as string) ?? 'Failed to accept invite',
+    };
+  }
+
+  return {
+    success: true,
+    orgId: result.org_id as string | null,
+    role: result.role as OrgRole | null,
+    error: null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// acceptInviteByToken
+// ---------------------------------------------------------------------------
+
+/**
+ * Accept a pending invite by its token.
+ *
+ * Uses the `accept_invite_by_token` RPC function for atomicity.
+ * This allows users to accept invites via shareable links without
+ * needing to know the invite ID.
+ */
+export async function acceptInviteByToken(token: string): Promise<AcceptInviteResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { success: false, orgId: null, role: null, error: 'Not authenticated' };
+  }
+
+  const { data, error } = await supabase.rpc('accept_invite_by_token', {
+    p_invite_token: token,
     p_user_id: userId,
   });
 
@@ -193,10 +241,7 @@ export async function acceptInvite(
  *
  * Members can also remove themselves (leave the org).
  */
-export async function removeMember(
-  orgId: string,
-  targetUserId: string,
-): Promise<OrgMemberResult> {
+export async function removeMember(orgId: string, targetUserId: string): Promise<OrgMemberResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { success: false, error: 'Not authenticated' };
@@ -217,7 +262,10 @@ export async function removeMember(
     }
 
     if ((membership.role as OrgRole) === 'owner') {
-      return { success: false, error: 'Owner cannot leave the organization. Transfer ownership first.' };
+      return {
+        success: false,
+        error: 'Owner cannot leave the organization. Transfer ownership first.',
+      };
     }
 
     const { error: deleteError } = await supabase
@@ -265,9 +313,7 @@ export async function removeMember(
  *   - Admins can only change 'member' roles (not other admins)
  *   - New role must be 'admin' or 'member'
  */
-export async function updateMemberRole(
-  input: UpdateMemberRoleInput,
-): Promise<OrgMemberResult> {
+export async function updateMemberRole(input: UpdateMemberRoleInput): Promise<OrgMemberResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { success: false, error: 'Not authenticated' };
@@ -301,9 +347,7 @@ export async function updateMemberRole(
  *
  * RLS ensures only members of the org can view the member list.
  */
-export async function listMembers(
-  orgId: string,
-): Promise<OrgMemberListResult> {
+export async function listMembers(orgId: string): Promise<OrgMemberListResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { members: [], error: 'Not authenticated' };
@@ -343,9 +387,7 @@ export async function listMembers(
  *
  * Only admins/owners can view invites (enforced by RLS).
  */
-export async function listInvites(
-  orgId: string,
-): Promise<InviteListResult> {
+export async function listInvites(orgId: string): Promise<InviteListResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { invites: [], error: 'Not authenticated' };
@@ -353,7 +395,9 @@ export async function listInvites(
 
   const { data, error } = await supabase
     .from('invites')
-    .select('id, org_id, email, role, invited_by, accepted_at, expires_at, created_at')
+    .select(
+      'id, org_id, email, role, invited_by, accepted_at, expires_at, created_at, invite_token',
+    )
     .eq('org_id', orgId)
     .order('created_at', { ascending: false });
 
@@ -370,6 +414,7 @@ export async function listInvites(
     accepted_at: row.accepted_at,
     expires_at: row.expires_at,
     created_at: row.created_at,
+    invite_token: row.invite_token,
   }));
 
   return { invites, error: null };
@@ -402,7 +447,9 @@ export async function listPendingInvitesForUser(): Promise<InviteListResult> {
 
   const { data, error } = await supabase
     .from('invites')
-    .select('id, org_id, email, role, invited_by, accepted_at, expires_at, created_at')
+    .select(
+      'id, org_id, email, role, invited_by, accepted_at, expires_at, created_at, invite_token',
+    )
     .eq('email', email)
     .is('accepted_at', null)
     .gt('expires_at', new Date().toISOString())
@@ -421,6 +468,7 @@ export async function listPendingInvitesForUser(): Promise<InviteListResult> {
     accepted_at: row.accepted_at,
     expires_at: row.expires_at,
     created_at: row.created_at,
+    invite_token: row.invite_token,
   }));
 
   return { invites, error: null };
