@@ -153,6 +153,119 @@ export async function getRecipe(id: string): Promise<ServerRecipeResult> {
 }
 
 // ---------------------------------------------------------------------------
+// searchRecipesRPC
+// ---------------------------------------------------------------------------
+
+/** Parameters for the search_recipes_rpc Supabase RPC. */
+export interface SearchRecipesRPCParams {
+  p_query?: string | null;
+  p_cuisine?: string | null;
+  p_difficulty?: string | null;
+  p_dietary_restrictions?: string[];
+  p_max_prep_minutes?: number | null;
+  p_max_total_minutes?: number | null;
+  p_max_calories?: number | null;
+  p_tags?: string[];
+  p_sort?: string;
+  p_limit?: number;
+  p_offset?: number;
+}
+
+/** Row returned by the search_recipes_rpc Supabase RPC. */
+export interface SearchRecipesRPCRow {
+  id: string;
+  title: string;
+  description: string | null;
+  cuisine: string | null;
+  difficulty: string | null;
+  prep_minutes: number | null;
+  cook_minutes: number | null;
+  servings: number | null;
+  calories: number | null;
+  avg_rating: number | null;
+  fts: unknown;
+  created_at: string;
+  total_count: number;
+}
+
+/** Result of the search_recipes_rpc call. */
+export interface SearchRecipesRPCResult {
+  recipes: RecipeFull[];
+  total: number;
+  error: string | null;
+  has_more?: boolean;
+}
+
+/**
+ * Call the `search_recipes_rpc` Supabase RPC directly for server-side
+ * recipe search with full-text search, filtering, sorting, and pagination.
+ *
+ * This is the low-level RPC wrapper used by `searchRecipes`. Prefer
+ * `searchRecipes` for the higher-level API that accepts `RecipeSearchFilters`.
+ *
+ * @param params - RPC parameters matching the Postgres function signature.
+ * @returns Search results with total count and has_more, or an error.
+ */
+export async function searchRecipesRPC(
+  params: SearchRecipesRPCParams = {},
+): Promise<SearchRecipesRPCResult> {
+  const supabase = createServerClient();
+
+  const {
+    p_query = null,
+    p_cuisine = null,
+    p_difficulty = null,
+    p_dietary_restrictions = [],
+    p_max_prep_minutes = null,
+    p_max_total_minutes = null,
+    p_max_calories = null,
+    p_tags = [],
+    p_sort = 'relevance',
+    p_limit = 20,
+    p_offset = 0,
+  } = params;
+
+  const { data, error } = await supabase.rpc('search_recipes_rpc', {
+    p_query,
+    p_cuisine,
+    p_difficulty,
+    p_dietary_restrictions,
+    p_max_prep_minutes,
+    p_max_total_minutes,
+    p_max_calories,
+    p_tags,
+    p_sort,
+    p_limit,
+    p_offset,
+  });
+
+  if (error) {
+    return { recipes: [], total: 0, error: mapError(error, 'Search failed') };
+  }
+
+  const rows = (data ?? []) as SearchRecipesRPCRow[];
+  const recipes = rows as unknown as RecipeFull[];
+  const total = rows.length > 0 ? rows[0].total_count : 0;
+
+  try {
+    const withRelations = await attachRelations(recipes);
+
+    return {
+      recipes: withRelations,
+      total,
+      error: null,
+      has_more: p_offset + p_limit < total,
+    };
+  } catch (err) {
+    return {
+      recipes: [],
+      total: 0,
+      error: err instanceof Error ? err.message : 'Failed to load search results',
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // searchRecipes
 // ---------------------------------------------------------------------------
 
@@ -167,9 +280,7 @@ export async function getRecipe(id: string): Promise<ServerRecipeResult> {
 export async function searchRecipes(
   filters: RecipeSearchFilters = {},
 ): Promise<ServerRecipeListResult> {
-  const supabase = createServerClient();
-
-  const { data, error } = await supabase.rpc('search_recipes_rpc', {
+  return searchRecipesRPC({
     p_query: filters.query || null,
     p_cuisine: filters.cuisine || null,
     p_difficulty: filters.difficulty || null,
@@ -182,30 +293,6 @@ export async function searchRecipes(
     p_limit: filters.limit ?? 20,
     p_offset: filters.offset ?? 0,
   });
-
-  if (error) {
-    return { recipes: [], total: 0, error: mapError(error, 'Search failed') };
-  }
-
-  const recipes = (data ?? []) as RecipeFull[];
-  const total = recipes.length > 0 ? (recipes[0] as any).total_count : 0;
-
-  try {
-    const withRelations = await attachRelations(recipes);
-
-    return {
-      recipes: withRelations,
-      total,
-      error: null,
-      has_more: (filters.offset ?? 0) + (filters.limit ?? 20) < total,
-    };
-  } catch (err) {
-    return {
-      recipes: [],
-      total: 0,
-      error: err instanceof Error ? err.message : 'Failed to load search results',
-    };
-  }
 }
 
 // ---------------------------------------------------------------------------
