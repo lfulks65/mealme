@@ -48,6 +48,15 @@ export type {
 } from './types/recipe';
 
 export type {
+  Ingredient,
+  IngredientCategory,
+} from './types/ingredient';
+
+export {
+  INGREDIENT_CATEGORIES,
+} from './types/ingredient';
+
+export type {
   MealPlanEntry,
   MealPlan,
   CreateMealPlanInput,
@@ -70,6 +79,14 @@ export type {
 } from './types/preferences';
 
 // ── Constants ──────────────────────────────────────────────────────────────
+export {
+  MEASUREMENT_UNITS,
+  MEASUREMENT_UNIT_KEYS,
+  getMeasurementUnitLabel,
+} from './constants/measurement-units';
+
+export type { MeasurementUnitKey, MeasurementUnitCategory } from './constants/measurement-units';
+
 export {
   DIETARY_RESTRICTIONS,
   DIETARY_RESTRICTION_KEYS,
