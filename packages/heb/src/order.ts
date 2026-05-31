@@ -168,6 +168,7 @@ export class OrderManager {
    * @param deliveryDetails - Delivery / fulfillment details
    */
   async submitOrder(_cartId: string, deliveryDetails: DeliveryDetails): Promise<Order> {
+    await this.client._rateLimit();
     const sdk = this.client._getSDKClient();
 
     // Reserve the fulfillment timeslot — use the appropriate method
@@ -215,6 +216,7 @@ export class OrderManager {
    * @param orderId - HEB order ID
    */
   async getOrderStatus(orderId: string): Promise<Order> {
+    await this.client._rateLimit();
     const sdk = this.client._getSDKClient();
 
     const raw = await sdk.getOrder(orderId);
@@ -289,6 +291,7 @@ export class OrderManager {
    * @param options - Pagination options (page, size)
    */
   async listOrders(options?: ListOrdersOptions): Promise<OrderListResult> {
+    await this.client._rateLimit();
     const sdk = this.client._getSDKClient();
 
     const raw = await sdk.getOrders({

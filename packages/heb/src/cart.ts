@@ -111,6 +111,7 @@ export class CartManager {
    * @param storeId - Store ID for the cart (uses default if omitted)
    */
   async createCart(storeId?: string): Promise<Cart> {
+    await this.client._rateLimit();
     const sdk = this.client._getSDKClient();
     const sid = storeId ?? this.client._getStoreId();
 
@@ -132,6 +133,7 @@ export class CartManager {
    * @param quantity  - Quantity to set (default 1)
    */
   async addToCart(_cartId: string, productId: string, quantity: number = 1): Promise<Cart> {
+    await this.client._rateLimit();
     const sdk = this.client._getSDKClient();
 
     // Fetch SKU ID for the product
@@ -152,6 +154,7 @@ export class CartManager {
    * @param productId - Product ID to remove
    */
   async removeFromCart(_cartId: string, productId: string): Promise<Cart> {
+    await this.client._rateLimit();
     const sdk = this.client._getSDKClient();
 
     // Fetch SKU ID for the product
@@ -171,6 +174,7 @@ export class CartManager {
    * @param cartId - Cart ID (currently unused — cart is session-scoped)
    */
   async getCart(_cartId: string): Promise<Cart> {
+    await this.client._rateLimit();
     const sdk = this.client._getSDKClient();
     const raw = await sdk.getCart();
     return mapCart(raw, this.client._getStoreId());
@@ -185,6 +189,7 @@ export class CartManager {
    * @param cartId - Cart ID (currently unused — cart is session-scoped)
    */
   async clearCart(_cartId: string): Promise<Cart> {
+    await this.client._rateLimit();
     const sdk = this.client._getSDKClient();
 
     // Get current items
