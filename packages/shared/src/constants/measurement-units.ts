@@ -4,7 +4,7 @@
  *
  * Defines all supported units of measurement used in recipes,
  * pantry items, and grocery lists. Each entry carries a key,
- * human-readable label, abbreviation, and category.
+ * human-readable label, abbreviation, plural form, and category.
  */
 
 /** Category grouping for measurement units. */
@@ -14,25 +14,31 @@ export type MeasurementUnitCategory = 'volume' | 'weight' | 'count';
  * All supported measurement units.
  *
  * Each entry has a machine-readable `key`, a human-readable `label`,
- * an `abbreviation`, and a `category` grouping.
+ * an `abbreviation`, a `plural` form, and a `category` grouping.
+ *
+ * The `plural` field specifies the correct plural form of the
+ * abbreviation/label. For abbreviations that don't change in the
+ * plural (tsp, tbsp, oz, g, kg, ml, l), the plural matches the
+ * abbreviation. For words with irregular plurals (pinch → pinches),
+ * the plural is explicitly provided.
  */
 export const MEASUREMENT_UNITS = {
-  tsp:   { key: 'tsp',   label: 'Teaspoon',    abbreviation: 'tsp',  category: 'volume' },
-  tbsp:  { key: 'tbsp',  label: 'Tablespoon',  abbreviation: 'tbsp', category: 'volume' },
-  cup:   { key: 'cup',   label: 'Cup',         abbreviation: 'cup',  category: 'volume' },
-  oz:    { key: 'oz',    label: 'Ounce',        abbreviation: 'oz',   category: 'weight' },
-  lb:    { key: 'lb',    label: 'Pound',        abbreviation: 'lb',   category: 'weight' },
-  g:     { key: 'g',     label: 'Gram',         abbreviation: 'g',    category: 'weight' },
-  kg:    { key: 'kg',    label: 'Kilogram',     abbreviation: 'kg',   category: 'weight' },
-  ml:    { key: 'ml',    label: 'Milliliter',   abbreviation: 'ml',   category: 'volume' },
-  l:     { key: 'l',     label: 'Liter',        abbreviation: 'l',    category: 'volume' },
-  pinch: { key: 'pinch', label: 'Pinch',        abbreviation: 'pinch', category: 'count' },
-  clove: { key: 'clove', label: 'Clove',        abbreviation: 'clove', category: 'count' },
-  slice: { key: 'slice', label: 'Slice',        abbreviation: 'slice', category: 'count' },
-  piece: { key: 'piece', label: 'Piece',        abbreviation: 'piece', category: 'count' },
-  can:   { key: 'can',   label: 'Can',          abbreviation: 'can',   category: 'count' },
-  bunch: { key: 'bunch', label: 'Bunch',        abbreviation: 'bunch', category: 'count' },
-  whole: { key: 'whole', label: 'Whole',        abbreviation: 'whole', category: 'count' },
+  tsp:   { key: 'tsp',   label: 'Teaspoon',    abbreviation: 'tsp',   plural: 'tsp',    category: 'volume' },
+  tbsp:  { key: 'tbsp',  label: 'Tablespoon',  abbreviation: 'tbsp',  plural: 'tbsp',   category: 'volume' },
+  cup:   { key: 'cup',   label: 'Cup',         abbreviation: 'cup',   plural: 'cups',   category: 'volume' },
+  oz:    { key: 'oz',    label: 'Ounce',        abbreviation: 'oz',    plural: 'oz',     category: 'weight' },
+  lb:    { key: 'lb',    label: 'Pound',        abbreviation: 'lb',    plural: 'lbs',    category: 'weight' },
+  g:     { key: 'g',     label: 'Gram',         abbreviation: 'g',     plural: 'g',      category: 'weight' },
+  kg:    { key: 'kg',    label: 'Kilogram',     abbreviation: 'kg',    plural: 'kg',     category: 'weight' },
+  ml:    { key: 'ml',    label: 'Milliliter',   abbreviation: 'ml',    plural: 'ml',     category: 'volume' },
+  l:     { key: 'l',     label: 'Liter',        abbreviation: 'l',     plural: 'l',      category: 'volume' },
+  pinch: { key: 'pinch', label: 'Pinch',        abbreviation: 'pinch', plural: 'pinches', category: 'count' },
+  clove: { key: 'clove', label: 'Clove',        abbreviation: 'clove', plural: 'cloves',  category: 'count' },
+  slice: { key: 'slice', label: 'Slice',        abbreviation: 'slice', plural: 'slices',  category: 'count' },
+  piece: { key: 'piece', label: 'Piece',        abbreviation: 'piece', plural: 'pieces',  category: 'count' },
+  can:   { key: 'can',   label: 'Can',          abbreviation: 'can',   plural: 'cans',    category: 'count' },
+  bunch: { key: 'bunch', label: 'Bunch',        abbreviation: 'bunch', plural: 'bunches', category: 'count' },
+  whole: { key: 'whole', label: 'Whole',        abbreviation: 'whole', plural: 'whole',   category: 'count' },
 } as const;
 
 /** Type representing a measurement unit key. */

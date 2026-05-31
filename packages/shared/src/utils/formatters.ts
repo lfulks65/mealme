@@ -7,6 +7,8 @@
  * display in the UI.
  */
 
+import { MEASUREMENT_UNITS } from '../constants/measurement-units';
+
 // ── Fraction map ────────────────────────────────────────────────────────────
 
 /** Maps common decimal fractions to their Unicode fraction characters. */
@@ -32,32 +34,91 @@ function toFractionOrDecimal(n: number): string {
   return parseFloat(n.toFixed(2)).toString();
 }
 
+// ── Pluralization ───────────────────────────────────────────────────────────
+
+/**
+ * Plural map built from MEASUREMENT_UNITS entries.
+ *
+ * Maps a unit key or abbreviation to its correct plural form.
+ * Known measurement units (tsp, tbsp, oz, g, kg, ml, l) don't
+ * change in the plural, while words like "pinch" become "pinches".
+ */
+const PLURAL_MAP: Record<string, string> = {};
+for (const entry of Object.values(MEASUREMENT_UNITS)) {
+  PLURAL_MAP[entry.key] = entry.plural;
+  // Also index by abbreviation in case callers pass the abbreviation
+  if (entry.abbreviation !== entry.key) {
+    PLURAL_MAP[entry.abbreviation] = entry.plural;
+  }
+}
+
+/**
+ * Returns the correct plural form of a unit for a non-singular quantity.
+ *
+ * For known measurement units (keys in MEASUREMENT_UNITS), the plural
+ * is looked up from the PLURAL_MAP. For unknown units, a simple heuristic
+ * is used: words ending in 'ch' or 's' get 'es', others get 's'.
+ * Units that already end in 's' are returned unchanged.
+ *
+ * @param unit - The unit string (key or abbreviation).
+ * @param isPlural - Whether the quantity is non-singular.
+ */
+function pluralizeUnit(unit: string, isPlural: boolean): string {
+  if (!isPlural) {
+    return unit;
+  }
+
+  // Known unit — use the explicit plural form
+  if (unit in PLURAL_MAP) {
+    return PLURAL_MAP[unit];
+  }
+
+  // Already ends in 's' — assume already plural
+  if (unit.endsWith('s')) {
+    return unit;
+  }
+
+  // Words ending in 'ch' or 'sh' → add 'es' (e.g., pinch → pinches)
+  if (unit.endsWith('ch') || unit.endsWith('sh')) {
+    return `${unit}es`;
+  }
+
+  // Default: add 's'
+  return `${unit}s`;
+}
+
 // ── formatQuantity ──────────────────────────────────────────────────────────
 
 /**
  * Formats a quantity with its unit, handling pluralization and common
  * fraction characters.
  *
- * Simple plural rule: appends 's' when `quantity !== 1` and the unit
- * does not already end in 's'.
+ * Plural rules:
+ * - Known measurement units use their explicit plural form from
+ *   MEASUREMENT_UNITS (e.g., tsp stays "tsp", cup becomes "cups",
+ *   pinch becomes "pinches").
+ * - Unknown units fall back to simple heuristics: 'ch'/'sh' → 'es',
+ *   already ending in 's' → unchanged, else → 's'.
  *
  * @param quantity - The numeric amount.
- * @param unit - The unit of measurement (e.g., "cup", "tsp").
+ * @param unit - The unit of measurement (e.g., "cup", "tsp", MeasurementUnitKey).
  * @returns The formatted string.
  *
  * @example
  * ```ts
- * formatQuantity(1, 'cup');   // "1 cup"
+ * formatQuantity(1, 'cup');    // "1 cup"
  * formatQuantity(2, 'cup');   // "2 cups"
  * formatQuantity(0.5, 'tsp'); // "½ tsp"
  * formatQuantity(0.25, 'tsp'); // "¼ tsp"
  * formatQuantity(2, 'lbs');   // "2 lbs"  (already plural)
+ * formatQuantity(2, 'pinch'); // "2 pinches"
+ * formatQuantity(2, 'oz');   // "2 oz"   (abbreviation unchanged)
  * ```
  */
 export function formatQuantity(quantity: number, unit: string): string {
   const displayQty = toFractionOrDecimal(quantity);
-  const pluralSuffix = quantity !== 1 && !unit.endsWith('s') ? 's' : '';
-  return `${displayQty} ${unit}${pluralSuffix}`;
+  const displayUnit = pluralizeUnit(unit, quantity !== 1);
+  return `${displayQty} ${displayUnit}`;
 }
 
 // ── formatDuration ──────────────────────────────────────────────────────────
