@@ -132,7 +132,7 @@ export function useSignOut() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: authKeys.session });
+      queryClient.clear();
     },
   });
 }
