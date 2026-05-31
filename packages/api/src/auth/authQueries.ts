@@ -89,6 +89,8 @@ export function useSignIn() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authKeys.session });
+      // Invalidate all queries to refetch user-scoped data for the new session
+      queryClient.invalidateQueries();
     },
   });
 }
