@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useAuth } from '@mealme/ui';
+import { useAuth, TenantSwitcher } from '@mealme/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -37,17 +37,40 @@ export function DashboardClient() {
   }
 
   return (
-    <div style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' }}>
+    <div
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+      }}
+    >
       <div style={{ padding: '0 24px', alignItems: 'center', gap: 16 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
-          Welcome to MealMe
-        </h1>
-        {user && (
-          <p style={{ fontSize: 16, color: '#6B7280' }}>
-            Hello, {user.name}!
-          </p>
-        )}
+        <h1 style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>Welcome to MealMe</h1>
+        {user && <p style={{ fontSize: 16, color: '#6B7280' }}>Hello, {user.name}!</p>}
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          <TenantSwitcher
+            style={{}}
+            onCreateOrgPress={() => router.push('/orgs')}
+            onCreateFamilyPress={() => router.push('/families')}
+          />
+        </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button
+            onClick={() => router.push('/orgs')}
+            style={{
+              padding: '8px 16px',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#FFFFFF',
+              backgroundColor: '#7C3AED',
+              borderRadius: 6,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Organizations
+          </button>
           <button
             onClick={() => router.push('/families')}
             style={{

@@ -21,6 +21,10 @@ export default function HomeScreen() {
             <ButtonText>Families</ButtonText>
           </Button>
 
+          <Button variant="solid" action="primary" onPress={() => router.push('/orgs/index')}>
+            <ButtonText>Organizations</ButtonText>
+          </Button>
+
           <Button variant="outline" action="secondary" onPress={signOut} isDisabled={isLoading}>
             <ButtonText>Sign Out</ButtonText>
           </Button>
