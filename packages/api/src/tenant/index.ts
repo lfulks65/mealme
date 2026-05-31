@@ -13,7 +13,7 @@
  *   - `TenantInfo` — tenant information type
  */
 
-export { TenantProvider, useTenant, useTenantHeaders } from './context';
+export { TenantProvider, TenantContext, useTenant, useTenantHeaders } from './context';
 export type { TenantContextType } from './context';
 export { createTenantClient } from './client';
 export type { TenantHeaders } from './client';

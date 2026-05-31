@@ -128,7 +128,7 @@ export interface TenantContextType {
   ready: boolean;
 }
 
-const TenantContext = createContext<TenantContextType | undefined>(undefined);
+export const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
 // ---------------------------------------------------------------------------
 // Provider
