@@ -45,13 +45,12 @@ interface RecipeSummary {
   id: string;
   title: string;
   description: string | null;
-  prep_time_minutes: number;
-  cook_time_minutes: number;
+  prep_minutes: number;
+  cook_minutes: number;
   servings: number;
   difficulty: string;
-  image_urls: string[];
-  dietary_tags: string[];
-  cuisine_type: string | null;
+  image_url: string | null;
+  cuisine: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -106,7 +105,7 @@ async function fetchRecipeSummary(
   const { data, error } = await supabase
     .from('recipes')
     .select(
-      'id, title, description, prep_time_minutes, cook_time_minutes, servings, difficulty, image_urls, dietary_tags, cuisine_type',
+      'id, title, description, prep_minutes, cook_minutes, servings, difficulty, image_url, cuisine',
     )
     .eq('id', recipeId)
     .single();
