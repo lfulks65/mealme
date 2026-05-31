@@ -14,6 +14,7 @@ import type {
   MealPlanEntryRow,
   MealPlanEntryWithRecipe,
   MealPlanWithEntries,
+  RecipeSummary,
 } from '@mealme/api';
 import { getWeekStart } from '@mealme/shared';
 
@@ -40,17 +41,32 @@ export interface ServerMonthlyPlanResult {
   error: string | null;
 }
 
-/** Recipe summary shape for joined recipe data. */
-interface RecipeSummary {
+/** DB row shape returned by Supabase for recipe summary queries. */
+interface RecipeSummaryRow {
   id: string;
   title: string;
   description: string | null;
-  prep_minutes: number;
-  cook_minutes: number;
-  servings: number;
-  difficulty: string;
+  prep_minutes: number | null;
+  cook_minutes: number | null;
+  servings: number | null;
   image_url: string | null;
   cuisine: string | null;
+}
+
+/** Map a Supabase recipe row to the API RecipeSummary shape. */
+function mapRecipeSummary(row: RecipeSummaryRow): RecipeSummary {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    prep_time_minutes: row.prep_minutes ?? 0,
+    cook_time_minutes: row.cook_minutes ?? 0,
+    servings: row.servings ?? 0,
+    difficulty: '',
+    image_urls: row.image_url ? [row.image_url] : [],
+    dietary_tags: [],
+    cuisine_type: row.cuisine,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -105,7 +121,7 @@ async function fetchRecipeSummary(
   const { data, error } = await supabase
     .from('recipes')
     .select(
-      'id, title, description, prep_minutes, cook_minutes, servings, difficulty, image_url, cuisine',
+      'id, title, description, prep_minutes, cook_minutes, servings, image_url, cuisine',
     )
     .eq('id', recipeId)
     .single();
@@ -114,7 +130,7 @@ async function fetchRecipeSummary(
     return null;
   }
 
-  return data as RecipeSummary;
+  return mapRecipeSummary(data as RecipeSummaryRow);
 }
 
 // ---------------------------------------------------------------------------
