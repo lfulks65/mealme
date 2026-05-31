@@ -33,6 +33,18 @@ export { TokenBucketRateLimiter, createHEBRateLimiter } from './rate-limit.js';
 
 export type { RateLimiterOptions } from './rate-limit.js';
 
+// ── Mock layer ───────────────────────────────────────────────────────────────
+export { MockHEBClient } from './mock/client.js';
+export { MockCartManager } from './mock/cart.js';
+export { MockOrderManager } from './mock/order.js';
+export { createMockHEBClient } from './mock/index.js';
+export {
+  MOCK_PRODUCTS,
+  MOCK_STORES,
+  MOCK_FULFILLMENT_SLOTS,
+} from './mock/fixtures.js';
+export { shouldUseMock, createHEBClientOrMock } from './mock/detect.js';
+
 // ── Types ───────────────────────────────────────────────────────────────────
 export type {
   // Configuration
