@@ -62,4 +62,5 @@ export * from './types';
 // React Query hooks
 export * from './hooks';
 
-
+// Tenant-scoped Supabase client utilities
+export * from './tenant';

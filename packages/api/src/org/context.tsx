@@ -10,14 +10,8 @@
  *   - loading / error state
  */
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-} from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { TenantContext } from '../tenant';
 import {
   createOrg as apiCreateOrg,
   getOrg as apiGetOrg,
@@ -109,6 +103,14 @@ const OrgContext = createContext<OrgContextType | undefined>(undefined);
 // ---------------------------------------------------------------------------
 
 export function OrgProvider({ children }: { children: React.ReactNode }) {
+  // ----- Tenant context (optional — backward compatible) -----
+  // Use useContext directly so we get `undefined` when no TenantProvider
+  // is present, instead of the throwing useTenant() hook.
+  const tenantCtx = useContext(TenantContext) ?? null;
+  const tenantId = tenantCtx?.tenantId ?? null;
+  const setTenantId = tenantCtx?.setTenantId ?? null;
+  const tenantReady = tenantCtx?.ready ?? true; // treat as ready when no TenantProvider
+
   const [currentOrg, setCurrentOrg] = useState<OrgWithRole | null>(null);
   const [orgs, setOrgs] = useState<OrgWithRole[]>([]);
   const [loading, setLoading] = useState(true);
@@ -140,12 +142,18 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
       setOrgs(result.orgs);
 
-      // Set current org to the first one if none is selected
+      // Set current org — tenant-aware when TenantProvider is present
       setCurrentOrg((prev) => {
+        // If tenant context is available and has a tenantId, prefer it
+        if (tenantCtx && tenantId) {
+          const matchingOrg = result.orgs.find((o) => o.id === tenantId) ?? null;
+          if (matchingOrg) return matchingOrg;
+        }
+
         if (prev) {
           // If we already have a current org, keep it if it's still in the list
           const stillMember = result.orgs.some((o) => o.id === prev.id);
-          return stillMember ? prev : result.orgs[0] ?? null;
+          return stillMember ? prev : (result.orgs[0] ?? null);
         }
         return result.orgs[0] ?? null;
       });
@@ -161,7 +169,34 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ----- Sync: tenant context ↔ currentOrg -----
+  // When tenantId changes externally (e.g., restored from storage) or
+  // when orgs finish loading, keep currentOrg in sync with the tenant.
+  useEffect(() => {
+    // Only run when orgs are loaded and tenant context is ready
+    if (loading || orgs.length === 0) return;
+    if (tenantCtx && !tenantReady) return;
+
+    if (tenantCtx && tenantId) {
+      // Tenant ID is set — find the matching org
+      const matchingOrg = orgs.find((o) => o.id === tenantId) ?? null;
+      if (matchingOrg && currentOrg?.id !== matchingOrg.id) {
+        setCurrentOrg(matchingOrg);
+      }
+    } else if (tenantCtx && !tenantId && setTenantId) {
+      // No tenant set — auto-select the first org and update tenant context
+      const firstOrg = orgs[0];
+      if (firstOrg && currentOrg?.id !== firstOrg.id) {
+        setCurrentOrg(firstOrg);
+        setTenantId(firstOrg.id);
+      }
+    }
+    // When no tenant context is available, the initial load effect and
+    // refreshOrgs handle currentOrg selection — nothing to sync here.
+  }, [tenantId, orgs, tenantReady, loading, currentOrg, setTenantId, tenantCtx]);
 
   // ----- switchOrg -----
   const switchOrg = useCallback(
@@ -169,12 +204,13 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
       const org = orgs.find((o) => o.id === orgId) ?? null;
       if (org) {
         setCurrentOrg(org);
+        if (setTenantId) setTenantId(org.id); // sync with tenant context
         setError(null);
       } else {
         setError(`Organization ${orgId} not found in your memberships`);
       }
     },
-    [orgs],
+    [orgs, setTenantId],
   );
 
   // ----- createOrg -----
@@ -195,21 +231,19 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
       if (result.org) {
         setOrgs((prev) => [...prev, result.org!]);
         setCurrentOrg(result.org);
+        if (setTenantId) setTenantId(result.org.id); // sync with tenant context
       }
 
       setLoading(false);
       return result;
     },
-    [],
+    [setTenantId],
   );
 
   // ----- getOrg -----
-  const handleGetOrg = useCallback(
-    async (id: string): Promise<OrgResult> => {
-      return apiGetOrg(id);
-    },
-    [],
-  );
+  const handleGetOrg = useCallback(async (id: string): Promise<OrgResult> => {
+    return apiGetOrg(id);
+  }, []);
 
   // ----- updateOrg -----
   const handleUpdateOrg = useCallback(
@@ -225,9 +259,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
       // Update the org in the local list
       if (result.org) {
-        setOrgs((prev) =>
-          prev.map((o) => (o.id === id ? result.org! : o)),
-        );
+        setOrgs((prev) => prev.map((o) => (o.id === id ? result.org! : o)));
 
         // Update currentOrg if it's the one being edited
         setCurrentOrg((prev) => (prev?.id === id ? result.org! : prev));
@@ -256,6 +288,10 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
         if (prev?.id === id) {
           // Switch to another org or null
           const remaining = orgs.filter((o) => o.id !== id);
+          // Update tenant context to match the new selection
+          if (setTenantId) {
+            setTenantId(remaining[0]?.id ?? null);
+          }
           return remaining[0] ?? null;
         }
         return prev;
@@ -263,7 +299,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
       return result;
     },
-    [orgs],
+    [orgs, setTenantId],
   );
 
   // ----- refreshOrgs -----
@@ -281,15 +317,21 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
     setOrgs(result.orgs);
     setCurrentOrg((prev) => {
+      // If tenant context is available and has a tenantId, prefer it
+      if (tenantCtx && tenantId) {
+        const matchingOrg = result.orgs.find((o) => o.id === tenantId) ?? null;
+        if (matchingOrg) return matchingOrg;
+      }
+
       if (prev) {
         const stillMember = result.orgs.some((o) => o.id === prev.id);
-        return stillMember ? prev : result.orgs[0] ?? null;
+        return stillMember ? prev : (result.orgs[0] ?? null);
       }
       return result.orgs[0] ?? null;
     });
 
     setLoading(false);
-  }, []);
+  }, [tenantCtx, tenantId]);
 
   // ----- Load members & invites when currentOrg changes -----
   useEffect(() => {
@@ -424,9 +466,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
       // Update the member's role in the local list
       setMembers((prev) =>
-        prev.map((m) =>
-          m.userId === input.userId ? { ...m, role: input.role } : m,
-        ),
+        prev.map((m) => (m.userId === input.userId ? { ...m, role: input.role } : m)),
       );
 
       return result;
@@ -471,12 +511,9 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
   }, [currentOrg]);
 
   // ----- listPendingInvitesForUser -----
-  const handleListPendingInvitesForUser = useCallback(
-    async (): Promise<InviteListResult> => {
-      return apiListPendingInvitesForUser();
-    },
-    [],
-  );
+  const handleListPendingInvitesForUser = useCallback(async (): Promise<InviteListResult> => {
+    return apiListPendingInvitesForUser();
+  }, []);
 
   const value: OrgContextType = {
     currentOrg,
