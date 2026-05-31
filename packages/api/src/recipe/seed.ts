@@ -1790,6 +1790,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Olive oil', quantity: '0.33', unit: 'cup' },
       { name: 'Croutons', quantity: '1', unit: 'cup' },
       { name: 'Dijon mustard', quantity: '1', unit: 'tsp' },
+      { name: 'Egg yolk', quantity: '1', unit: 'whole' },
     ],
     instructions: [
       { step_number: 1, instruction: 'Mash anchovy fillets and garlic into a paste with the flat side of a knife.' },
@@ -1798,11 +1799,11 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Tear romaine into bite-sized pieces and toss with the dressing until evenly coated.' },
       { step_number: 5, instruction: 'Top with croutons and shaved Parmesan. Serve immediately as a side or add grilled chicken for a main.' },
     ],
-    tags: ['american', 'salad', 'classic', 'quick', 'vegetarian'],
+    tags: ['american', 'salad', 'classic', 'quick'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: false },
-      { restriction: 'vegetarian', is_compliant: true },
+      { restriction: 'vegetarian', is_compliant: false },
       { restriction: 'vegan', is_compliant: false },
       { restriction: 'keto', is_compliant: false },
       { restriction: 'whole30', is_compliant: false },
