@@ -37,18 +37,13 @@ export interface FamilyListScreenProps {
 }
 
 export function FamilyListScreen({ onFamilyPress, orgId }: FamilyListScreenProps) {
-  const { families, loading, error, createFamily, refreshFamilies, setOrgId } = useFamily();
+  const { families, loading, error, createFamily, refreshFamilies } = useFamily();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newFamilyName, setNewFamilyName] = useState('');
   const [nameError, setNameError] = useState('');
   const [creating, setCreating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  // Set org ID on mount / when prop changes
-  React.useEffect(() => {
-    setOrgId(orgId);
-  }, [orgId, setOrgId]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);

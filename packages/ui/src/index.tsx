@@ -43,12 +43,7 @@ export {
 } from './components/gluestack/Button';
 
 // Input
-export {
-  Input,
-  InputField,
-  InputIcon,
-  InputSlot,
-} from './components/gluestack/Input';
+export { Input, InputField, InputIcon, InputSlot } from './components/gluestack/Input';
 
 // Card
 export { Card } from './components/gluestack/Card';
@@ -100,11 +95,7 @@ export {
 } from './components/gluestack/Avatar';
 
 // Badge
-export {
-  Badge,
-  BadgeText,
-  BadgeIcon,
-} from './components/gluestack/Badge';
+export { Badge, BadgeText, BadgeIcon } from './components/gluestack/Badge';
 
 // Tabs
 export {
@@ -118,12 +109,7 @@ export {
 } from './components/gluestack/Tabs';
 
 // Navigation
-export {
-  Link,
-  LinkText,
-  Pressable,
-  Divider,
-} from './components/gluestack/Navigation';
+export { Link, LinkText, Pressable, Divider } from './components/gluestack/Navigation';
 
 // ─── SynapsisUI Animated Components ──────────────────────────────────────────
 
@@ -158,17 +144,29 @@ export type { SwipeableRowProps, SwipeAction } from './components/bna/SwipeableR
 
 // ─── Preference Components ──────────────────────────────────────────────────
 
+export { TenantSwitcher } from './components/TenantSwitcher';
+export type { TenantSwitcherProps } from './components/TenantSwitcher';
+
 export { PreferenceOnboardingScreen } from './components/preferences/PreferenceOnboardingScreen';
-export type { OnboardingPreferences, PreferenceOnboardingScreenProps } from './components/preferences/PreferenceOnboardingScreen';
+export type {
+  OnboardingPreferences,
+  PreferenceOnboardingScreenProps,
+} from './components/preferences/PreferenceOnboardingScreen';
 
 export { PreferenceSettingsScreen } from './components/preferences/PreferenceSettingsScreen';
-export type { MemberWithPreferences, PreferenceSettingsScreenProps } from './components/preferences/PreferenceSettingsScreen';
+export type {
+  MemberWithPreferences,
+  PreferenceSettingsScreenProps,
+} from './components/preferences/PreferenceSettingsScreen';
 
 export { PreferenceSummaryCard } from './components/preferences/PreferenceSummaryCard';
 export type { PreferenceSummaryCardProps } from './components/preferences/PreferenceSummaryCard';
 
 export { usePreferences } from './components/preferences/usePreferences';
-export type { UsePreferencesConfig, UsePreferencesResult } from './components/preferences/usePreferences';
+export type {
+  UsePreferencesConfig,
+  UsePreferencesResult,
+} from './components/preferences/usePreferences';
 
 // ─── Shopping List Components ──────────────────────────────────────────────
 
@@ -178,7 +176,11 @@ export type { ShoppingListScreenProps } from './components/shopping-list/Shoppin
 export { ShoppingListDetailScreen } from './components/shopping-list/ShoppingListDetailScreen';
 export type { ShoppingListDetailScreenProps } from './components/shopping-list/ShoppingListDetailScreen';
 
-export { useShoppingList, CATEGORY_META, CATEGORY_ORDER } from './components/shopping-list/useShoppingList';
+export {
+  useShoppingList,
+  CATEGORY_META,
+  CATEGORY_ORDER,
+} from './components/shopping-list/useShoppingList';
 export type {
   ShoppingListState,
   CategorizedItems,
@@ -202,7 +204,10 @@ export { HEBStoreSelectScreen } from './components/heb/HEBStoreSelectScreen';
 export type { HEBStoreSelectScreenProps } from './components/heb/HEBStoreSelectScreen';
 
 export { HEBProductMatchScreen } from './components/heb/HEBProductMatchScreen';
-export type { HEBProductMatchScreenProps, ShoppingListItemForMatch } from './components/heb/HEBProductMatchScreen';
+export type {
+  HEBProductMatchScreenProps,
+  ShoppingListItemForMatch,
+} from './components/heb/HEBProductMatchScreen';
 
 export { HEBCartScreen } from './components/heb/HEBCartScreen';
 export type { HEBCartScreenProps } from './components/heb/HEBCartScreen';
@@ -258,4 +263,6 @@ export {
   useRecipeRecommendations,
   useQuickMeals,
   useCategoryRecipes,
+  useTenant,
+  useTenantHeaders,
 } from './hooks';
