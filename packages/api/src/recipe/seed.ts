@@ -73,7 +73,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Warm corn tortillas on a dry skillet.' },
       { step_number: 5, instruction: 'Chop pork into small pieces. Assemble tacos with pork, pineapple, onion, and cilantro.' },
     ],
-    tags: ['mexican', 'tacos', 'gluten-free', 'quick'],
+    tags: ['mexican', 'tacos', 'gluten-free', 'dairy-free', 'quick'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -209,7 +209,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Return chicken, add remaining soy sauce, ginger, garlic, and sesame oil.' },
       { step_number: 5, instruction: 'Toss 1 minute until sauce coats evenly. Serve over rice.' },
     ],
-    tags: ['asian', 'stir-fry', 'quick', 'high-protein'],
+    tags: ['asian', 'stir-fry', 'dairy-free', 'quick', 'high-protein'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: true },
@@ -243,7 +243,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Add noodles and sauce; toss vigorously 2 minutes.' },
       { step_number: 5, instruction: 'Add bean sprouts, toss 30 seconds. Plate with peanuts and lime.' },
     ],
-    tags: ['asian', 'thai', 'noodles', 'seafood', 'gluten-free'],
+    tags: ['asian', 'thai', 'noodles', 'seafood', 'gluten-free', 'dairy-free'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -423,7 +423,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Stir in lime juice, chopped cilantro, and salt.' },
       { step_number: 5, instruction: 'Taste and adjust seasoning. Serve immediately with chips or veggie sticks.' },
     ],
-    tags: ['mexican', 'dip', 'whole30', 'vegan', 'gluten-free', 'dairy-free', 'no-cook', 'keto'],
+    tags: ['mexican', 'dip', 'whole30', 'vegan', 'vegetarian', 'gluten-free', 'dairy-free', 'no-cook', 'keto'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -458,7 +458,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Add chile sauce, hominy, and enough water to cover. Bring to a boil, then simmer 45 minutes.' },
       { step_number: 5, instruction: 'Season with salt. Ladle into bowls and serve with sliced radishes, shredded cabbage, and lime.' },
     ],
-    tags: ['mexican', 'stew', 'gluten-free', 'dairy-free', 'comfort-food'],
+    tags: ['mexican', 'stew', 'gluten-free', 'dairy-free', 'whole30', 'comfort-food'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -530,7 +530,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Rub cut garlic clove across the warm toast surface.' },
       { step_number: 5, instruction: 'Spoon tomato mixture onto each toast and drizzle with remaining olive oil. Serve immediately.' },
     ],
-    tags: ['italian', 'appetizer', 'vegetarian', 'vegan', 'quick', 'no-cook-topping'],
+    tags: ['italian', 'appetizer', 'vegetarian', 'vegan', 'dairy-free', 'quick', 'no-cook-topping'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: true },
@@ -672,7 +672,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Mash yolks with mayonnaise, mustard, vinegar, and salt until smooth.' },
       { step_number: 5, instruction: 'Pipe or spoon yolk mixture back into egg whites. Dust with paprika and garnish with chives.' },
     ],
-    tags: ['american', 'appetizer', 'gluten-free', 'dairy-free', 'whole30', 'keto', 'party-food'],
+    tags: ['american', 'appetizer', 'gluten-free', 'dairy-free', 'vegetarian', 'whole30', 'keto', 'party-food'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -710,7 +710,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Combine vegetables and olives in a large bowl.' },
       { step_number: 5, instruction: 'Drizzle vinaigrette over salad, toss gently, and serve immediately.' },
     ],
-    tags: ['mediterranean', 'salad', 'vegan', 'gluten-free', 'dairy-free', 'keto', 'whole30', 'no-cook'],
+    tags: ['mediterranean', 'salad', 'vegan', 'vegetarian', 'gluten-free', 'dairy-free', 'keto', 'whole30', 'no-cook'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -745,7 +745,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Spread hummus in shallow bowls. Top with roasted sweet potato, pickled onion, and remaining whole chickpeas.' },
       { step_number: 5, instruction: 'Drizzle with extra tahini and olive oil. Serve with warm pita or veggie sticks.' },
     ],
-    tags: ['mediterranean', 'bowl', 'vegan', 'dairy-free', 'gluten-free', 'plant-based'],
+    tags: ['mediterranean', 'bowl', 'vegan', 'vegetarian', 'dairy-free', 'gluten-free', 'plant-based'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -780,7 +780,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Make six wells in the sauce and crack an egg into each. Cover and cook 6–8 minutes until whites are set.' },
       { step_number: 5, instruction: 'Top with crumbled feta and fresh cilantro. Serve straight from the skillet with crusty bread.' },
     ],
-    tags: ['mediterranean', 'breakfast', 'vegetarian', 'dairy-free', 'gluten-free', 'one-pan'],
+    tags: ['mediterranean', 'breakfast', 'vegetarian', 'dairy-free', 'gluten-free', 'whole30', 'one-pan'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -886,7 +886,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Add drained chickpeas and simmer 15 minutes until flavors meld and sauce reduces.' },
       { step_number: 5, instruction: 'Season with salt and a squeeze of lemon. Garnish with cilantro and serve with rice or naan.' },
     ],
-    tags: ['indian', 'curry', 'vegan', 'dairy-free', 'gluten-free', 'plant-based', 'high-protein'],
+    tags: ['indian', 'curry', 'vegan', 'vegetarian', 'dairy-free', 'gluten-free', 'plant-based', 'high-protein'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -1028,7 +1028,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Drizzle soy sauce and sesame oil over rice; toss to coat evenly.' },
       { step_number: 5, instruction: 'Fold in chopped scallions and minced garlic; stir-fry 1 more minute. Serve hot.' },
     ],
-    tags: ['asian', 'chinese', 'rice', 'quick', 'budget-friendly', 'weeknight'],
+    tags: ['asian', 'chinese', 'rice', 'dairy-free', 'vegetarian', 'quick', 'budget-friendly', 'weeknight'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: true },
@@ -1086,17 +1086,17 @@ const recipes: SeedRecipe[] = [
       { name: 'Mixed berries', quantity: '0.5', unit: 'cup' },
       { name: 'Granola', quantity: '0.25', unit: 'cup' },
       { name: 'Shredded coconut', quantity: '2', unit: 'tbsp' },
-      { name: 'Honey', quantity: '1', unit: 'tbsp' },
+      { name: 'Agave nectar or honey', quantity: '1', unit: 'tbsp', optional: true },
       { name: 'Almond milk', quantity: '0.25', unit: 'cup' },
     ],
     instructions: [
       { step_number: 1, instruction: 'Blend açaí packets, banana, and almond milk until thick and smooth — thicker than a regular smoothie.' },
       { step_number: 2, instruction: 'Pour into two bowls.' },
       { step_number: 3, instruction: 'Arrange fresh mixed berries and granola on top in rows.' },
-      { step_number: 4, instruction: 'Sprinkle with shredded coconut and drizzle with honey.' },
+      { step_number: 4, instruction: 'Sprinkle with shredded coconut and drizzle with agave nectar or honey.' },
       { step_number: 5, instruction: 'Serve immediately before the bowl softens.' },
     ],
-    tags: ['american', 'breakfast', 'quick', 'vegan', 'dairy-free', 'gluten-free', 'no-cook', 'healthy'],
+    tags: ['american', 'breakfast', 'quick', 'vegan', 'vegetarian', 'dairy-free', 'gluten-free', 'no-cook', 'healthy'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -1202,12 +1202,13 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Flip carefully and grill 4–5 more minutes until fish flakes easily with a fork.' },
       { step_number: 5, instruction: 'Squeeze fresh lemon over fillets and garnish with dill. Serve with roasted vegetables.' },
     ],
-    tags: ['american', 'paleo', 'seafood', 'gluten-free', 'dairy-free', 'keto', 'quick', 'high-protein'],
+    tags: ['american', 'paleo', 'seafood', 'gluten-free', 'dairy-free', 'whole30', 'keto', 'quick', 'high-protein'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
       { restriction: 'vegetarian', is_compliant: false },
       { restriction: 'vegan', is_compliant: false },
+      { restriction: 'paleo', is_compliant: true },
       { restriction: 'keto', is_compliant: true },
       { restriction: 'whole30', is_compliant: true },
     ],
@@ -1243,6 +1244,7 @@ const recipes: SeedRecipe[] = [
       { restriction: 'dairy-free', is_compliant: true },
       { restriction: 'vegetarian', is_compliant: false },
       { restriction: 'vegan', is_compliant: false },
+      { restriction: 'paleo', is_compliant: true },
       { restriction: 'keto', is_compliant: false },
       { restriction: 'whole30', is_compliant: true },
     ],
@@ -1319,7 +1321,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 6, instruction: 'Cook ramen noodles according to package directions; drain and divide among bowls.' },
       { step_number: 7, instruction: 'Ladle hot broth over noodles. Top with chashu slices, halved marinated egg, nori, sliced green onions, and any other toppings.' },
     ],
-    tags: ['asian', 'japanese', 'soup', 'noodles', 'weekend-project', 'comfort-food'],
+    tags: ['asian', 'japanese', 'soup', 'noodles', 'dairy-free', 'weekend-project', 'comfort-food'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: true },
@@ -1469,7 +1471,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 6, instruction: 'Bake 12–14 minutes until edges are firm but centers jiggle slightly when shaken.' },
       { step_number: 7, instruction: 'Let rest 1 minute, then invert onto plates. Dust with powdered sugar and serve immediately with vanilla ice cream.' },
     ],
-    tags: ['french', 'dessert', 'chocolate', 'date-night', 'quick-dessert'],
+    tags: ['french', 'dessert', 'chocolate', 'vegetarian', 'date-night', 'quick-dessert'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: false },
@@ -1506,7 +1508,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 6, instruction: 'Spread half the mascarpone cream over the ladyfingers. Repeat with another layer of dipped ladyfingers and remaining cream.' },
       { step_number: 7, instruction: 'Cover and refrigerate at least 4 hours (overnight is best). Dust generously with cocoa powder just before serving.' },
     ],
-    tags: ['italian', 'dessert', 'coffee', 'no-bake', 'make-ahead', 'date-night'],
+    tags: ['italian', 'dessert', 'coffee', 'vegetarian', 'no-bake', 'make-ahead', 'date-night'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: false },
@@ -1651,7 +1653,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Warm flour tortillas in a dry skillet or microwave (skip the tortilla for strict whole30 compliance and serve as a bowl).' },
       { step_number: 5, instruction: 'Fill each tortilla with the egg mixture, sliced avocado, salsa, and cilantro. Roll into burritos and serve.' },
     ],
-    tags: ['mexican', 'breakfast', 'burrito', 'whole30', 'high-protein', 'family-friendly'],
+    tags: ['mexican', 'breakfast', 'burrito', 'dairy-free', 'whole30', 'high-protein', 'family-friendly'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: true },
@@ -1723,7 +1725,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Return broth to the pot, add shredded chicken, and bring to a simmer. Add egg noodles and cook 6–8 minutes until tender.' },
       { step_number: 5, instruction: 'Stir in fresh dill and season with salt and pepper. Ladle into bowls and serve hot.' },
     ],
-    tags: ['american', 'soup', 'comfort-food', 'family-friendly', 'classic', 'weeknight'],
+    tags: ['american', 'soup', 'dairy-free', 'comfort-food', 'family-friendly', 'classic', 'weeknight'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: true },
@@ -1758,12 +1760,13 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Add shrimp and cook 3–4 minutes until pink and curled. Remove from heat.' },
       { step_number: 5, instruction: 'Stir in lime juice and fish sauce. Garnish with cilantro and serve steaming hot.' },
     ],
-    tags: ['thai', 'soup', 'paleo', 'gluten-free', 'dairy-free', 'keto', 'spicy', 'seafood', 'quick'],
+    tags: ['thai', 'soup', 'paleo', 'gluten-free', 'dairy-free', 'whole30', 'keto', 'spicy', 'seafood', 'quick'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
       { restriction: 'vegetarian', is_compliant: false },
       { restriction: 'vegan', is_compliant: false },
+      { restriction: 'paleo', is_compliant: true },
       { restriction: 'keto', is_compliant: true },
       { restriction: 'whole30', is_compliant: true },
     ],
@@ -1869,7 +1872,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 5, instruction: 'Turn off oven, crack the door, and let cheesecake cool inside for 1 hour to prevent cracking.' },
       { step_number: 6, instruction: 'Refrigerate at least 4 hours (overnight is best). Slice with a clean, hot knife and serve with fresh berries.' },
     ],
-    tags: ['american', 'dessert', 'cheesecake', 'baked', 'make-ahead', 'celebration'],
+    tags: ['american', 'dessert', 'cheesecake', 'vegetarian', 'baked', 'make-ahead', 'celebration'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: false },
@@ -1903,7 +1906,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Refrigerate at least 2 hours until fully set and firm to the touch.' },
       { step_number: 5, instruction: 'Dice mango and toss with lime zest. Top each panna cotta with mango and toasted coconut flakes before serving.' },
     ],
-    tags: ['italian', 'dessert', 'vegan', 'dairy-free', 'gluten-free', 'no-bake', 'light', 'elegant'],
+    tags: ['italian', 'dessert', 'vegan', 'vegetarian', 'dairy-free', 'gluten-free', 'no-bake', 'light', 'elegant'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
