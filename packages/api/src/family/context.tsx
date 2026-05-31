@@ -10,16 +10,19 @@
  *   - createFamily: create a new family (also sets it as current)
  *   - addFamilyMember, removeFamilyMember, updateFamilyMemberRole
  *   - loading / error state
+ *
+ * When a TenantProvider is present in the component tree, FamilyProvider
+ * integrates with it:
+ *   - Reads `tenantId` instead of maintaining its own `orgId` state
+ *   - Syncs `familyId` with the tenant context on switch/create
+ *   - Reacts to external `familyId` changes (e.g., restored from storage)
+ *
+ * If no TenantProvider is available, FamilyProvider falls back to its own
+ * internal `orgId` state for backward compatibility.
  */
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-} from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { TenantContext } from '../tenant';
 import {
   createFamily as apiCreateFamily,
   getFamily as apiGetFamily,
@@ -56,10 +59,18 @@ export interface FamilyContextType {
   families: FamilyWithRole[];
   /** Members of the current family. */
   members: FamilyMember[];
-  /** The org ID to scope families to. */
+
+  /**
+   * The org ID to scope families to.
+   * @deprecated Use `useTenant().tenantId` instead.
+   */
   orgId: string | null;
-  /** Set the org ID and trigger a reload of families. */
+  /**
+   * Set the org ID and trigger a reload of families.
+   * @deprecated Use `useTenant().setTenantId` instead.
+   */
   setOrgId: (orgId: string | null) => void;
+
   /** Switch the active family by ID. */
   switchFamily: (familyId: string) => void;
   /** Create a new family and set it as current. */
@@ -93,10 +104,25 @@ const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
 // ---------------------------------------------------------------------------
 
 export function FamilyProvider({ children }: { children: React.ReactNode }) {
+  // ----- Tenant context (optional — backward compatible) -----
+  // Use useContext directly so we get `undefined` when no TenantProvider
+  // is present, instead of the throwing useTenant() hook.
+  const tenantCtx = useContext(TenantContext) ?? null;
+  const tenantId = tenantCtx?.tenantId ?? null;
+  const setTenantIdFn = tenantCtx?.setTenantId ?? null;
+  const tenantFamilyId = tenantCtx?.familyId ?? null;
+  const setFamilyIdFn = tenantCtx?.setFamilyId ?? null;
+  const tenantReady = tenantCtx?.ready ?? true; // treat as ready when no TenantProvider
+
+  // ----- Fallback orgId state (used when TenantProvider is not present) -----
+  const [fallbackOrgId, setFallbackOrgId] = useState<string | null>(null);
+
+  // Effective orgId: tenantId from TenantProvider if available, else fallback
+  const orgId = tenantCtx ? tenantId : fallbackOrgId;
+
   const [currentFamily, setCurrentFamily] = useState<FamilyWithRole | null>(null);
   const [families, setFamilies] = useState<FamilyWithRole[]>([]);
   const [members, setMembers] = useState<FamilyMember[]>([]);
-  const [orgId, setOrgIdState] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const initialLoadDone = useRef(false);
@@ -128,11 +154,17 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       setFamilies(result.families);
 
-      // Set current family to the first one if none is selected
+      // Set current family — tenant-aware when TenantProvider is present
       setCurrentFamily((prev) => {
+        // If tenant context has a familyId, try to match it
+        if (tenantCtx && tenantFamilyId) {
+          const matchingFamily = result.families.find((f) => f.id === tenantFamilyId) ?? null;
+          if (matchingFamily) return matchingFamily;
+        }
+
         if (prev) {
           const stillMember = result.families.some((f) => f.id === prev.id);
-          return stillMember ? prev : result.families[0] ?? null;
+          return stillMember ? prev : (result.families[0] ?? null);
         }
         return result.families[0] ?? null;
       });
@@ -145,7 +177,29 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [orgId]);
+  }, [orgId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ----- Sync: tenant context ↔ currentFamily -----
+  // When familyId changes externally (e.g., restored from storage) or
+  // when families finish loading, keep currentFamily in sync with the tenant.
+  useEffect(() => {
+    // Only run when tenant context is available and ready
+    if (!tenantCtx || !tenantReady) return;
+    if (families.length === 0) return;
+
+    if (tenantFamilyId) {
+      // Tenant has a familyId set — find the matching family
+      const matchingFamily = families.find((f) => f.id === tenantFamilyId) ?? null;
+      if (matchingFamily && currentFamily?.id !== matchingFamily.id) {
+        setCurrentFamily(matchingFamily);
+      }
+    } else if (!currentFamily && families.length > 0) {
+      // No family selected — auto-select the first one and update tenant context
+      const firstFamily = families[0];
+      setCurrentFamily(firstFamily);
+      if (setFamilyIdFn) setFamilyIdFn(firstFamily.id);
+    }
+  }, [tenantFamilyId, families, tenantReady, currentFamily, setFamilyIdFn, tenantCtx]);
 
   // ----- Load members when currentFamily changes -----
   useEffect(() => {
@@ -174,11 +228,18 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     };
   }, [currentFamily]);
 
-  // ----- setOrgId -----
-  const setOrgId = useCallback((newOrgId: string | null) => {
-    setOrgIdState(newOrgId);
-    initialLoadDone.current = false;
-  }, []);
+  // ----- Deprecated setOrgId (delegates to TenantProvider or fallback) -----
+  const setOrgId = useCallback(
+    (newOrgId: string | null) => {
+      if (setTenantIdFn) {
+        setTenantIdFn(newOrgId);
+      } else {
+        setFallbackOrgId(newOrgId);
+      }
+      initialLoadDone.current = false;
+    },
+    [setTenantIdFn],
+  );
 
   // ----- switchFamily -----
   const switchFamily = useCallback(
@@ -186,12 +247,13 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       const family = families.find((f) => f.id === familyId) ?? null;
       if (family) {
         setCurrentFamily(family);
+        if (setFamilyIdFn) setFamilyIdFn(family.id); // sync with tenant context
         setError(null);
       } else {
         setError(`Family ${familyId} not found in your memberships`);
       }
     },
-    [families],
+    [families, setFamilyIdFn],
   );
 
   // ----- createFamily -----
@@ -212,21 +274,19 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       if (result.family) {
         setFamilies((prev) => [...prev, result.family!]);
         setCurrentFamily(result.family);
+        if (setFamilyIdFn) setFamilyIdFn(result.family.id); // sync with tenant context
       }
 
       setLoading(false);
       return result;
     },
-    [],
+    [setFamilyIdFn],
   );
 
   // ----- getFamily -----
-  const handleGetFamily = useCallback(
-    async (id: string): Promise<FamilyResult> => {
-      return apiGetFamily(id);
-    },
-    [],
-  );
+  const handleGetFamily = useCallback(async (id: string): Promise<FamilyResult> => {
+    return apiGetFamily(id);
+  }, []);
 
   // ----- updateFamily -----
   const handleUpdateFamily = useCallback(
@@ -242,9 +302,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       // Update the family in the local list
       if (result.family) {
-        setFamilies((prev) =>
-          prev.map((f) => (f.id === id ? result.family! : f)),
-        );
+        setFamilies((prev) => prev.map((f) => (f.id === id ? result.family! : f)));
 
         // Update currentFamily if it's the one being edited
         setCurrentFamily((prev) => (prev?.id === id ? result.family! : prev));
@@ -272,6 +330,10 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       setCurrentFamily((prev) => {
         if (prev?.id === id) {
           const remaining = families.filter((f) => f.id !== id);
+          // Update tenant context to match the new selection
+          if (setFamilyIdFn) {
+            setFamilyIdFn(remaining[0]?.id ?? null);
+          }
           return remaining[0] ?? null;
         }
         return prev;
@@ -279,7 +341,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       return result;
     },
-    [families],
+    [families, setFamilyIdFn],
   );
 
   // ----- addFamilyMember -----
@@ -374,15 +436,21 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
     setFamilies(result.families);
     setCurrentFamily((prev) => {
+      // If tenant context has a familyId, prefer it
+      if (tenantCtx && tenantFamilyId) {
+        const matchingFamily = result.families.find((f) => f.id === tenantFamilyId) ?? null;
+        if (matchingFamily) return matchingFamily;
+      }
+
       if (prev) {
         const stillMember = result.families.some((f) => f.id === prev.id);
-        return stillMember ? prev : result.families[0] ?? null;
+        return stillMember ? prev : (result.families[0] ?? null);
       }
       return result.families[0] ?? null;
     });
 
     setLoading(false);
-  }, [orgId]);
+  }, [orgId, tenantCtx, tenantFamilyId]);
 
   // ----- refreshMembers -----
   const refreshMembers = useCallback(async () => {
@@ -402,8 +470,8 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     currentFamily,
     families,
     members,
-    orgId,
-    setOrgId,
+    orgId, // deprecated alias — delegates to tenantId or fallback
+    setOrgId, // deprecated alias — delegates to setTenantId or fallback
     switchFamily,
     createFamily: handleCreateFamily,
     getFamily: handleGetFamily,
