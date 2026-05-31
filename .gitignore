@@ -46,6 +46,9 @@ pnpm-debug.log*
 # Testing
 coverage/
 
+# Husky
+.husky/_
+
 # Misc
 *.tgz
 .cache/
