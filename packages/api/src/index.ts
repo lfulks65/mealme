@@ -57,6 +57,9 @@ export * from './heb';
 // Recipe module
 export * from './recipe';
 
+// Error handling
+export * from './errors';
+
 // API client shell
 export function createApiClient(config: ApiClientConfig) {
   return {
