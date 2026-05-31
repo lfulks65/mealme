@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { passesDietaryFilter, passesAllergenFilter, passesBudgetFilter } from './recommend';
 import type { RecipeFull, FamilyPreferences } from '@mealme/shared';
 
 // ── Mock Supabase ────────────────────────────────────────────────────────────
@@ -13,19 +14,15 @@ vi.mock('../lib/supabase', () => ({
   resetSupabaseClient: vi.fn(),
 }));
 
-// ── Pure filtering logic extracted for direct testing ─────────────────────────
+// ── Filter wrappers delegating to shared functions ───────────────────────────
 
 /**
- * These functions replicate the in-memory filtering logic from search.ts
- * so we can test it without needing a full Supabase mock chain.
+ * These wrappers delegate to the shared hard-filter functions from
+ * recommend.ts so that tests validate the same logic the search module uses.
  */
 
 function filterByDietaryRestrictions(recipes: RecipeFull[], restrictions: string[]): RecipeFull[] {
-  return recipes.filter((recipe) =>
-    restrictions.every((restriction: string) =>
-      recipe.dietary_info.some((di) => di.restriction === restriction && di.is_compliant),
-    ),
-  );
+  return recipes.filter((recipe) => passesDietaryFilter(recipe, restrictions));
 }
 
 function filterByTags(recipes: RecipeFull[], tags: string[]): RecipeFull[] {
@@ -35,12 +32,7 @@ function filterByTags(recipes: RecipeFull[], tags: string[]): RecipeFull[] {
 }
 
 function filterByAllergens(recipes: RecipeFull[], allergies: string[]): RecipeFull[] {
-  return recipes.filter((recipe) => {
-    const ingredientNames = recipe.ingredients.map((i) => i.name.toLowerCase());
-    return allergies.every((allergen: string) =>
-      ingredientNames.every((name) => !name.includes(allergen.toLowerCase())),
-    );
-  });
+  return recipes.filter((recipe) => passesAllergenFilter(recipe, allergies));
 }
 
 function filterByExcludedIngredients(recipes: RecipeFull[], excluded: string[]): RecipeFull[] {
@@ -52,22 +44,25 @@ function filterByExcludedIngredients(recipes: RecipeFull[], excluded: string[]):
   });
 }
 
+function filterByBudget(
+  recipes: RecipeFull[],
+  budgetRange: { min: number; max: number },
+): RecipeFull[] {
+  return recipes.filter((recipe) => passesBudgetFilter(recipe, budgetRange as any));
+}
+
 function applyAllPreferenceFilters(
   recipes: RecipeFull[],
   preferences: FamilyPreferences,
 ): RecipeFull[] {
   let filtered = recipes;
 
-  if (preferences.dietaryRestrictions.length > 0) {
-    filtered = filterByDietaryRestrictions(
-      filtered,
-      preferences.dietaryRestrictions as unknown as string[],
-    );
-  }
-
-  if (preferences.allergies.length > 0) {
-    filtered = filterByAllergens(filtered, preferences.allergies);
-  }
+  filtered = filterByDietaryRestrictions(
+    filtered,
+    preferences.dietaryRestrictions as unknown as string[],
+  );
+  filtered = filterByAllergens(filtered, preferences.allergies);
+  filtered = filterByBudget(filtered, preferences.budgetRange);
 
   return filtered;
 }
@@ -343,6 +338,39 @@ describe('filterByAllergens', () => {
   });
 });
 
+// ── Budget Filter Tests ──────────────────────────────────────────────────────
+
+describe('filterByBudget', () => {
+  it('excludes recipes over budget', () => {
+    // Default recipe: 3 ingredients × 3 + 10 prep × 0.5 + 20 cook × 0.5 = 9 + 5 + 10 = 24
+    const recipes = [makeRecipe({ id: 'r1' })];
+
+    const result = filterByBudget(recipes, { min: 0, max: 20 });
+    expect(result).toHaveLength(0);
+  });
+
+  it('keeps recipes within budget', () => {
+    const recipes = [makeRecipe({ id: 'r1' })];
+
+    const result = filterByBudget(recipes, { min: 0, max: 50 });
+    expect(result).toHaveLength(1);
+  });
+
+  it('keeps all recipes when max budget is 0 (no budget set)', () => {
+    const recipes = [makeRecipe({ id: 'r1' })];
+
+    const result = filterByBudget(recipes, { min: 0, max: 0 });
+    expect(result).toHaveLength(1);
+  });
+
+  it('excludes recipes below minimum budget', () => {
+    const recipes = [makeRecipe({ id: 'r1' })];
+
+    const result = filterByBudget(recipes, { min: 100, max: 200 });
+    expect(result).toHaveLength(0);
+  });
+});
+
 // ── Excluded Ingredients Filter Tests ────────────────────────────────────────
 
 describe('filterByExcludedIngredients', () => {
@@ -445,14 +473,12 @@ describe('applyAllPreferenceFilters', () => {
       id: '',
       familyId: 'f1',
       dietaryRestrictions: ['gluten-free'] as any,
-      allergies: [],
+      allergies: ['peanut'] as any,
       cuisinePreferences: [],
       budgetRange: { min: 0, max: 500, currency: 'USD' },
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     };
-    // Add peanut allergy for the test
-    (prefs as any).allergies = ['peanut'];
 
     const result = applyAllPreferenceFilters(recipes, prefs);
 

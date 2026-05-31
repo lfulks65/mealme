@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '../lib/supabase';
+import { passesDietaryFilter, passesAllergenFilter, passesBudgetFilter } from './recommend';
 import type {
   RecipeFull,
   RecipeIngredientDB,
@@ -200,24 +201,19 @@ export async function getRecipesByPreferences(
   let withRelations = await attachRelations(recipes);
 
   // Filter OUT recipes that conflict with dietary restrictions
-  // A recipe is excluded if any required dietary restriction is NOT compliant
-  if (preferences.dietaryRestrictions.length > 0) {
-    withRelations = withRelations.filter((recipe) =>
-      preferences.dietaryRestrictions.every((restriction: string) =>
-        recipe.dietary_info.some((di) => di.restriction === restriction && di.is_compliant),
-      ),
-    );
-  }
+  withRelations = withRelations.filter((recipe) =>
+    passesDietaryFilter(recipe, preferences.dietaryRestrictions),
+  );
 
   // Filter OUT recipes with allergens
-  if (preferences.allergies.length > 0) {
-    withRelations = withRelations.filter((recipe) => {
-      const ingredientNames = recipe.ingredients.map((i) => i.name.toLowerCase());
-      return preferences.allergies.every((allergen: string) =>
-        ingredientNames.every((name) => !name.includes(allergen.toLowerCase())),
-      );
-    });
-  }
+  withRelations = withRelations.filter((recipe) =>
+    passesAllergenFilter(recipe, preferences.allergies),
+  );
+
+  // Filter OUT recipes over budget
+  withRelations = withRelations.filter((recipe) =>
+    passesBudgetFilter(recipe, preferences.budgetRange),
+  );
 
   return {
     recipes: withRelations,

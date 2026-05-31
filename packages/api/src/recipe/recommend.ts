@@ -311,7 +311,7 @@ export async function getAggregatedFamilyPreferences(familyId: string): Promise<
 
 // ── Soft Scoring Engine ──────────────────────────────────────────────────────
 
-interface ScoreBreakdown {
+export interface ScoreBreakdown {
   dietaryScore: number;
   cuisineScore: number;
   tagScore: number;
