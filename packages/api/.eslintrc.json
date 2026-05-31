@@ -1,0 +1,16 @@
+{
+  "extends": ["../../.eslintrc"],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/no-unescaped-entities": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "rules": {
+        "react/display-name": "off",
+        "react/prop-types": "off"
+      }
+    }
+  ]
+}

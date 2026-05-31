@@ -1,0 +1,6 @@
+{
+  "extends": ["../../.eslintrc"],
+  "rules": {
+    "react-native/no-inline-styles": "off"
+  }
+}
