@@ -29,6 +29,7 @@ import {
   listInvites as apiListInvites,
   listPendingInvitesForUser as apiListPendingInvitesForUser,
   revokeInvite as apiRevokeInvite,
+  fetchInviteByToken as apiFetchInviteByToken,
 } from './members';
 import type {
   OrgWithRole,
@@ -43,8 +44,9 @@ import type {
   UpdateMemberRoleInput,
   OrgMemberResult,
   InviteResult,
-  InviteListResult,
   AcceptInviteResult,
+  InviteLookupResult,
+  PendingInvitesResult,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -99,7 +101,9 @@ export interface OrgContextType {
   /** Refresh the invite list for the current org. */
   refreshInvites: () => Promise<void>;
   /** List pending invites for the current user (across all orgs). */
-  listPendingInvitesForUser: () => Promise<InviteListResult>;
+  listPendingInvitesForUser: () => Promise<PendingInvitesResult>;
+  /** Fetch invite details by token (bypasses RLS for non-members). */
+  fetchInviteByToken: (token: string) => Promise<InviteLookupResult>;
 }
 
 const OrgContext = createContext<OrgContextType | undefined>(undefined);
@@ -554,9 +558,17 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ----- listPendingInvitesForUser -----
-  const handleListPendingInvitesForUser = useCallback(async (): Promise<InviteListResult> => {
+  const handleListPendingInvitesForUser = useCallback(async (): Promise<PendingInvitesResult> => {
     return apiListPendingInvitesForUser();
   }, []);
+
+  // ----- fetchInviteByToken -----
+  const handleFetchInviteByToken = useCallback(
+    async (token: string): Promise<InviteLookupResult> => {
+      return apiFetchInviteByToken(token);
+    },
+    [],
+  );
 
   const value: OrgContextType = {
     currentOrg,
@@ -582,6 +594,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     refreshMembers,
     refreshInvites,
     listPendingInvitesForUser: handleListPendingInvitesForUser,
+    fetchInviteByToken: handleFetchInviteByToken,
   };
 
   return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;

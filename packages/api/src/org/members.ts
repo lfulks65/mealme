@@ -27,6 +27,9 @@ import type {
   InviteResult,
   InviteListResult,
   AcceptInviteResult,
+  InviteLookupResult,
+  InviteWithOrgName,
+  PendingInvitesResult,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -44,6 +47,72 @@ async function getCurrentUserId(): Promise<string | null> {
 /** Map a Supabase error to a user-friendly string. */
 function mapError(error: { message?: string }, fallback: string): string {
   return error.message ?? fallback;
+}
+
+// ---------------------------------------------------------------------------
+// fetchInviteByToken
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch invite details by token using the `get_invite_by_token` RPC.
+ *
+ * This uses a SECURITY DEFINER function that bypasses RLS, so
+ * unauthenticated and non-member users can view invite details.
+ * Returns the invite row, org name, and inviter name.
+ */
+export async function fetchInviteByToken(token: string): Promise<InviteLookupResult> {
+  const { data, error } = await supabase.rpc('get_invite_by_token', {
+    p_invite_token: token,
+  });
+
+  if (error) {
+    return {
+      success: false,
+      error: mapError(error, 'Failed to fetch invite'),
+      invite: null,
+      orgName: null,
+      inviterName: null,
+      acceptedAt: null,
+      expiresAt: null,
+    };
+  }
+
+  const result = data as Record<string, unknown>;
+
+  if (result.success === false) {
+    return {
+      success: false,
+      error: (result.error as string) ?? 'Invite not found',
+      invite: null,
+      orgName: null,
+      inviterName: null,
+      acceptedAt: (result.accepted_at as string) ?? null,
+      expiresAt: (result.expires_at as string) ?? null,
+    };
+  }
+
+  const inviteData = result.invite as Record<string, unknown>;
+  const invite: InviteRow = {
+    id: inviteData.id as string,
+    org_id: inviteData.org_id as string,
+    email: inviteData.email as string,
+    role: inviteData.role as OrgRole,
+    invited_by: inviteData.invited_by as string,
+    accepted_at: inviteData.accepted_at as string | null,
+    expires_at: inviteData.expires_at as string,
+    created_at: inviteData.created_at as string,
+    invite_token: inviteData.invite_token as string,
+  };
+
+  return {
+    success: true,
+    error: null,
+    invite,
+    orgName: (result.org_name as string) ?? null,
+    inviterName: (result.inviter_name as string) ?? null,
+    acceptedAt: invite.accepted_at,
+    expiresAt: invite.expires_at,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -535,13 +604,14 @@ export async function revokeInvite(inviteId: string): Promise<OrgMemberResult> {
 /**
  * List pending invites for the current user's email address.
  *
- * This is used on the user's dashboard to show org invites they can accept.
- * Since invites are keyed by email, we look up the user's email first.
+ * Uses the `get_pending_invites_for_user` SECURITY DEFINER RPC to bypass
+ * RLS, so non-members can see their pending invites. The RPC includes
+ * org names in the response, so no separate organization query is needed.
  */
-export async function listPendingInvitesForUser(): Promise<InviteListResult> {
+export async function listPendingInvitesForUser(): Promise<PendingInvitesResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
-    return { invites: [], error: 'Not authenticated' };
+    return { success: false, invites: [], error: 'Not authenticated' };
   }
 
   // Get the user's email
@@ -550,34 +620,44 @@ export async function listPendingInvitesForUser(): Promise<InviteListResult> {
   } = await supabase.auth.getUser();
   const email = user?.email?.toLowerCase().trim();
   if (!email) {
-    return { invites: [], error: 'User email not available' };
+    return { success: false, invites: [], error: 'User email not available' };
   }
 
-  const { data, error } = await supabase
-    .from('invites')
-    .select(
-      'id, org_id, email, role, invited_by, accepted_at, expires_at, created_at, invite_token',
-    )
-    .eq('email', email)
-    .is('accepted_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false });
+  const { data, error } = await supabase.rpc('get_pending_invites_for_user', {
+    p_user_email: email,
+  });
 
   if (error) {
-    return { invites: [], error: mapError(error, 'Failed to list pending invites') };
+    return {
+      success: false,
+      invites: [],
+      error: mapError(error, 'Failed to list pending invites'),
+    };
   }
 
-  const invites: InviteRow[] = (data ?? []).map((row: any) => ({
-    id: row.id,
-    org_id: row.org_id,
-    email: row.email,
-    role: row.role,
-    invited_by: row.invited_by,
-    accepted_at: row.accepted_at,
-    expires_at: row.expires_at,
-    created_at: row.created_at,
-    invite_token: row.invite_token,
+  const result = data as Record<string, unknown>;
+
+  if (result.success === false) {
+    return {
+      success: false,
+      invites: [],
+      error: (result.error as string) ?? 'Failed to list pending invites',
+    };
+  }
+
+  const rawInvites = (result.invites as Record<string, unknown>[]) ?? [];
+  const invites: InviteWithOrgName[] = rawInvites.map((row) => ({
+    id: row.id as string,
+    org_id: row.org_id as string,
+    email: row.email as string,
+    role: row.role as OrgRole,
+    invited_by: row.invited_by as string,
+    accepted_at: row.accepted_at as string | null,
+    expires_at: row.expires_at as string,
+    created_at: row.created_at as string,
+    invite_token: row.invite_token as string,
+    org_name: (row.org_name as string) ?? 'Organization',
   }));
 
-  return { invites, error: null };
+  return { success: true, invites, error: null };
 }

@@ -22,7 +22,7 @@ import {
   Card,
 } from '@gluestack-ui/themed';
 import { listPendingInvitesForUser, acceptInviteByToken } from '@mealme/api';
-import type { InviteRow, OrgRole, AcceptInviteResult } from '@mealme/api';
+import type { OrgRole, AcceptInviteResult, InviteWithOrgName } from '@mealme/api';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -56,8 +56,7 @@ const ROLE_BADGE_COLORS: Record<OrgRole, { bg: string; text: string }> = {
 // ---------------------------------------------------------------------------
 
 export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps) {
-  const [invites, setInvites] = useState<InviteRow[]>([]);
-  const [orgNames, setOrgNames] = useState<Record<string, string>>({});
+  const [invites, setInvites] = useState<InviteWithOrgName[]>([]);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState<string | null>(null);
   const [dismissing, setDismissing] = useState<Set<string>>(new Set());
@@ -65,24 +64,8 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
   const loadInvites = useCallback(async () => {
     setLoading(true);
     const result = await listPendingInvitesForUser();
-    if (!result.error) {
+    if (!result.error && result.success) {
       setInvites(result.invites);
-
-      // Fetch org names for each invite
-      const names: Record<string, string> = {};
-      // We'll import supabase lazily to avoid circular deps
-      const { supabase } = await import('@mealme/api');
-      for (const invite of result.invites) {
-        if (!names[invite.org_id]) {
-          const { data } = await supabase
-            .from('organizations')
-            .select('name')
-            .eq('id', invite.org_id)
-            .single();
-          names[invite.org_id] = (data as any)?.name ?? 'Organization';
-        }
-      }
-      setOrgNames(names);
     }
     setLoading(false);
   }, []);
@@ -92,7 +75,7 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
   }, [loadInvites]);
 
   const handleAccept = useCallback(
-    async (invite: InviteRow) => {
+    async (invite: InviteWithOrgName) => {
       setAccepting(invite.id);
       const result: AcceptInviteResult = await acceptInviteByToken(invite.invite_token);
       setAccepting(null);
@@ -143,7 +126,7 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
     return null; // Don't render anything if no pending invites
   }
 
-  const renderInviteItem = ({ item }: { item: InviteRow }) => {
+  const renderInviteItem = ({ item }: { item: InviteWithOrgName }) => {
     const roleBadgeColor = ROLE_BADGE_COLORS[item.role] ?? ROLE_BADGE_COLORS.member;
     const isAccepting = accepting === item.id;
     const isDismissing = dismissing.has(item.id);
@@ -160,7 +143,7 @@ export function PendingInvitesCard({ onAcceptSuccess }: PendingInvitesCardProps)
         <HStack space="md" alignItems="center" justifyContent="space-between">
           <VStack space="xs" flex={1}>
             <Text size="md" fontWeight="$medium" color="$textLight900">
-              {orgNames[item.org_id] ?? 'Organization'}
+              {item.org_name}
             </Text>
             <HStack space="sm" alignItems="center">
               <Badge

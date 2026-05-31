@@ -24,6 +24,10 @@ export type {
   InviteResult,
   InviteListResult,
   AcceptInviteResult,
+  // Invite lookup types
+  InviteLookupResult,
+  InviteWithOrgName,
+  PendingInvitesResult,
 } from './types';
 
 // CRUD functions
@@ -40,6 +44,7 @@ export {
   listInvites,
   listPendingInvitesForUser,
   revokeInvite,
+  fetchInviteByToken,
 } from './members';
 
 // React context & hook

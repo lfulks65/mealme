@@ -25,8 +25,8 @@ import {
   BadgeText,
   Card,
 } from '@gluestack-ui/themed';
-import { supabase, acceptInviteByToken } from '@mealme/api';
-import type { InviteRow, OrgRole } from '@mealme/api';
+import { acceptInviteByToken, fetchInviteByToken } from '@mealme/api';
+import type { InviteRow, OrgRole, InviteLookupResult } from '@mealme/api';
 import { useAuth } from '../auth/AuthContext';
 
 // ---------------------------------------------------------------------------
@@ -74,62 +74,36 @@ const ROLE_BADGE_COLORS: Record<OrgRole, { bg: string; text: string }> = {
   viewer: { bg: '$backgroundLight100', text: '$textLight500' },
 };
 
-/** Fetch invite details by token from Supabase. */
-async function fetchInviteByToken(
-  token: string,
-): Promise<{
+/** Fetch invite details by token via the SECURITY DEFINER RPC (bypasses RLS). */
+async function fetchInviteDetails(token: string): Promise<{
   invite: InviteRow | null;
   orgName: string | null;
   inviterName: string | null;
   error: string | null;
+  acceptedAt: string | null;
+  expiresAt: string | null;
 }> {
-  // 1. Fetch the invite row
-  const { data: inviteData, error: inviteError } = await supabase
-    .from('invites')
-    .select(
-      'id, org_id, email, role, invited_by, accepted_at, expires_at, created_at, invite_token',
-    )
-    .eq('invite_token', token)
-    .single();
+  const result: InviteLookupResult = await fetchInviteByToken(token);
 
-  if (inviteError || !inviteData) {
+  if (!result.success || !result.invite) {
     return {
       invite: null,
       orgName: null,
       inviterName: null,
-      error: inviteError?.message ?? 'Invite not found',
+      error: result.error ?? 'Invite not found',
+      acceptedAt: result.acceptedAt,
+      expiresAt: result.expiresAt,
     };
   }
 
-  const invite: InviteRow = {
-    id: inviteData.id,
-    org_id: inviteData.org_id,
-    email: inviteData.email,
-    role: inviteData.role,
-    invited_by: inviteData.invited_by,
-    accepted_at: inviteData.accepted_at,
-    expires_at: inviteData.expires_at,
-    created_at: inviteData.created_at,
-    invite_token: inviteData.invite_token,
+  return {
+    invite: result.invite,
+    orgName: result.orgName,
+    inviterName: result.inviterName,
+    error: null,
+    acceptedAt: result.acceptedAt,
+    expiresAt: result.expiresAt,
   };
-
-  // 2. Fetch org name
-  const { data: orgData } = await supabase
-    .from('organizations')
-    .select('name')
-    .eq('id', invite.org_id)
-    .single();
-  const orgName = (orgData as any)?.name ?? 'an organization';
-
-  // 3. Fetch inviter display name
-  const { data: inviterProfile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', invite.invited_by)
-    .single();
-  const inviterName = (inviterProfile as any)?.full_name ?? 'Someone';
-
-  return { invite, orgName, inviterName, error: null };
 }
 
 // ---------------------------------------------------------------------------
@@ -156,9 +130,18 @@ export function AcceptInviteScreen({
     setStatus('loading');
     setErrorMessage(null);
 
-    const result = await fetchInviteByToken(inviteToken);
+    const result = await fetchInviteDetails(inviteToken);
 
     if (result.error || !result.invite) {
+      // Check if the invite was already accepted or expired for better UX
+      if (result.acceptedAt) {
+        setStatus('already_accepted');
+        return;
+      }
+      if (result.expiresAt && new Date(result.expiresAt) < new Date()) {
+        setStatus('expired');
+        return;
+      }
       setStatus('not_found');
       setErrorMessage(result.error ?? 'Invite not found');
       return;
