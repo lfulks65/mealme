@@ -6,12 +6,7 @@
  * Pressable wrapper when onPress is provided.
  */
 import { useMemo } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import type { FamilyRole } from '@mealme/shared';
 import { Avatar, AvatarImage, AvatarFallbackText, AvatarBadge } from '../gluestack/Avatar';
 
@@ -48,10 +43,10 @@ const SIZE_MAP: Record<AvatarSize, number> = {
 // ── Role Colors ─────────────────────────────────────────────────────────────
 
 const ROLE_COLORS: Record<FamilyRole, string> = {
-  parent: '#2563eb',   // blue
-  child: '#16a34a',    // green
+  parent: '#2563eb', // blue
+  child: '#16a34a', // green
   guardian: '#ea580c', // orange
-  member: '#6b7280',   // gray
+  member: '#6b7280', // gray
 };
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -103,9 +98,7 @@ export function FamilyMemberAvatar({
             alt={`${name}'s avatar`}
           />
         ) : (
-          <AvatarFallbackText
-            style={[styles.fallbackText, { fontSize: avatarSize * 0.36 }]}
-          >
+          <AvatarFallbackText style={[styles.fallbackText, { fontSize: avatarSize * 0.36 }]}>
             {initials}
           </AvatarFallbackText>
         )}
@@ -140,30 +133,30 @@ export function FamilyMemberAvatar({
 // ── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressable: {
-    // No extra styling — just wraps for pressability
-  },
   avatar: {
-    borderWidth: 2,
     borderRadius: 999,
+    borderWidth: 2,
   },
   avatarImage: {
     borderRadius: 999,
   },
-  fallbackText: {
-    fontWeight: '600',
-    color: '#374151',
-  },
   badge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    borderWidth: 2,
     borderColor: '#ffffff',
+    borderWidth: 2,
+    bottom: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fallbackText: {
+    color: '#374151',
+    fontWeight: '600',
+  },
+  pressable: {
+    // No extra styling — just wraps for pressability
   },
 });
 

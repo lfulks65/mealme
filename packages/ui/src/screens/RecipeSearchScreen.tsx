@@ -16,7 +16,16 @@ import { RecipeFilterModal } from './RecipeFilterModal';
 
 // ── Filter Chip Options ───────────────────────────────────────────────────────
 
-const CUISINE_OPTIONS = ['Mediterranean', 'Italian', 'Thai', 'Japanese', 'Mexican', 'American', 'Indian', 'Korean'];
+const CUISINE_OPTIONS = [
+  'Mediterranean',
+  'Italian',
+  'Thai',
+  'Japanese',
+  'Mexican',
+  'American',
+  'Indian',
+  'Korean',
+];
 const DIETARY_OPTIONS = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free'];
 const TIME_OPTIONS = [
   { label: '≤ 15 min', value: 15 },
@@ -44,9 +53,7 @@ const FilterChip: React.FC<FilterChipProps> = ({ label, selected, onPress }) => 
     accessibilityRole="checkbox"
     accessibilityState={{ checked: selected }}
   >
-    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-      {label}
-    </Text>
+    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
   </Pressable>
 );
 
@@ -92,12 +99,20 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
     const f = buildFilters();
     setFilters(f);
     search(query || undefined, Object.keys(f).length > 0 ? f : undefined);
-  }, [query, selectedCuisine, selectedDietary, selectedTime, selectedCalories, buildFilters, search]);
+  }, [
+    query,
+    selectedCuisine,
+    selectedDietary,
+    selectedTime,
+    selectedCalories,
+    buildFilters,
+    search,
+  ]);
 
   // Toggle dietary chip
   const toggleDietary = useCallback((diet: string) => {
     setSelectedDietary((prev) =>
-      prev.includes(diet) ? prev.filter((d) => d !== diet) : [...prev, diet]
+      prev.includes(diet) ? prev.filter((d) => d !== diet) : [...prev, diet],
     );
   }, []);
 
@@ -112,7 +127,7 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
       if (modalFilters.max_calories) setSelectedCalories(modalFilters.max_calories);
       search(query || undefined, modalFilters);
     },
-    [query, search]
+    [query, search],
   );
 
   const renderRecipeCard = ({ item }: { item: RecipeFull }) => {
@@ -237,7 +252,9 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
               <FilterChip
                 label={item.label}
                 selected={selectedCalories === item.value}
-                onPress={() => setSelectedCalories(selectedCalories === item.value ? null : item.value)}
+                onPress={() =>
+                  setSelectedCalories(selectedCalories === item.value ? null : item.value)
+                }
               />
             )}
             horizontal
@@ -256,7 +273,11 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>⚠️ {error}</Text>
-          <Pressable onPress={() => search(query || undefined, Object.keys(filters).length > 0 ? filters : undefined)}>
+          <Pressable
+            onPress={() =>
+              search(query || undefined, Object.keys(filters).length > 0 ? filters : undefined)
+            }
+          >
             <Text style={styles.retryText}>Retry</Text>
           </Pressable>
         </View>
@@ -281,7 +302,9 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
             refreshControl={
               <RefreshControl
                 refreshing={loading}
-                onRefresh={() => search(query || undefined, Object.keys(filters).length > 0 ? filters : undefined)}
+                onRefresh={() =>
+                  search(query || undefined, Object.keys(filters).length > 0 ? filters : undefined)
+                }
                 tintColor="#FF6B35"
               />
             }
@@ -301,59 +324,50 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FAFAFA',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
   backButton: {
     marginRight: 12,
   },
   backText: {
-    fontSize: 16,
     color: '#FF6B35',
+    fontSize: 16,
     fontWeight: '600',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  searchBarContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
-  },
-  searchInput: {
-    flex: 1,
+  chip: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    borderWidth: 1,
     borderColor: '#E5E5E5',
-    color: '#1A1A1A',
-  },
-  filterButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    borderRadius: 16,
+    borderWidth: 1,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    justifyContent: 'center',
+    paddingVertical: 6,
   },
-  filterButtonText: {
-    fontSize: 14,
+  chipSelected: {
+    backgroundColor: '#FF6B35',
+    borderColor: '#FF6B35',
+  },
+  chipText: {
     color: '#333333',
+    fontSize: 13,
+  },
+  chipTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  chipsLabel: {
+    color: '#666666',
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+    marginLeft: 16,
+    textTransform: 'uppercase',
+  },
+  chipsList: {
+    gap: 6,
+    paddingHorizontal: 12,
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    gap: 8,
   },
   chipsSection: {
     marginBottom: 6,
@@ -362,95 +376,104 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: 6,
   },
-  chipsRow: {
-    flexDirection: 'row',
-    gap: 8,
+  container: {
+    backgroundColor: '#FAFAFA',
+    flex: 1,
   },
-  chipsLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666666',
-    marginLeft: 16,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  chipsList: {
-    paddingHorizontal: 12,
-    gap: 6,
-  },
-  chip: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  chipSelected: {
-    backgroundColor: '#FF6B35',
-    borderColor: '#FF6B35',
-  },
-  chipText: {
-    fontSize: 13,
-    color: '#333333',
-  },
-  chipTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  loadingContainer: {
+  emptyContainer: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    paddingTop: 60,
   },
-  loadingText: {
-    marginTop: 8,
+  emptySubtext: {
+    color: '#BBBBBB',
     fontSize: 14,
-    color: '#666666',
+    marginTop: 4,
+  },
+  emptyText: {
+    color: '#999999',
+    fontSize: 16,
+    fontWeight: '600',
   },
   errorContainer: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
   },
   errorText: {
-    fontSize: 14,
     color: '#CC0000',
+    fontSize: 14,
     marginBottom: 8,
   },
-  retryText: {
+  filterButton: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E5E5',
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  filterButtonText: {
+    color: '#333333',
     fontSize: 14,
-    color: '#FF6B35',
-    fontWeight: '600',
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  headerTitle: {
+    color: '#1A1A1A',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: '#666666',
+    fontSize: 14,
+    marginTop: 8,
   },
   resultCount: {
-    fontSize: 13,
     color: '#999999',
+    fontSize: 13,
     paddingHorizontal: 16,
     paddingVertical: 6,
   },
   resultsList: {
-    paddingHorizontal: 12,
     paddingBottom: 20,
+    paddingHorizontal: 12,
+  },
+  retryText: {
+    color: '#FF6B35',
+    fontSize: 14,
+    fontWeight: '600',
   },
   row: {
     justifyContent: 'space-between',
   },
-  emptyContainer: {
+  searchBarContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  searchInput: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E5E5',
+    borderRadius: 10,
+    borderWidth: 1,
+    color: '#1A1A1A',
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#999999',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#BBBBBB',
-    marginTop: 4,
+    fontSize: 15,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
 });

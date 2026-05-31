@@ -1,0 +1,8 @@
+{
+  "extends": ["../../.eslintrc"],
+  "plugins": ["jsx-a11y"],
+  "rules": {
+    "react-native/no-inline-styles": "off",
+    "react-native/no-color-literals": "off"
+  }
+}

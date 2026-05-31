@@ -34,8 +34,7 @@ const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
   '';
 
-const SUPABASE_SERVICE_ROLE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
 
 // ---------------------------------------------------------------------------
 // Standard client (anon key — respects RLS)
@@ -44,11 +43,44 @@ const SUPABASE_SERVICE_ROLE_KEY =
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.warn(
     '[MealMe] Supabase environment variables are missing. ' +
-      'Set SUPABASE_URL / SUPABASE_ANON_KEY (or their EXPO_PUBLIC_ / NEXT_PUBLIC_ variants).'
+      'Set SUPABASE_URL / SUPABASE_ANON_KEY (or their EXPO_PUBLIC_ / NEXT_PUBLIC_ variants).',
   );
 }
 
-export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/**
+ * Lazily-created Supabase client. Created on first access so that
+ * missing env vars don't crash module import (e.g. during Next.js
+ * static generation at build time).
+ */
+let _supabase: SupabaseClient | null = null;
+
+function getSupabaseClient(): SupabaseClient {
+  if (!_supabase) {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error('[MealMe] Cannot create Supabase client: environment variables are missing.');
+    }
+    _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+  return _supabase;
+}
+
+/**
+ * Supabase client (anon key — respects RLS).
+ *
+ * Uses a Proxy to lazily create the underlying client on first property
+ * access, so importing this module without env vars won't crash.
+ */
+export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      // Return no-op stubs when env vars are missing
+      return undefined;
+    }
+    const client = getSupabaseClient();
+    const value = (client as unknown as Record<string, unknown>)[prop as string];
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
+});
 
 // ---------------------------------------------------------------------------
 // Admin client (service role — bypasses RLS, server-side only)
@@ -69,7 +101,7 @@ export function getSupabaseAdmin(): SupabaseClient {
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error(
         '[MealMe] SUPABASE_SERVICE_ROLE_KEY is required to create the admin client. ' +
-          'Ensure it is set in your server-side environment.'
+          'Ensure it is set in your server-side environment.',
       );
     }
     _supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {

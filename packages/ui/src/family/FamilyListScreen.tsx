@@ -1,11 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  RefreshControl,
-  Alert,
-} from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, Alert } from 'react-native';
 import {
   Box,
   Text,
@@ -42,18 +36,8 @@ export interface FamilyListScreenProps {
   orgId: string;
 }
 
-export function FamilyListScreen({
-  onFamilyPress,
-  orgId,
-}: FamilyListScreenProps) {
-  const {
-    families,
-    loading,
-    error,
-    createFamily,
-    refreshFamilies,
-    setOrgId,
-  } = useFamily();
+export function FamilyListScreen({ onFamilyPress, orgId }: FamilyListScreenProps) {
+  const { families, loading, error, createFamily, refreshFamilies, setOrgId } = useFamily();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newFamilyName, setNewFamilyName] = useState('');
@@ -116,11 +100,7 @@ export function FamilyListScreen({
       borderBottomColor="$borderLight200"
       bg="$backgroundLight0"
     >
-      <Button
-        variant="link"
-        onPress={() => onFamilyPress(item.id)}
-        style={styles.familyButton}
-      >
+      <Button variant="link" onPress={() => onFamilyPress(item.id)} style={styles.familyButton}>
         <VStack space="xs" alignItems="flex-start">
           <Text size="md" fontWeight="$semibold" color="$textLight900">
             {item.name}
@@ -148,8 +128,19 @@ export function FamilyListScreen({
     <View style={styles.container}>
       {/* Error Banner */}
       {error && (
-        <Box bg="$error50" px="$4" py="$3" mx="$4" mt="$2" borderRadius="$md" borderWidth={1} borderColor="$error500">
-          <Text size="sm" color="$error600">{error}</Text>
+        <Box
+          bg="$error50"
+          px="$4"
+          py="$3"
+          mx="$4"
+          mt="$2"
+          borderRadius="$md"
+          borderWidth={1}
+          borderColor="$error500"
+        >
+          <Text size="sm" color="$error600">
+            {error}
+          </Text>
         </Box>
       )}
 
@@ -157,7 +148,9 @@ export function FamilyListScreen({
       {loading && families.length === 0 ? (
         <VStack space="md" alignItems="center" justifyContent="center" flex={1}>
           <Spinner size="large" color="$primary500" />
-          <Text size="sm" color="$textLight500">Loading families...</Text>
+          <Text size="sm" color="$textLight500">
+            Loading families...
+          </Text>
         </VStack>
       ) : (
         <FlatList
@@ -165,9 +158,7 @@ export function FamilyListScreen({
           keyExtractor={(item) => item.id}
           renderItem={renderFamilyItem}
           ListEmptyComponent={renderEmpty}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           contentContainerStyle={families.length === 0 ? styles.emptyList : undefined}
         />
       )}
@@ -230,11 +221,7 @@ export function FamilyListScreen({
             >
               <ButtonText>Cancel</ButtonText>
             </Button>
-            <Button
-              size="sm"
-              onPress={handleCreate}
-              isDisabled={creating}
-            >
+            <Button size="sm" onPress={handleCreate} isDisabled={creating}>
               <ButtonText>{creating ? 'Creating...' : 'Create'}</ButtonText>
             </Button>
           </ModalFooter>
@@ -246,21 +233,21 @@ export function FamilyListScreen({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
+    flex: 1,
   },
   emptyList: {
     flexGrow: 1,
   },
-  familyButton: {
-    width: '100%',
-    justifyContent: 'flex-start',
-  },
   fab: {
-    position: 'absolute',
     bottom: 24,
+    height: 56,
+    position: 'absolute',
     right: 24,
     width: 56,
-    height: 56,
+  },
+  familyButton: {
+    justifyContent: 'flex-start',
+    width: '100%',
   },
 });

@@ -3,27 +3,42 @@
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2020,
-    "sourceType": "module"
+    "sourceType": "module",
+    "ecmaFeatures": { "jsx": true }
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "react", "react-hooks", "react-native"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:react-native/all",
     "prettier"
   ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "rules": {
-    "@typescript-eslint/no-unused-vars": [
-      "warn",
-      { "argsIgnorePattern": "^_" }
-    ],
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-explicit-any": "warn"
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-var-requires": "warn",
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "react-native/no-inline-styles": "warn",
+    "react-native/no-color-literals": "off",
+    "react-native/no-raw-text": "warn",
+    "react-native/sort-styles": "warn",
+    "react-hooks/exhaustive-deps": "warn"
   },
   "ignorePatterns": [
     "node_modules/",
     "dist/",
     ".next/",
     ".expo/",
-    "*.js"
+    "*.js",
+    "pnpm-lock.yaml"
   ]
 }

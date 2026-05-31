@@ -6,15 +6,7 @@
  * badges, cuisine type, and recipe metadata.
  */
 import { useCallback, useRef } from 'react';
-import {
-  Animated,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { Animated, Image, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { Card } from '../gluestack/Card';
 import { Badge, BadgeText } from '../gluestack/Badge';
 import type { RecipeFull, RecipeDifficulty, RecipeTag, RecipeDietaryInfo } from '@mealme/shared';
@@ -46,9 +38,7 @@ const DIFFICULTY_COLORS: Record<RecipeDifficulty, { bg: string; text: string }> 
 
 /** Derive difficulty from recipe data (tags or default). */
 function getDifficulty(recipe: RecipeFull): RecipeDifficulty | null {
-  const diffTag = recipe.tags?.find((t: RecipeTag) =>
-    ['easy', 'medium', 'hard'].includes(t.tag),
-  );
+  const diffTag = recipe.tags?.find((t: RecipeTag) => ['easy', 'medium', 'hard'].includes(t.tag));
   if (diffTag) return diffTag.tag as RecipeDifficulty;
   return null;
 }
@@ -110,11 +100,7 @@ export function RecipeCard({
       <Card style={[styles.compactCard, style]}>
         <View style={styles.compactImageContainer}>
           {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              style={styles.compactImage}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: imageUrl }} style={styles.compactImage} resizeMode="cover" />
           ) : (
             <View style={[styles.compactImage, styles.imagePlaceholder]}>
               <Text style={styles.placeholderIcon}>🍽</Text>
@@ -131,11 +117,7 @@ export function RecipeCard({
 
     if (isInteractive) {
       return (
-        <Pressable
-          onPress={handlePress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-        >
+        <Pressable onPress={handlePress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
           <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
             {compactContent}
           </Animated.View>
@@ -151,11 +133,7 @@ export function RecipeCard({
     <Card style={[styles.fullCard, style]}>
       {/* Hero image */}
       {imageUrl ? (
-        <Image
-          source={{ uri: imageUrl }}
-          style={styles.heroImage}
-          resizeMode="cover"
-        />
+        <Image source={{ uri: imageUrl }} style={styles.heroImage} resizeMode="cover" />
       ) : (
         <View style={[styles.heroImage, styles.imagePlaceholder]}>
           <Text style={[styles.placeholderIcon, { fontSize: 36 }]}>🍽</Text>
@@ -214,14 +192,8 @@ export function RecipeCard({
         {showDietaryBadges && compliantDietary.length > 0 && (
           <View style={styles.badgeRow}>
             {compliantDietary.slice(0, 4).map((restriction) => (
-              <Badge
-                key={restriction}
-                size="sm"
-                style={styles.dietaryBadge}
-              >
-                <BadgeText style={styles.dietaryBadgeText}>
-                  {restriction}
-                </BadgeText>
+              <Badge key={restriction} size="sm" style={styles.dietaryBadge}>
+                <BadgeText style={styles.dietaryBadgeText}>{restriction}</BadgeText>
               </Badge>
             ))}
             {compliantDietary.length > 4 && (
@@ -238,9 +210,7 @@ export function RecipeCard({
         {showCuisine && recipe.cuisine && (
           <View style={styles.badgeRow}>
             <Badge size="sm" style={styles.cuisineBadge}>
-              <BadgeText style={styles.cuisineBadgeText}>
-                {recipe.cuisine}
-              </BadgeText>
+              <BadgeText style={styles.cuisineBadgeText}>{recipe.cuisine}</BadgeText>
             </Badge>
           </View>
         )}
@@ -250,14 +220,8 @@ export function RecipeCard({
 
   if (isInteractive) {
     return (
-      <Pressable
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          {fullContent}
-        </Animated.View>
+      <Pressable onPress={handlePress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>{fullContent}</Animated.View>
       </Pressable>
     );
   }
@@ -270,19 +234,19 @@ export function RecipeCard({
 const styles = StyleSheet.create({
   // Full variant
   fullCard: {
+    backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#ffffff',
   },
   heroImage: {
-    width: '100%',
-    height: 180,
     backgroundColor: '#f3f4f6',
+    height: 180,
+    width: '100%',
   },
   imagePlaceholder: {
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
   },
   placeholderIcon: {
     fontSize: 28,
@@ -291,36 +255,36 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   fullTitle: {
+    color: '#111827',
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
     lineHeight: 22,
     marginBottom: 2,
   },
   description: {
-    fontSize: 13,
     color: '#6b7280',
+    fontSize: 13,
     lineHeight: 18,
     marginBottom: 8,
   },
   metaRow: {
+    alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'center',
     gap: 8,
     marginBottom: 8,
   },
   metaItem: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     gap: 3,
   },
   metaIcon: {
     fontSize: 12,
   },
   metaText: {
-    fontSize: 12,
     color: '#6b7280',
+    fontSize: 12,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -351,31 +315,31 @@ const styles = StyleSheet.create({
 
   // Compact variant
   compactCard: {
+    backgroundColor: '#ffffff',
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#ffffff',
   },
   compactImageContainer: {
     position: 'relative',
   },
   compactImage: {
-    width: '100%',
-    height: 120,
     backgroundColor: '#f3f4f6',
+    height: 120,
+    width: '100%',
   },
   compactOverlay: {
-    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     bottom: 0,
     left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.55)',
     paddingHorizontal: 10,
     paddingVertical: 8,
+    position: 'absolute',
+    right: 0,
   },
   compactTitle: {
+    color: '#ffffff',
     fontSize: 13,
     fontWeight: '600',
-    color: '#ffffff',
     lineHeight: 17,
   },
 });

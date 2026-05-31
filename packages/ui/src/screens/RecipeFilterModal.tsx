@@ -1,12 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  Pressable,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, Text, Modal, Pressable, StyleSheet, ScrollView } from 'react-native';
 import type { RecipeSearchFilters } from '@mealme/shared';
 
 // ── Filter Option Lists ──────────────────────────────────────────────────────
@@ -65,7 +58,8 @@ const MultiSelectChip: React.FC<MultiSelectChipProps> = ({ label, selected, onPr
     accessibilityState={{ checked: selected }}
   >
     <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-      {selected ? '✓ ' : ''}{label}
+      {selected ? '✓ ' : ''}
+      {label}
     </Text>
   </Pressable>
 );
@@ -88,9 +82,7 @@ const RadioOption: React.FC<RadioOptionProps> = ({ label, selected, onPress }) =
     <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
       {selected ? <View style={styles.radioDot} /> : null}
     </View>
-    <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
-      {label}
-    </Text>
+    <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>{label}</Text>
   </Pressable>
 );
 
@@ -115,25 +107,22 @@ export const RecipeFilterModal: React.FC<RecipeFilterModalProps> = ({
 }) => {
   // Local state for each filter group
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>(
-    initialFilters.cuisine ? [initialFilters.cuisine] : []
+    initialFilters.cuisine ? [initialFilters.cuisine] : [],
   );
   const [selectedDietary, setSelectedDietary] = useState<string[]>(
-    initialFilters.dietary_restrictions ?? []
+    initialFilters.dietary_restrictions ?? [],
   );
   const [selectedTime, setSelectedTime] = useState<number | null>(
-    initialFilters.max_prep_minutes ?? null
+    initialFilters.max_prep_minutes ?? null,
   );
   const [selectedCalories, setSelectedCalories] = useState<number | null>(
-    initialFilters.max_calories ?? null
+    initialFilters.max_calories ?? null,
   );
 
   // Toggle a multi-select item
-  const toggleItem = useCallback(
-    (list: string[], item: string): string[] => {
-      return list.includes(item) ? list.filter((i) => i !== item) : [...list, item];
-    },
-    []
-  );
+  const toggleItem = useCallback((list: string[], item: string): string[] => {
+    return list.includes(item) ? list.filter((i) => i !== item) : [...list, item];
+  }, []);
 
   // Apply filters
   const handleApply = useCallback(() => {
@@ -186,7 +175,9 @@ export const RecipeFilterModal: React.FC<RecipeFilterModalProps> = ({
           <Pressable onPress={onClose} hitSlop={8}>
             <Text style={styles.cancelText}>Cancel</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</Text>
+          <Text style={styles.headerTitle}>
+            Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+          </Text>
           <Pressable onPress={handleReset} hitSlop={8}>
             <Text style={styles.resetText}>Reset</Text>
           </Pressable>
@@ -272,126 +263,126 @@ export const RecipeFilterModal: React.FC<RecipeFilterModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  applyButton: {
     alignItems: 'center',
-    paddingHorizontal: 16,
+    backgroundColor: '#FF6B35',
+    borderRadius: 12,
     paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
   },
-  cancelText: {
+  applyButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
-    color: '#666666',
-  },
-  headerTitle: {
-    fontSize: 17,
     fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  resetText: {
-    fontSize: 16,
-    color: '#FF6B35',
-    fontWeight: '600',
   },
   body: {
     flex: 1,
   },
-  section: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
+  bottomSpacer: {
+    height: 20,
   },
-  sectionTitle: {
+  cancelText: {
+    color: '#666666',
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 12,
-  },
-  chipsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
   },
   chip: {
     backgroundColor: '#F5F5F5',
+    borderColor: '#E5E5E5',
     borderRadius: 16,
+    borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
   },
   chipSelected: {
     backgroundColor: '#FF6B35',
     borderColor: '#FF6B35',
   },
   chipText: {
-    fontSize: 14,
     color: '#333333',
+    fontSize: 14,
   },
   chipTextSelected: {
     color: '#FFFFFF',
     fontWeight: '600',
   },
-  radioOption: {
+  chipsGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  radioOptionSelected: {
-    // No extra style needed — the circle handles it
+  footer: {
+    borderTopColor: '#E5E5E5',
+    borderTopWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  header: {
+    alignItems: 'center',
+    borderBottomColor: '#E5E5E5',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  headerTitle: {
+    color: '#1A1A1A',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    flex: 1,
   },
   radioCircle: {
-    width: 20,
-    height: 20,
+    alignItems: 'center',
+    borderColor: '#CCCCCC',
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#CCCCCC',
-    alignItems: 'center',
+    height: 20,
     justifyContent: 'center',
     marginRight: 12,
+    width: 20,
   },
   radioCircleSelected: {
     borderColor: '#FF6B35',
   },
   radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
     backgroundColor: '#FF6B35',
+    borderRadius: 5,
+    height: 10,
+    width: 10,
   },
   radioLabel: {
-    fontSize: 15,
     color: '#333333',
+    fontSize: 15,
   },
   radioLabelSelected: {
     color: '#FF6B35',
     fontWeight: '600',
   },
-  bottomSpacer: {
-    height: 20,
-  },
-  footer: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
-  },
-  applyButton: {
-    backgroundColor: '#FF6B35',
-    borderRadius: 12,
-    paddingVertical: 14,
+  radioOption: {
     alignItems: 'center',
+    borderBottomColor: '#F5F5F5',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    paddingVertical: 10,
   },
-  applyButtonText: {
+  radioOptionSelected: {
+    // No extra style needed — the circle handles it
+  },
+  resetText: {
+    color: '#FF6B35',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  section: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+  },
+  sectionTitle: {
+    color: '#1A1A1A',
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    marginBottom: 12,
   },
 });

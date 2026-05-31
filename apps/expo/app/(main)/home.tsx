@@ -12,33 +12,16 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <VStack space="lg" alignItems="center" style={styles.content}>
-        <Text size="2xl" fontWeight="$bold" color="$textLight900">
-          Welcome to MealMe
-        </Text>
-        {user && (
-          <Text size="md" color="$textLight500">
-            Hello, {user.name}!
-          </Text>
-        )}
+      <VStack alignItems="center" style={styles.content}>
+        <Text style={styles.title}>Welcome to MealMe</Text>
+        {user && <Text style={styles.subtitle}>Hello, {user.name}!</Text>}
 
-        <HStack space="md" flexWrap="wrap" justifyContent="center">
-          <Button
-            size="md"
-            variant="solid"
-            action="primary"
-            onPress={() => router.push('/families/index')}
-          >
+        <HStack style={styles.buttonRow}>
+          <Button variant="solid" action="primary" onPress={() => router.push('/families/index')}>
             <ButtonText>Families</ButtonText>
           </Button>
 
-          <Button
-            size="md"
-            variant="outline"
-            action="secondary"
-            onPress={signOut}
-            isDisabled={isLoading}
-          >
+          <Button variant="outline" action="secondary" onPress={signOut} isDisabled={isLoading}>
             <ButtonText>Sign Out</ButtonText>
           </Button>
         </HStack>
@@ -48,13 +31,28 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  buttonRow: {
+    flexWrap: 'wrap',
+    gap: 12,
     justifyContent: 'center',
+  },
+  container: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    flex: 1,
+    justifyContent: 'center',
   },
   content: {
+    gap: 16,
     paddingHorizontal: 24,
+  },
+  subtitle: {
+    color: '#6b7280',
+    fontSize: 16,
+  },
+  title: {
+    color: '#1a1a2e',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });

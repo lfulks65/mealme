@@ -1,5 +1,3 @@
-const { nativewind } = require('nativewind/tailwind');
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -8,7 +6,6 @@ module.exports = {
     // Include workspace UI package for NativeWind class detection
     '../../packages/ui/src/**/*.{js,ts,jsx,tsx}',
   ],
-  presets: [nativewind()],
   theme: {
     extend: {},
   },

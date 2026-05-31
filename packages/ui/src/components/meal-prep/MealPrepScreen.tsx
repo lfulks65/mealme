@@ -52,20 +52,11 @@ interface StepProgressBarProps {
   progressPercent: number;
 }
 
-function StepProgressBar({
-  currentStep,
-  totalSteps,
-  progressPercent,
-}: StepProgressBarProps) {
+function StepProgressBar({ currentStep, totalSteps, progressPercent }: StepProgressBarProps) {
   return (
     <View style={progressStyles.container}>
       <View style={progressStyles.barBg}>
-        <Animated.View
-          style={[
-            progressStyles.barFill,
-            { width: `${progressPercent}%` },
-          ]}
-        />
+        <Animated.View style={[progressStyles.barFill, { width: `${progressPercent}%` }]} />
       </View>
       <Text style={progressStyles.label}>
         Step {currentStep + 1} of {totalSteps}
@@ -75,25 +66,25 @@ function StepProgressBar({
 }
 
 const progressStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#ffffff',
-  },
   barBg: {
-    flex: 1,
-    height: 6,
     backgroundColor: '#e5e7eb',
     borderRadius: 3,
-    overflow: 'hidden',
+    flex: 1,
+    height: 6,
     marginRight: 10,
+    overflow: 'hidden',
   },
   barFill: {
-    height: '100%',
     backgroundColor: '#2563eb',
     borderRadius: 3,
+    height: '100%',
+  },
+  container: {
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   label: {
     fontSize: 13,
@@ -127,12 +118,7 @@ function StepDots({ totalSteps, currentStep, onStepPress }: StepDotsProps) {
           {i < currentStep ? (
             <Text style={dotsStyles.dotCheck}>✓</Text>
           ) : (
-            <Text
-              style={[
-                dotsStyles.dotNumber,
-                i === currentStep && dotsStyles.dotNumberActive,
-              ]}
-            >
+            <Text style={[dotsStyles.dotNumber, i === currentStep && dotsStyles.dotNumberActive]}>
               {i + 1}
             </Text>
           )}
@@ -144,28 +130,33 @@ function StepDots({ totalSteps, currentStep, onStepPress }: StepDotsProps) {
 
 const dotsStyles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 12,
     backgroundColor: '#ffffff',
+    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
+    justifyContent: 'center',
+    paddingVertical: 12,
   },
   dot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f3f4f6',
-    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    backgroundColor: '#f3f4f6',
     borderColor: '#e5e7eb',
+    borderRadius: 16,
+    borderWidth: 2,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
   },
   dotActive: {
     backgroundColor: '#eff6ff',
     borderColor: '#2563eb',
   },
+  dotCheck: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#22c55e',
+  } as TextStyle,
   dotCompleted: {
     backgroundColor: '#f0fdf4',
     borderColor: '#22c55e',
@@ -178,11 +169,6 @@ const dotsStyles = StyleSheet.create({
   dotNumberActive: {
     color: '#2563eb',
   } as TextStyle,
-  dotCheck: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#22c55e',
-  } as TextStyle,
 });
 
 // ─── Ingredient Sidebar ─────────────────────────────────────────────────────
@@ -193,17 +179,11 @@ interface IngredientSidebarProps {
   onToggle: () => void;
 }
 
-function IngredientSidebar({
-  ingredients,
-  visible,
-  onToggle,
-}: IngredientSidebarProps) {
+function IngredientSidebar({ ingredients, visible, onToggle }: IngredientSidebarProps) {
   return (
     <View style={sidebarStyles.container}>
       <Pressable onPress={onToggle} style={sidebarStyles.header}>
-        <Text style={sidebarStyles.headerTitle}>
-          🥘 Ingredients ({ingredients.length})
-        </Text>
+        <Text style={sidebarStyles.headerTitle}>🥘 Ingredients ({ingredients.length})</Text>
         <Text style={sidebarStyles.toggleIcon}>{visible ? '▲' : '▼'}</Text>
       </Pressable>
       {visible && (
@@ -215,9 +195,7 @@ function IngredientSidebar({
               </Text>
               <Text style={sidebarStyles.ingredientName}>{ing.name}</Text>
               {ing.preparation && (
-                <Text style={sidebarStyles.ingredientPrep}>
-                  , {ing.preparation}
-                </Text>
+                <Text style={sidebarStyles.ingredientPrep}>, {ing.preparation}</Text>
               )}
             </View>
           ))}
@@ -230,17 +208,17 @@ function IngredientSidebar({
 const sidebarStyles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',
+    borderColor: '#e5e7eb',
     borderRadius: 12,
+    borderWidth: 1,
     marginHorizontal: 16,
     marginTop: 8,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
   header: {
+    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
@@ -248,27 +226,6 @@ const sidebarStyles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#374151',
-  } as TextStyle,
-  toggleIcon: {
-    fontSize: 12,
-    color: '#9ca3af',
-  } as TextStyle,
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#f3f4f6',
-  },
-  ingredientRow: {
-    flexDirection: 'row',
-    paddingVertical: 4,
-    flexWrap: 'wrap',
-  },
-  ingredientQty: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#2563eb',
-    marginRight: 6,
   } as TextStyle,
   ingredientName: {
     fontSize: 13,
@@ -278,6 +235,27 @@ const sidebarStyles = StyleSheet.create({
     fontSize: 13,
     color: '#9ca3af',
     fontStyle: 'italic',
+  } as TextStyle,
+  ingredientQty: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#2563eb',
+    marginRight: 6,
+  } as TextStyle,
+  ingredientRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingVertical: 4,
+  },
+  list: {
+    borderTopColor: '#f3f4f6',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+  },
+  toggleIcon: {
+    fontSize: 12,
+    color: '#9ca3af',
   } as TextStyle,
 });
 
@@ -317,15 +295,11 @@ function StepCard({
         {/* Step badge */}
         <View style={stepStyles.badgeRow}>
           <View style={stepStyles.stepBadge}>
-            <Text style={stepStyles.stepBadgeText}>
-              Step {step.step}
-            </Text>
+            <Text style={stepStyles.stepBadgeText}>Step {step.step}</Text>
           </View>
           {hasTimer && (
             <View style={stepStyles.timerBadge}>
-              <Text style={stepStyles.timerBadgeText}>
-                ⏱ {step.durationMinutes} min
-              </Text>
+              <Text style={stepStyles.timerBadgeText}>⏱ {step.durationMinutes} min</Text>
             </View>
           )}
         </View>
@@ -377,21 +351,27 @@ function formatTimerDisplay(seconds: number): string {
 }
 
 const stepStyles = StyleSheet.create({
+  badgeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
   card: {
     marginHorizontal: 16,
     marginTop: 12,
   },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
+  instruction: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#111827',
+    lineHeight: 26,
+  } as TextStyle,
   stepBadge: {
     backgroundColor: '#eff6ff',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
     borderRadius: 12,
     marginRight: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
   stepBadgeText: {
     fontSize: 13,
@@ -400,45 +380,39 @@ const stepStyles = StyleSheet.create({
   } as TextStyle,
   timerBadge: {
     backgroundColor: '#fef3c7',
+    borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
   },
   timerBadgeText: {
     fontSize: 13,
     fontWeight: '500',
     color: '#92400e',
   } as TextStyle,
-  instruction: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#111827',
-    lineHeight: 26,
+  timerCompleteBadge: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  timerCompleteText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#16a34a',
+    textAlign: 'center',
   } as TextStyle,
   timerControls: {
     marginTop: 16,
   },
-  timerRunningBtn: {
-    backgroundColor: '#eff6ff',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-  },
-  timerRunningText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#2563eb',
-    textAlign: 'center',
-  } as TextStyle,
   timerPausedBtn: {
     backgroundColor: '#fef9c3',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderColor: '#fde68a',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#fde68a',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   timerPausedText: {
     fontSize: 15,
@@ -446,18 +420,18 @@ const stepStyles = StyleSheet.create({
     color: '#92400e',
     textAlign: 'center',
   } as TextStyle,
-  timerCompleteBadge: {
-    backgroundColor: '#f0fdf4',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  timerRunningBtn: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#bfdbfe',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#bbf7d0',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  timerCompleteText: {
+  timerRunningText: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#16a34a',
+    fontWeight: '500',
+    color: '#2563eb',
     textAlign: 'center',
   } as TextStyle,
 });
@@ -514,19 +488,19 @@ function NavigationBar({
 }
 
 const navStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#ffffff',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e5e7eb',
-  },
   button: {
     flex: 1,
     marginHorizontal: 4,
+  },
+  container: {
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderTopColor: '#e5e7eb',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
 });
 
@@ -602,12 +576,7 @@ export function MealPrepScreen({
     return (
       <View style={[styles.container, styles.centered, style]}>
         <Text style={styles.errorText}>{error ?? 'Recipe not found'}</Text>
-        <HapticButton
-          title="Retry"
-          onPress={refresh}
-          variant="outline"
-          size="sm"
-        />
+        <HapticButton title="Retry" onPress={refresh} variant="outline" size="sm" />
       </View>
     );
   }
@@ -628,8 +597,8 @@ export function MealPrepScreen({
           {recipe.title}
         </Text>
         <Text style={styles.headerMeta}>
-          {recipe.prepTimeMinutes + recipe.cookTimeMinutes} min ·{' '}
-          {recipe.servings} servings · {recipe.difficulty}
+          {recipe.prepTimeMinutes + recipe.cookTimeMinutes} min · {recipe.servings} servings ·{' '}
+          {recipe.difficulty}
         </Text>
       </View>
 
@@ -750,12 +719,12 @@ export function MealPrepScreen({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#f9fafb',
+    flex: 1,
   },
   centered: {
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 24,
   },
   loadingText: {
@@ -772,11 +741,11 @@ const styles = StyleSheet.create({
   // Header
   header: {
     backgroundColor: '#ffffff',
+    borderBottomColor: '#e5e7eb',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: 12,
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e5e7eb',
   },
   backButton: {
     marginBottom: 8,
@@ -817,15 +786,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   } as TextStyle,
   allStepRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginBottom: 4,
     backgroundColor: '#ffffff',
-    borderWidth: 1,
     borderColor: '#e5e7eb',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginBottom: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   allStepRowActive: {
     backgroundColor: '#eff6ff',
@@ -836,13 +805,13 @@ const styles = StyleSheet.create({
     borderColor: '#bbf7d0',
   },
   allStepNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#f3f4f6',
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 14,
+    height: 28,
+    justifyContent: 'center',
     marginRight: 10,
+    width: 28,
   },
   allStepNumberActive: {
     backgroundColor: '#2563eb',

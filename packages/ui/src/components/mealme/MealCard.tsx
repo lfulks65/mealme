@@ -6,15 +6,7 @@
  * native-feel styling and press feedback.
  */
 import { useCallback, useRef } from 'react';
-import {
-  Animated,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { Animated, Image, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { NativeCard } from '../bna/NativeCard';
 import { Badge, BadgeText } from '../gluestack/Badge';
 import type { RecipeDifficulty, MealSlot } from '@mealme/shared';
@@ -99,19 +91,11 @@ export function MealCard({
   }, [isInteractive, scaleAnim]);
 
   const cardContent = (
-    <NativeCard
-      variant="outlined"
-      padding="sm"
-      style={style}
-    >
+    <NativeCard variant="outlined" padding="sm" style={style}>
       <View style={styles.row}>
         {/* Thumbnail */}
         {recipeImageUrl ? (
-          <Image
-            source={{ uri: recipeImageUrl }}
-            style={styles.thumbnail}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: recipeImageUrl }} style={styles.thumbnail} resizeMode="cover" />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
             <Text style={styles.thumbnailPlaceholderText}>🍽</Text>
@@ -195,14 +179,8 @@ export function MealCard({
 
   if (isInteractive) {
     return (
-      <Pressable
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          {cardContent}
-        </Animated.View>
+      <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>{cardContent}</Animated.View>
       </Pressable>
     );
   }
@@ -213,65 +191,62 @@ export function MealCard({
 // ── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  card: {
-    // NativeCard handles most styling; we just constrain width
+  badgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  metaIcon: {
+    fontSize: 11,
+  },
+  metaItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 2,
+  },
+  metaRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 4,
+  },
+  metaText: {
+    color: '#6b7280',
+    fontSize: 11,
   },
   row: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
-  },
-  thumbnail: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
-    marginRight: 12,
-  },
-  thumbnailPlaceholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
-    marginRight: 12,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  thumbnailPlaceholderText: {
-    fontSize: 22,
+    flexDirection: 'row',
   },
   textContainer: {
     flex: 1,
     justifyContent: 'center',
   },
+  thumbnail: {
+    borderRadius: 10,
+    height: 56,
+    marginRight: 12,
+    width: 56,
+  },
+  thumbnailPlaceholder: {
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 10,
+    height: 56,
+    justifyContent: 'center',
+    marginRight: 12,
+    width: 56,
+  },
+  thumbnailPlaceholderText: {
+    fontSize: 22,
+  },
   title: {
+    color: '#111827',
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
     lineHeight: 18,
     marginBottom: 4,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  metaIcon: {
-    fontSize: 11,
-  },
-  metaText: {
-    fontSize: 11,
-    color: '#6b7280',
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
   },
 });
 

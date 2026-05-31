@@ -1,10 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  Alert,
-} from 'react-native';
+import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import {
   Box,
   Text,
@@ -57,10 +52,7 @@ const ROLE_OPTIONS: { label: string; value: FamilyRole }[] = [
   { label: 'Child', value: 'child' },
 ];
 
-export function FamilyDetailScreen({
-  familyId,
-  onSettingsPress,
-}: FamilyDetailScreenProps) {
+export function FamilyDetailScreen({ familyId, onSettingsPress }: FamilyDetailScreenProps) {
   const {
     currentFamily,
     members,
@@ -167,7 +159,9 @@ export function FamilyDetailScreen({
 
   const renderEmpty = () => (
     <VStack space="md" alignItems="center" py="$8" px="$4">
-      <Text size="lg" color="$textLight500">No members yet</Text>
+      <Text size="lg" color="$textLight500">
+        No members yet
+      </Text>
       <Text size="sm" color="$textLight400" textAlign="center">
         Invite members to your family.
       </Text>
@@ -185,14 +179,22 @@ export function FamilyDetailScreen({
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Box px="$4" py="$3" borderBottomWidth={1} borderBottomColor="$borderLight200" bg="$backgroundLight0">
+      <Box
+        px="$4"
+        py="$3"
+        borderBottomWidth={1}
+        borderBottomColor="$borderLight200"
+        bg="$backgroundLight0"
+      >
         <HStack space="md" alignItems="center" justifyContent="space-between">
           <VStack space="xs" flex={1}>
             <Heading size="md" color="$textLight900">
               {currentFamily?.name ?? 'Family'}
             </Heading>
             {error && (
-              <Text size="xs" color="$error600">{error}</Text>
+              <Text size="xs" color="$error600">
+                {error}
+              </Text>
             )}
           </VStack>
           <Button size="sm" variant="outline" onPress={() => onSettingsPress(familyId)}>
@@ -295,11 +297,7 @@ export function FamilyDetailScreen({
             >
               <ButtonText>Cancel</ButtonText>
             </Button>
-            <Button
-              size="sm"
-              onPress={handleInvite}
-              isDisabled={inviting}
-            >
+            <Button size="sm" onPress={handleInvite} isDisabled={inviting}>
               <ButtonText>{inviting ? 'Inviting...' : 'Invite'}</ButtonText>
             </Button>
           </ModalFooter>
@@ -311,18 +309,18 @@ export function FamilyDetailScreen({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   emptyList: {
     flexGrow: 1,
   },
   inviteButton: {
     width: '100%',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
 });

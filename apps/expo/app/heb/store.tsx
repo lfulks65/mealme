@@ -14,7 +14,7 @@ import type { StoreInfo } from '@mealme/api';
 export default function HEBStoreSelectRoute() {
   const router = useRouter();
   const { familyId } = useLocalSearchParams<{ familyId: string }>();
-  const [selectedStore, setSelectedStore] = useState<StoreInfo | null>(null);
+  const [, setSelectedStore] = useState<StoreInfo | null>(null);
 
   const handleStoreSelected = useCallback(
     (store: StoreInfo) => {
