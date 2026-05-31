@@ -1,19 +1,24 @@
 import { useEffect } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@mealme/ui';
 import { LoginScreen as SharedLoginScreen } from '@mealme/ui';
 
 export default function LoginScreen() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const { redirect } = useLocalSearchParams<{ redirect?: string }>();
 
-  // Safety net: redirect to home if already authenticated
+  // Safety net: redirect to target or home if already authenticated
   // (e.g., deep link bypassed root guard)
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/(main)/home');
+      if (redirect) {
+        router.replace(redirect);
+      } else {
+        router.replace('/(main)/home');
+      }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, redirect]);
 
   if (isAuthenticated) {
     return null;
@@ -26,6 +31,13 @@ export default function LoginScreen() {
       }}
       onNavigateToForgotPassword={() => {
         router.push('/(auth)/forgot-password');
+      }}
+      onLoginSuccess={() => {
+        if (redirect) {
+          router.replace(redirect);
+        } else {
+          router.replace('/(main)/home');
+        }
       }}
     />
   );
