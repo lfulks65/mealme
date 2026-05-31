@@ -160,7 +160,7 @@ describe('scoreRecipe', () => {
         {
           id: 'i1',
           recipe_id: 'recipe-1',
-          name: 'peanut butter',
+          name: 'peanuts',
           quantity: '2',
           unit: 'tbsp',
           optional: false,
@@ -168,13 +168,13 @@ describe('scoreRecipe', () => {
       ],
     });
     const prefs = makePreferences({
-      allergies: ['peanut'],
+      allergies: ['peanuts'],
     });
 
     const result = scoreRecipe(recipe, prefs);
 
     expect(result.allergenScore).toBe(-50);
-    expect(result.reasons).toContainEqual(expect.stringContaining('Contains allergens: peanut'));
+    expect(result.reasons).toContainEqual(expect.stringContaining('Contains allergens: peanuts'));
   });
 
   it('does not penalize when no allergens are found', () => {
@@ -191,7 +191,7 @@ describe('scoreRecipe', () => {
       ],
     });
     const prefs = makePreferences({
-      allergies: ['peanut'],
+      allergies: ['peanuts'],
     });
 
     const result = scoreRecipe(recipe, prefs);
@@ -206,15 +206,15 @@ describe('scoreRecipe', () => {
         {
           id: 'i1',
           recipe_id: 'recipe-1',
-          name: 'cilantro',
+          name: 'sesame oil',
           quantity: '1',
-          unit: 'cup',
+          unit: 'tbsp',
           optional: false,
         },
       ],
     });
     const prefs = makePreferences({
-      allergies: ['cilantro'],
+      allergies: ['sesame'],
     });
 
     const result = scoreRecipe(recipe, prefs);
@@ -276,7 +276,7 @@ describe('scoreRecipe', () => {
         {
           id: 'i1',
           recipe_id: 'recipe-1',
-          name: 'peanut oil',
+          name: 'peanuts',
           quantity: '1',
           unit: 'tbsp',
           optional: false,
@@ -284,7 +284,7 @@ describe('scoreRecipe', () => {
         {
           id: 'i2',
           recipe_id: 'recipe-1',
-          name: 'milk',
+          name: 'dairy milk',
           quantity: '1',
           unit: 'cup',
           optional: false,
@@ -292,7 +292,7 @@ describe('scoreRecipe', () => {
       ],
     });
     const prefs = makePreferences({
-      allergies: ['peanut', 'milk'],
+      allergies: ['peanuts', 'dairy'],
     });
 
     const result = scoreRecipe(recipe, prefs);
@@ -306,7 +306,7 @@ describe('scoreRecipe', () => {
         {
           id: 'i1',
           recipe_id: 'recipe-1',
-          name: 'Peanut Butter',
+          name: 'Peanuts',
           quantity: '2',
           unit: 'tbsp',
           optional: false,
@@ -314,7 +314,7 @@ describe('scoreRecipe', () => {
       ],
     });
     const prefs = makePreferences({
-      allergies: ['peanut'],
+      allergies: ['peanuts'],
     });
 
     const result = scoreRecipe(recipe, prefs);
