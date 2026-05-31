@@ -202,14 +202,29 @@ async function ensureProfile(
   return error?.message ?? null;
 }
 
-function getRedirectUrl(): string | undefined {
-  // Expo: use a deep-link scheme; Next.js: use the current origin.
+/**
+ * Returns the OAuth redirect URL that Supabase will send the user back to
+ * after they authenticate with a third-party provider (Google / Apple).
+ *
+ * IMPORTANT: The returned URL **must** be registered in the Supabase
+ * dashboard under Authentication → URL Configuration → Redirect URLs.
+ * If the URL is not listed there, Supabase will reject the callback.
+ *
+ * Platform behaviour:
+ * - **Next.js (browser)**: `window.location.origin + '/auth/callback'`
+ *   e.g. `http://localhost:3000/auth/callback` (dev) or
+ *   `https://mealme.app/auth/callback` (prod)
+ * - **Expo (React Native)**: reads `EXPO_PUBLIC_SUPABASE_REDIRECT_URL`
+ *   env var, or defaults to `mealme://auth/callback` (the app's deep
+ *   link scheme). For production builds set the env var to
+ *   `com.mealme.app://auth/callback`.
+ */
+function getRedirectUrl(): string {
+  // Next.js (browser) — append the callback path to the current origin
   if (typeof globalThis !== 'undefined' && typeof (globalThis as any).location !== 'undefined') {
-    return (globalThis as any).location.origin as string;
+    return (globalThis as any).location.origin + '/auth/callback';
   }
-  // Fallback for React Native / Expo – the app should configure the
-  // EXPO_PUBLIC_SUPABASE_REDIRECT_URL env var.
-  return (
-    process.env.EXPO_PUBLIC_SUPABASE_REDIRECT_URL ?? undefined
-  );
+
+  // Expo (React Native) — use env var or default deep-link scheme
+  return process.env.EXPO_PUBLIC_SUPABASE_REDIRECT_URL ?? 'mealme://auth/callback';
 }
