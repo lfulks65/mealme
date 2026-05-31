@@ -216,6 +216,14 @@ export type {
   RecipeFilterModalProps,
 } from './screens';
 
+// ─── MealMe Card Components ────────────────────────────────────────────────
+
+export { MealCard } from './components/mealme/MealCard';
+export type { MealCardProps } from './components/mealme/MealCard';
+
+export { RecipeCard } from './components/mealme/RecipeCard';
+export type { RecipeCardProps } from './components/mealme/RecipeCard';
+
 // ─── Recipe Hooks ──────────────────────────────────────────────────────────
 
 export {
