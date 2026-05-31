@@ -5,6 +5,9 @@ import type {
   RecipeRecommendation,
   FamilyPreferences,
   BudgetRange,
+  DietaryRestriction,
+  AllergyId,
+  CuisineType,
 } from '@mealme/shared';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -15,6 +18,22 @@ import type {
  */
 function toKebabCase(str: string): string {
   return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+/**
+ * Deduplicate and merge arrays, preserving order.
+ * First occurrence wins for ordering.
+ */
+function mergeUnique<T>(base: T[], ...overrides: T[]): T[] {
+  const seen = new Set<T>();
+  const result: T[] = [];
+  for (const item of [...base, ...overrides]) {
+    if (!seen.has(item)) {
+      seen.add(item);
+      result.push(item);
+    }
+  }
+  return result;
 }
 
 // ── Scoring Weights ──────────────────────────────────────────────────────────
@@ -189,6 +208,107 @@ export async function getFamilyPreferences(familyId: string): Promise<FamilyPref
   };
 }
 
+// ── Aggregated Preference Fetcher ─────────────────────────────────────────────
+
+/**
+ * Fetch and merge family + all member preferences into a single
+ * FamilyPreferences object suitable for the recommendation pipeline.
+ *
+ * Merge rules (mirrors `preferences/functions.ts::getAggregatedPreferences`):
+ *   - `dietaryRestrictions`: union of family + all member overrides
+ *   - `allergies`: union of family + all member overrides
+ *   - `cuisinePreferences`: family list first, then member-only
+ *     cuisines appended (deduplicated)
+ *   - `budgetRange`: from family only
+ *
+ * Falls back to just family preferences (or empty defaults) if member
+ * data isn't available.
+ */
+export async function getAggregatedFamilyPreferences(familyId: string): Promise<FamilyPreferences> {
+  const sb = getSupabaseClient();
+
+  // 1. Fetch family preferences
+  const { data: familyData, error: familyError } = await sb
+    .from('family_preferences')
+    .select('*')
+    .eq('family_id', familyId)
+    .single();
+
+  // If no family preferences row, return empty defaults
+  if (familyError || !familyData) {
+    return {
+      id: '',
+      familyId: familyId,
+      dietaryRestrictions: [],
+      allergies: [],
+      cuisinePreferences: [],
+      budgetRange: { min: 0, max: 500, currency: 'USD' },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  const familyDietary = (familyData.dietary_restrictions ?? []) as DietaryRestriction[];
+  const familyAllergies = (familyData.allergies ?? []) as AllergyId[];
+  const familyCuisines = (familyData.cuisine_preferences ?? []) as CuisineType[];
+
+  // 2. Fetch all member preferences via family_members join
+  const { data: memberData, error: memberError } = await sb
+    .from('family_members')
+    .select('id, member_preferences(*)')
+    .eq('family_id', familyId);
+
+  // If member fetch fails or returns nothing, fall back to family-only
+  if (memberError || !memberData || memberData.length === 0) {
+    return {
+      id: familyData.id ?? '',
+      familyId: familyId,
+      dietaryRestrictions: familyDietary,
+      allergies: familyAllergies,
+      cuisinePreferences: familyCuisines,
+      budgetRange: familyData.budget_range ?? { min: 0, max: 500, currency: 'USD' },
+      createdAt: familyData.created_at ?? new Date().toISOString(),
+      updatedAt: familyData.updated_at ?? new Date().toISOString(),
+    };
+  }
+
+  // 3. Extract member preferences rows from the join result
+  const memberPrefs: {
+    dietary_restrictions: DietaryRestriction[];
+    allergies: AllergyId[];
+    cuisine_preferences: CuisineType[];
+  }[] = (memberData ?? []).flatMap((fm: any) => fm.member_preferences ?? []);
+
+  // 4. Merge dietary restrictions: family + all members (union)
+  const allDietaryRestrictions = memberPrefs.reduce<DietaryRestriction[]>(
+    (acc, m) => mergeUnique(acc, ...(m.dietary_restrictions ?? [])),
+    [...familyDietary],
+  );
+
+  // 5. Merge allergies: family + all members (union)
+  const allAllergies = memberPrefs.reduce<AllergyId[]>(
+    (acc, m) => mergeUnique(acc, ...(m.allergies ?? [])),
+    [...familyAllergies],
+  );
+
+  // 6. Merge cuisine preferences: family first, then member additions
+  const allCuisinePreferences = memberPrefs.reduce<CuisineType[]>(
+    (acc, m) => mergeUnique(acc, ...(m.cuisine_preferences ?? [])),
+    [...familyCuisines],
+  );
+
+  return {
+    id: familyData.id ?? '',
+    familyId: familyId,
+    dietaryRestrictions: allDietaryRestrictions,
+    allergies: allAllergies,
+    cuisinePreferences: allCuisinePreferences,
+    budgetRange: familyData.budget_range ?? { min: 0, max: 500, currency: 'USD' },
+    createdAt: familyData.created_at ?? new Date().toISOString(),
+    updatedAt: familyData.updated_at ?? new Date().toISOString(),
+  };
+}
+
 // ── Soft Scoring Engine ──────────────────────────────────────────────────────
 
 interface ScoreBreakdown {
@@ -291,8 +411,8 @@ export async function recommendRecipes(
   familyId: string,
   limit = 10,
 ): Promise<RecipeRecommendation[]> {
-  // 1. Fetch family preferences
-  const preferences = await getFamilyPreferences(familyId);
+  // 1. Fetch aggregated preferences (family + member overrides)
+  const preferences = await getAggregatedFamilyPreferences(familyId);
 
   // 2. Fetch a broad pool of recipes
   // We fetch more than `limit` to have room for filtering
