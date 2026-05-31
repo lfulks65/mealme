@@ -28,6 +28,9 @@ export { startAuthListener } from './authListener';
 // Auth Query Provider
 export { AuthQueryProvider } from './AuthQueryProvider';
 
+// Secure storage adapter
+export { SecureStorageAdapter } from './secureStorage';
+
 // React Query auth hooks — also available via ../hooks barrel
 export {
   authKeys,
