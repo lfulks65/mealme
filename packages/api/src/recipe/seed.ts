@@ -55,6 +55,81 @@ interface SeedRecipe {
   nutrition?: NutritionData;
 }
 
+// ── Cuisine Recipe Generator ──────────────────────────────────────────────────
+
+interface CuisineRecipeConfig {
+  title: string;
+  description: string;
+  cuisine: string;
+  prep_minutes: number;
+  cook_minutes: number;
+  servings: number;
+  calories: number;
+  ingredients: { name: string; quantity: string; unit: string; optional?: boolean }[];
+  steps: string[];
+  tags: string[];
+  dietary_info: { restriction: string; is_compliant: boolean }[];
+  nutrition: NutritionData;
+}
+
+const VALID_TAGS = [
+  'breakfast',
+  'lunch',
+  'dinner',
+  'snack',
+  'appetizer',
+  'dessert',
+  'side dish',
+  'soup',
+  'salad',
+  'one-pot',
+  'slow-cooker',
+  'quick',
+  'meal-prep',
+] as const;
+
+const VALID_DIETS = [
+  'vegetarian',
+  'vegan',
+  'keto',
+  'gluten-free',
+  'dairy-free',
+  'nut-free',
+  'halal',
+  'kosher',
+  'paleo',
+] as const;
+
+/**
+ * Generate an array of SeedRecipe objects from simplified configs.
+ * Converts plain step strings into SeedStep objects with auto-numbering,
+ * and ensures dietary_info and nutrition are present on every recipe.
+ */
+function generateCuisineRecipes(configs: CuisineRecipeConfig[]): SeedRecipe[] {
+  return configs.map((cfg) => ({
+    title: cfg.title,
+    description: cfg.description,
+    cuisine: cfg.cuisine,
+    prep_minutes: cfg.prep_minutes,
+    cook_minutes: cfg.cook_minutes,
+    servings: cfg.servings,
+    calories: cfg.calories,
+    ingredients: cfg.ingredients.map((ing) => ({
+      name: ing.name,
+      quantity: ing.quantity,
+      unit: ing.unit,
+      optional: ing.optional ?? false,
+    })),
+    steps: cfg.steps.map((instruction, idx) => ({
+      step_number: idx + 1,
+      instruction,
+    })),
+    tags: cfg.tags,
+    dietary_info: cfg.dietary_info,
+    nutrition: cfg.nutrition,
+  }));
+}
+
 // ── Recipe Data ──────────────────────────────────────────────────────────────
 // Sibling tasks: append additional recipe objects to this array.
 
