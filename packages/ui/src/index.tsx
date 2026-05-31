@@ -23,6 +23,9 @@ export * from './org';
 // ─── Family ──────────────────────────────────────────────────────────────────
 export * from './family';
 
+// ─── Preferences ─────────────────────────────────────────────────────────────
+export * from './preferences';
+
 // ─── App Config ──────────────────────────────────────────────────────────────
 export { config } from './config';
 export type { AppConfig } from './config';

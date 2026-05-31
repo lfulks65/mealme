@@ -31,9 +31,15 @@ import {
   ChevronDownIcon,
   SelectContent,
   SelectItem,
+  Badge,
+  BadgeText,
 } from '@gluestack-ui/themed';
 import { useFamily } from '@mealme/api';
 import type { FamilyMember, FamilyRole } from '@mealme/api';
+import { getFamilyPreferences } from '@mealme/api';
+import type { FamilyPreferences } from '@mealme/api';
+import { getDietaryRestrictionLabel, getAllergyLabel } from '@mealme/shared';
+import type { DietaryRestriction, AllergyId } from '@mealme/shared';
 
 export interface FamilyDetailScreenProps {
   /** The family ID to display. */
@@ -69,12 +75,26 @@ export function FamilyDetailScreen({ familyId, onSettingsPress }: FamilyDetailSc
   const [userIdError, setUserIdError] = useState('');
   const [inviting, setInviting] = useState(false);
 
+  // ── Family preferences state ──────────────────────────────────────────
+  const [familyPreferences, setFamilyPreferences] = useState<FamilyPreferences | null>(null);
+
   // Load the family if it's not the current one
   useEffect(() => {
     if (currentFamily?.id !== familyId) {
       switchFamily(familyId);
     }
   }, [familyId, currentFamily, switchFamily]);
+
+  // Load family preferences for badges
+  useEffect(() => {
+    async function loadPrefs() {
+      const result = await getFamilyPreferences(familyId);
+      if (result.preferences) {
+        setFamilyPreferences(result.preferences);
+      }
+    }
+    loadPrefs();
+  }, [familyId]);
 
   const handleInvite = useCallback(async () => {
     if (!inviteUserId.trim()) {
@@ -135,9 +155,11 @@ export function FamilyDetailScreen({ familyId, onSettingsPress }: FamilyDetailSc
     >
       <HStack space="md" alignItems="center" justifyContent="space-between">
         <VStack space="xs" flex={1}>
-          <Text size="md" fontWeight="$medium" color="$textLight900">
-            {item.fullName ?? 'Unknown User'}
-          </Text>
+          <HStack space="sm" alignItems="center" flexWrap="wrap">
+            <Text size="md" fontWeight="$medium" color="$textLight900">
+              {item.fullName ?? 'Unknown User'}
+            </Text>
+          </HStack>
           <Text size="sm" color="$textLight500">
             {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
           </Text>
@@ -188,9 +210,37 @@ export function FamilyDetailScreen({ familyId, onSettingsPress }: FamilyDetailSc
       >
         <HStack space="md" alignItems="center" justifyContent="space-between">
           <VStack space="xs" flex={1}>
-            <Heading size="md" color="$textLight900">
-              {currentFamily?.name ?? 'Family'}
-            </Heading>
+            <HStack space="sm" alignItems="center" flexWrap="wrap">
+              <Heading size="md" color="$textLight900">
+                {currentFamily?.name ?? 'Family'}
+              </Heading>
+              {/* Preference badges — only show if preferences exist */}
+              {familyPreferences &&
+                familyPreferences.dietaryRestrictions.length > 0 &&
+                familyPreferences.dietaryRestrictions.slice(0, 3).map((key: DietaryRestriction) => (
+                  <Badge key={key} size="sm" variant="solid" action="success" borderRadius="$full">
+                    <BadgeText>{getDietaryRestrictionLabel(key)}</BadgeText>
+                  </Badge>
+                ))}
+              {familyPreferences &&
+                familyPreferences.allergies.length > 0 &&
+                familyPreferences.allergies.slice(0, 2).map((id: AllergyId) => (
+                  <Badge key={id} size="sm" variant="solid" action="error" borderRadius="$full">
+                    <BadgeText>{getAllergyLabel(id)}</BadgeText>
+                  </Badge>
+                ))}
+              {familyPreferences &&
+                (familyPreferences.dietaryRestrictions.length > 3 ||
+                  familyPreferences.allergies.length > 2) && (
+                  <Badge size="sm" variant="outline" action="muted" borderRadius="$full">
+                    <BadgeText>
+                      +
+                      {Math.max(0, familyPreferences.dietaryRestrictions.length - 3) +
+                        Math.max(0, familyPreferences.allergies.length - 2)}
+                    </BadgeText>
+                  </Badge>
+                )}
+            </HStack>
             {error && (
               <Text size="xs" color="$error600">
                 {error}
