@@ -232,8 +232,11 @@ export type {
   RecipeCardProps,
   IngredientListProps,
   PreferenceToggleProps,
+  PreferenceCategory,
   FamilyMemberAvatarProps,
+  AvatarSize,
   CalendarDayProps,
+  CalendarMeal,
 } from './components/mealme';
 
 // ─── Recipe Hooks ──────────────────────────────────────────────────────────

@@ -102,7 +102,7 @@ export function MealCard({
     <NativeCard
       variant="outlined"
       padding="sm"
-      style={[styles.card, style]}
+      style={style}
     >
       <View style={styles.row}>
         {/* Thumbnail */}
