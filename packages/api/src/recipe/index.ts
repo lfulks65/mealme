@@ -4,6 +4,7 @@ export {
   getRecipesByPreferences,
   listRecipesByCategory,
   listCategories,
+  attachRelations,
 } from './search';
 export {
   scoreRecipe,

@@ -37,16 +37,54 @@ const MOCK_RECIPES: RecipeFull[] = [
     created_at: '2026-01-01T00:00:00Z',
     ingredients: [
       { id: 'i1', recipe_id: '1', name: 'Quinoa', quantity: '1', unit: 'cup', optional: false },
-      { id: 'i2', recipe_id: '1', name: 'Cherry Tomatoes', quantity: '1', unit: 'pint', optional: false },
-      { id: 'i3', recipe_id: '1', name: 'Cucumber', quantity: '1', unit: 'medium', optional: false },
+      {
+        id: 'i2',
+        recipe_id: '1',
+        name: 'Cherry Tomatoes',
+        quantity: '1',
+        unit: 'pint',
+        optional: false,
+      },
+      {
+        id: 'i3',
+        recipe_id: '1',
+        name: 'Cucumber',
+        quantity: '1',
+        unit: 'medium',
+        optional: false,
+      },
       { id: 'i4', recipe_id: '1', name: 'Feta Cheese', quantity: '2', unit: 'oz', optional: true },
       { id: 'i5', recipe_id: '1', name: 'Tahini', quantity: '2', unit: 'tbsp', optional: false },
     ],
     instructions: [
-      { id: 's1', recipe_id: '1', step_number: 1, instruction: 'Cook quinoa according to package directions.', timer_minutes: 15 },
-      { id: 's2', recipe_id: '1', step_number: 2, instruction: 'Dice cucumber and halve cherry tomatoes.', timer_minutes: null },
-      { id: 's3', recipe_id: '1', step_number: 3, instruction: 'Whisk tahini with lemon juice and water until smooth.', timer_minutes: null },
-      { id: 's4', recipe_id: '1', step_number: 4, instruction: 'Assemble bowls with quinoa base, top with veggies and drizzle with tahini.', timer_minutes: null },
+      {
+        id: 's1',
+        recipe_id: '1',
+        step_number: 1,
+        instruction: 'Cook quinoa according to package directions.',
+        timer_minutes: 15,
+      },
+      {
+        id: 's2',
+        recipe_id: '1',
+        step_number: 2,
+        instruction: 'Dice cucumber and halve cherry tomatoes.',
+        timer_minutes: null,
+      },
+      {
+        id: 's3',
+        recipe_id: '1',
+        step_number: 3,
+        instruction: 'Whisk tahini with lemon juice and water until smooth.',
+        timer_minutes: null,
+      },
+      {
+        id: 's4',
+        recipe_id: '1',
+        step_number: 4,
+        instruction: 'Assemble bowls with quinoa base, top with veggies and drizzle with tahini.',
+        timer_minutes: null,
+      },
     ],
     tags: [
       { id: 't1', recipe_id: '1', tag: 'healthy' },
@@ -73,17 +111,69 @@ const MOCK_RECIPES: RecipeFull[] = [
     created_by: null,
     created_at: '2026-01-02T00:00:00Z',
     ingredients: [
-      { id: 'i6', recipe_id: '2', name: 'Chicken Thigh', quantity: '1', unit: 'lb', optional: false },
+      {
+        id: 'i6',
+        recipe_id: '2',
+        name: 'Chicken Thigh',
+        quantity: '1',
+        unit: 'lb',
+        optional: false,
+      },
       { id: 'i7', recipe_id: '2', name: 'Thai Basil', quantity: '1', unit: 'cup', optional: false },
-      { id: 'i8', recipe_id: '2', name: 'Jasmine Rice', quantity: '1.5', unit: 'cups', optional: false },
-      { id: 'i9', recipe_id: '2', name: 'Fish Sauce', quantity: '2', unit: 'tbsp', optional: false },
-      { id: 'i10', recipe_id: '2', name: 'Thai Chili', quantity: '3', unit: 'whole', optional: true },
+      {
+        id: 'i8',
+        recipe_id: '2',
+        name: 'Jasmine Rice',
+        quantity: '1.5',
+        unit: 'cups',
+        optional: false,
+      },
+      {
+        id: 'i9',
+        recipe_id: '2',
+        name: 'Fish Sauce',
+        quantity: '2',
+        unit: 'tbsp',
+        optional: false,
+      },
+      {
+        id: 'i10',
+        recipe_id: '2',
+        name: 'Thai Chili',
+        quantity: '3',
+        unit: 'whole',
+        optional: true,
+      },
     ],
     instructions: [
-      { id: 's5', recipe_id: '2', step_number: 1, instruction: 'Cook jasmine rice.', timer_minutes: 15 },
-      { id: 's6', recipe_id: '2', step_number: 2, instruction: 'Mince chicken and slice chilies.', timer_minutes: null },
-      { id: 's7', recipe_id: '2', step_number: 3, instruction: 'Stir-fry chicken over high heat until browned.', timer_minutes: 5 },
-      { id: 's8', recipe_id: '2', step_number: 4, instruction: 'Add garlic, chili, and sauce. Toss in Thai basil and serve over rice.', timer_minutes: 2 },
+      {
+        id: 's5',
+        recipe_id: '2',
+        step_number: 1,
+        instruction: 'Cook jasmine rice.',
+        timer_minutes: 15,
+      },
+      {
+        id: 's6',
+        recipe_id: '2',
+        step_number: 2,
+        instruction: 'Mince chicken and slice chilies.',
+        timer_minutes: null,
+      },
+      {
+        id: 's7',
+        recipe_id: '2',
+        step_number: 3,
+        instruction: 'Stir-fry chicken over high heat until browned.',
+        timer_minutes: 5,
+      },
+      {
+        id: 's8',
+        recipe_id: '2',
+        step_number: 4,
+        instruction: 'Add garlic, chili, and sauce. Toss in Thai basil and serve over rice.',
+        timer_minutes: 2,
+      },
     ],
     tags: [
       { id: 't4', recipe_id: '2', tag: 'spicy' },
@@ -108,25 +198,81 @@ const MOCK_RECIPES: RecipeFull[] = [
     created_by: null,
     created_at: '2026-01-03T00:00:00Z',
     ingredients: [
-      { id: 'i11', recipe_id: '3', name: 'Pizza Dough', quantity: '1', unit: 'ball', optional: false },
-      { id: 'i12', recipe_id: '3', name: 'San Marzano Tomatoes', quantity: '1', unit: 'can', optional: false },
-      { id: 'i13', recipe_id: '3', name: 'Fresh Mozzarella', quantity: '8', unit: 'oz', optional: false },
-      { id: 'i14', recipe_id: '3', name: 'Fresh Basil', quantity: '10', unit: 'leaves', optional: false },
+      {
+        id: 'i11',
+        recipe_id: '3',
+        name: 'Pizza Dough',
+        quantity: '1',
+        unit: 'ball',
+        optional: false,
+      },
+      {
+        id: 'i12',
+        recipe_id: '3',
+        name: 'San Marzano Tomatoes',
+        quantity: '1',
+        unit: 'can',
+        optional: false,
+      },
+      {
+        id: 'i13',
+        recipe_id: '3',
+        name: 'Fresh Mozzarella',
+        quantity: '8',
+        unit: 'oz',
+        optional: false,
+      },
+      {
+        id: 'i14',
+        recipe_id: '3',
+        name: 'Fresh Basil',
+        quantity: '10',
+        unit: 'leaves',
+        optional: false,
+      },
     ],
     instructions: [
-      { id: 's9', recipe_id: '3', step_number: 1, instruction: 'Preheat oven to 500°F with pizza stone.', timer_minutes: 30 },
-      { id: 's10', recipe_id: '3', step_number: 2, instruction: 'Stretch dough into a 12-inch round.', timer_minutes: null },
-      { id: 's11', recipe_id: '3', step_number: 3, instruction: 'Spread crushed tomatoes, add torn mozzarella.', timer_minutes: null },
-      { id: 's12', recipe_id: '3', step_number: 4, instruction: 'Bake until crust is golden and cheese is bubbly.', timer_minutes: 12 },
-      { id: 's13', recipe_id: '3', step_number: 5, instruction: 'Top with fresh basil, slice and serve.', timer_minutes: null },
+      {
+        id: 's9',
+        recipe_id: '3',
+        step_number: 1,
+        instruction: 'Preheat oven to 500°F with pizza stone.',
+        timer_minutes: 30,
+      },
+      {
+        id: 's10',
+        recipe_id: '3',
+        step_number: 2,
+        instruction: 'Stretch dough into a 12-inch round.',
+        timer_minutes: null,
+      },
+      {
+        id: 's11',
+        recipe_id: '3',
+        step_number: 3,
+        instruction: 'Spread crushed tomatoes, add torn mozzarella.',
+        timer_minutes: null,
+      },
+      {
+        id: 's12',
+        recipe_id: '3',
+        step_number: 4,
+        instruction: 'Bake until crust is golden and cheese is bubbly.',
+        timer_minutes: 12,
+      },
+      {
+        id: 's13',
+        recipe_id: '3',
+        step_number: 5,
+        instruction: 'Top with fresh basil, slice and serve.',
+        timer_minutes: null,
+      },
     ],
     tags: [
       { id: 't6', recipe_id: '3', tag: 'comfort' },
       { id: 't7', recipe_id: '3', tag: 'family' },
     ],
-    dietary_info: [
-      { id: 'd6', recipe_id: '3', restriction: 'vegetarian', is_compliant: true },
-    ],
+    dietary_info: [{ id: 'd6', recipe_id: '3', restriction: 'vegetarian', is_compliant: true }],
   },
   {
     id: '4',
@@ -142,24 +288,60 @@ const MOCK_RECIPES: RecipeFull[] = [
     created_by: null,
     created_at: '2026-01-04T00:00:00Z',
     ingredients: [
-      { id: 'i15', recipe_id: '4', name: 'Sourdough Bread', quantity: '2', unit: 'slices', optional: false },
+      {
+        id: 'i15',
+        recipe_id: '4',
+        name: 'Sourdough Bread',
+        quantity: '2',
+        unit: 'slices',
+        optional: false,
+      },
       { id: 'i16', recipe_id: '4', name: 'Avocado', quantity: '1', unit: 'whole', optional: false },
       { id: 'i17', recipe_id: '4', name: 'Egg', quantity: '1', unit: 'large', optional: false },
-      { id: 'i18', recipe_id: '4', name: 'Red Pepper Flakes', quantity: '1', unit: 'pinch', optional: true },
+      {
+        id: 'i18',
+        recipe_id: '4',
+        name: 'Red Pepper Flakes',
+        quantity: '1',
+        unit: 'pinch',
+        optional: true,
+      },
     ],
     instructions: [
-      { id: 's14', recipe_id: '4', step_number: 1, instruction: 'Toast sourdough slices until golden.', timer_minutes: 3 },
-      { id: 's15', recipe_id: '4', step_number: 2, instruction: 'Mash avocado and spread on toast.', timer_minutes: null },
-      { id: 's16', recipe_id: '4', step_number: 3, instruction: 'Poach egg in simmering water.', timer_minutes: 4 },
-      { id: 's17', recipe_id: '4', step_number: 4, instruction: 'Place egg on toast, season with pepper flakes.', timer_minutes: null },
+      {
+        id: 's14',
+        recipe_id: '4',
+        step_number: 1,
+        instruction: 'Toast sourdough slices until golden.',
+        timer_minutes: 3,
+      },
+      {
+        id: 's15',
+        recipe_id: '4',
+        step_number: 2,
+        instruction: 'Mash avocado and spread on toast.',
+        timer_minutes: null,
+      },
+      {
+        id: 's16',
+        recipe_id: '4',
+        step_number: 3,
+        instruction: 'Poach egg in simmering water.',
+        timer_minutes: 4,
+      },
+      {
+        id: 's17',
+        recipe_id: '4',
+        step_number: 4,
+        instruction: 'Place egg on toast, season with pepper flakes.',
+        timer_minutes: null,
+      },
     ],
     tags: [
       { id: 't8', recipe_id: '4', tag: 'quick' },
       { id: 't9', recipe_id: '4', tag: 'breakfast' },
     ],
-    dietary_info: [
-      { id: 'd7', recipe_id: '4', restriction: 'vegetarian', is_compliant: true },
-    ],
+    dietary_info: [{ id: 'd7', recipe_id: '4', restriction: 'vegetarian', is_compliant: true }],
   },
   {
     id: '5',
@@ -175,26 +357,82 @@ const MOCK_RECIPES: RecipeFull[] = [
     created_by: null,
     created_at: '2026-01-05T00:00:00Z',
     ingredients: [
-      { id: 'i19', recipe_id: '5', name: 'Ramen Noodles', quantity: '8', unit: 'oz', optional: false },
-      { id: 'i20', recipe_id: '5', name: 'Miso Paste', quantity: '3', unit: 'tbsp', optional: false },
+      {
+        id: 'i19',
+        recipe_id: '5',
+        name: 'Ramen Noodles',
+        quantity: '8',
+        unit: 'oz',
+        optional: false,
+      },
+      {
+        id: 'i20',
+        recipe_id: '5',
+        name: 'Miso Paste',
+        quantity: '3',
+        unit: 'tbsp',
+        optional: false,
+      },
       { id: 'i21', recipe_id: '5', name: 'Pork Belly', quantity: '8', unit: 'oz', optional: false },
-      { id: 'i22', recipe_id: '5', name: 'Soft-Boiled Egg', quantity: '2', unit: 'whole', optional: false },
-      { id: 'i23', recipe_id: '5', name: 'Green Onion', quantity: '2', unit: 'stalks', optional: false },
+      {
+        id: 'i22',
+        recipe_id: '5',
+        name: 'Soft-Boiled Egg',
+        quantity: '2',
+        unit: 'whole',
+        optional: false,
+      },
+      {
+        id: 'i23',
+        recipe_id: '5',
+        name: 'Green Onion',
+        quantity: '2',
+        unit: 'stalks',
+        optional: false,
+      },
     ],
     instructions: [
-      { id: 's18', recipe_id: '5', step_number: 1, instruction: 'Braise pork belly in soy sauce and mirin.', timer_minutes: 30 },
-      { id: 's19', recipe_id: '5', step_number: 2, instruction: 'Prepare soft-boiled eggs (6.5 minutes).', timer_minutes: 7 },
-      { id: 's20', recipe_id: '5', step_number: 3, instruction: 'Bring dashi stock to a simmer, whisk in miso paste.', timer_minutes: 5 },
-      { id: 's21', recipe_id: '5', step_number: 4, instruction: 'Cook ramen noodles according to package.', timer_minutes: 3 },
-      { id: 's22', recipe_id: '5', step_number: 5, instruction: 'Assemble: noodles, broth, sliced chashu, halved egg, sliced green onion.', timer_minutes: null },
+      {
+        id: 's18',
+        recipe_id: '5',
+        step_number: 1,
+        instruction: 'Braise pork belly in soy sauce and mirin.',
+        timer_minutes: 30,
+      },
+      {
+        id: 's19',
+        recipe_id: '5',
+        step_number: 2,
+        instruction: 'Prepare soft-boiled eggs (6.5 minutes).',
+        timer_minutes: 7,
+      },
+      {
+        id: 's20',
+        recipe_id: '5',
+        step_number: 3,
+        instruction: 'Bring dashi stock to a simmer, whisk in miso paste.',
+        timer_minutes: 5,
+      },
+      {
+        id: 's21',
+        recipe_id: '5',
+        step_number: 4,
+        instruction: 'Cook ramen noodles according to package.',
+        timer_minutes: 3,
+      },
+      {
+        id: 's22',
+        recipe_id: '5',
+        step_number: 5,
+        instruction: 'Assemble: noodles, broth, sliced chashu, halved egg, sliced green onion.',
+        timer_minutes: null,
+      },
     ],
     tags: [
       { id: 't10', recipe_id: '5', tag: 'comfort' },
       { id: 't11', recipe_id: '5', tag: 'soup' },
     ],
-    dietary_info: [
-      { id: 'd8', recipe_id: '5', restriction: 'dairy-free', is_compliant: true },
-    ],
+    dietary_info: [{ id: 'd8', recipe_id: '5', restriction: 'dairy-free', is_compliant: true }],
   },
   {
     id: '6',
@@ -210,16 +448,62 @@ const MOCK_RECIPES: RecipeFull[] = [
     created_by: null,
     created_at: '2026-01-06T00:00:00Z',
     ingredients: [
-      { id: 'i24', recipe_id: '6', name: 'Corn Kernels', quantity: '4', unit: 'cups', optional: false },
-      { id: 'i25', recipe_id: '6', name: 'Cotija Cheese', quantity: '3', unit: 'oz', optional: false },
+      {
+        id: 'i24',
+        recipe_id: '6',
+        name: 'Corn Kernels',
+        quantity: '4',
+        unit: 'cups',
+        optional: false,
+      },
+      {
+        id: 'i25',
+        recipe_id: '6',
+        name: 'Cotija Cheese',
+        quantity: '3',
+        unit: 'oz',
+        optional: false,
+      },
       { id: 'i26', recipe_id: '6', name: 'Lime', quantity: '2', unit: 'whole', optional: false },
-      { id: 'i27', recipe_id: '6', name: 'Mayonnaise', quantity: '2', unit: 'tbsp', optional: false },
-      { id: 'i28', recipe_id: '6', name: 'Chili Powder', quantity: '1', unit: 'tsp', optional: true },
+      {
+        id: 'i27',
+        recipe_id: '6',
+        name: 'Mayonnaise',
+        quantity: '2',
+        unit: 'tbsp',
+        optional: false,
+      },
+      {
+        id: 'i28',
+        recipe_id: '6',
+        name: 'Chili Powder',
+        quantity: '1',
+        unit: 'tsp',
+        optional: true,
+      },
     ],
     instructions: [
-      { id: 's23', recipe_id: '6', step_number: 1, instruction: 'Char corn kernels in a hot skillet.', timer_minutes: 8 },
-      { id: 's24', recipe_id: '6', step_number: 2, instruction: 'Mix mayo, lime juice, and chili powder.', timer_minutes: null },
-      { id: 's25', recipe_id: '6', step_number: 3, instruction: 'Toss charred corn with dressing and crumbled cotija.', timer_minutes: null },
+      {
+        id: 's23',
+        recipe_id: '6',
+        step_number: 1,
+        instruction: 'Char corn kernels in a hot skillet.',
+        timer_minutes: 8,
+      },
+      {
+        id: 's24',
+        recipe_id: '6',
+        step_number: 2,
+        instruction: 'Mix mayo, lime juice, and chili powder.',
+        timer_minutes: null,
+      },
+      {
+        id: 's25',
+        recipe_id: '6',
+        step_number: 3,
+        instruction: 'Toss charred corn with dressing and crumbled cotija.',
+        timer_minutes: null,
+      },
     ],
     tags: [
       { id: 't12', recipe_id: '6', tag: 'quick' },
@@ -251,94 +535,93 @@ export function useRecipeSearch() {
     total: 0,
     limit: 20,
     offset: 0,
+    has_more: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const search = useCallback(
-    async (query?: string, filters?: RecipeSearchFilters) => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Simulate API delay
-        await new Promise((r) => setTimeout(r, 300));
+  const search = useCallback(async (query?: string, filters?: RecipeSearchFilters) => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Simulate API delay
+      await new Promise((r) => setTimeout(r, 300));
 
-        let filtered = [...MOCK_RECIPES];
+      let filtered = [...MOCK_RECIPES];
 
-        // Text search
-        if (query && query.trim().length > 0) {
-          const q = query.toLowerCase();
-          filtered = filtered.filter(
-            (r) =>
-              r.title.toLowerCase().includes(q) ||
-              r.description?.toLowerCase().includes(q) ||
-              r.cuisine?.toLowerCase().includes(q) ||
-              r.tags.some((t) => t.tag.toLowerCase().includes(q))
-          );
-        }
-
-        // Cuisine filter
-        if (filters?.cuisine) {
-          filtered = filtered.filter(
-            (r) => r.cuisine?.toLowerCase() === filters.cuisine!.toLowerCase()
-          );
-        }
-
-        // Max prep time
-        if (filters?.max_prep_minutes !== undefined) {
-          filtered = filtered.filter(
-            (r) => r.prep_minutes !== null && r.prep_minutes <= filters.max_prep_minutes!
-          );
-        }
-
-        // Max cook time
-        if (filters?.max_cook_minutes !== undefined) {
-          filtered = filtered.filter(
-            (r) => r.cook_minutes !== null && r.cook_minutes <= filters.max_cook_minutes!
-          );
-        }
-
-        // Max calories
-        if (filters?.max_calories !== undefined) {
-          filtered = filtered.filter(
-            (r) => r.calories !== null && r.calories <= filters.max_calories!
-          );
-        }
-
-        // Dietary restrictions
-        if (filters?.dietary_restrictions && filters.dietary_restrictions.length > 0) {
-          filtered = filtered.filter((recipe) =>
-            filters.dietary_restrictions!.every((restriction) =>
-              recipe.dietary_info.some(
-                (di) => di.restriction === restriction && di.is_compliant
-              )
-            )
-          );
-        }
-
-        // Tags
-        if (filters?.tags && filters.tags.length > 0) {
-          filtered = filtered.filter((recipe) =>
-            filters.tags!.every((tag) =>
-              recipe.tags.some((t) => t.tag.toLowerCase() === tag.toLowerCase())
-            )
-          );
-        }
-
-        setResults({
-          recipes: filtered,
-          total: filtered.length,
-          limit: 20,
-          offset: 0,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Search failed');
-      } finally {
-        setLoading(false);
+      // Text search
+      if (query && query.trim().length > 0) {
+        const q = query.toLowerCase();
+        filtered = filtered.filter(
+          (r) =>
+            r.title.toLowerCase().includes(q) ||
+            r.description?.toLowerCase().includes(q) ||
+            r.cuisine?.toLowerCase().includes(q) ||
+            r.tags.some((t) => t.tag.toLowerCase().includes(q)),
+        );
       }
-    },
-    []
-  );
+
+      // Cuisine filter
+      if (filters?.cuisine) {
+        filtered = filtered.filter(
+          (r) => r.cuisine?.toLowerCase() === filters.cuisine!.toLowerCase(),
+        );
+      }
+
+      // Max prep time
+      if (filters?.max_prep_minutes !== undefined) {
+        filtered = filtered.filter(
+          (r) => r.prep_minutes !== null && r.prep_minutes <= filters.max_prep_minutes!,
+        );
+      }
+
+      // Max total time
+      if (filters?.max_total_minutes !== undefined) {
+        filtered = filtered.filter(
+          (r) =>
+            r.prep_minutes !== null &&
+            r.cook_minutes !== null &&
+            r.prep_minutes + r.cook_minutes <= filters.max_total_minutes!,
+        );
+      }
+
+      // Max calories
+      if (filters?.max_calories !== undefined) {
+        filtered = filtered.filter(
+          (r) => r.calories !== null && r.calories <= filters.max_calories!,
+        );
+      }
+
+      // Dietary restrictions
+      if (filters?.dietary_restrictions && filters.dietary_restrictions.length > 0) {
+        filtered = filtered.filter((recipe) =>
+          filters.dietary_restrictions!.every((restriction) =>
+            recipe.dietary_info.some((di) => di.restriction === restriction && di.is_compliant),
+          ),
+        );
+      }
+
+      // Tags
+      if (filters?.tags && filters.tags.length > 0) {
+        filtered = filtered.filter((recipe) =>
+          filters.tags!.every((tag) =>
+            recipe.tags.some((t) => t.tag.toLowerCase() === tag.toLowerCase()),
+          ),
+        );
+      }
+
+      setResults({
+        recipes: filtered,
+        total: filtered.length,
+        limit: 20,
+        offset: 0,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Search failed');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return { results, loading, error, search };
 }
@@ -464,7 +747,7 @@ export function useCategoryRecipes(category: string | null) {
     try {
       await new Promise((r) => setTimeout(r, 150));
       const filtered = MOCK_RECIPES.filter(
-        (r) => r.cuisine?.toLowerCase() === category.toLowerCase()
+        (r) => r.cuisine?.toLowerCase() === category.toLowerCase(),
       );
       setRecipes(filtered);
     } finally {

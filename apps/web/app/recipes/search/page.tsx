@@ -47,17 +47,13 @@ export default async function RecipeSearchPage({ searchParams }: RecipeSearchPag
 
   // Fetch search results and categories in parallel
   const [searchResult, categoriesResult] = await Promise.all([
-    searchRecipes(
-      query || undefined,
-      {
-        ...(cuisine ? { cuisine } : {}),
-        ...(dietaryParams.length > 0
-          ? { dietary_restrictions: dietaryParams }
-          : {}),
-      },
-      20,
-      0,
-    ),
+    searchRecipes({
+      query: query || undefined,
+      ...(cuisine ? { cuisine } : {}),
+      ...(dietaryParams.length > 0 ? { dietary_restrictions: dietaryParams } : {}),
+      limit: 20,
+      offset: 0,
+    }),
     getRecipeCategories(),
   ]);
 
@@ -80,9 +76,7 @@ export default async function RecipeSearchPage({ searchParams }: RecipeSearchPag
       {/* Page header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Search Recipes</h1>
-        <p className="mt-2 text-lg text-gray-600">
-          Find the perfect recipe for any occasion.
-        </p>
+        <p className="mt-2 text-lg text-gray-600">Find the perfect recipe for any occasion.</p>
       </div>
 
       {/* Search & filters */}
@@ -98,14 +92,13 @@ export default async function RecipeSearchPage({ searchParams }: RecipeSearchPag
         {query && (
           <p className="text-sm text-gray-500">
             {total} result{total !== 1 ? 's' : ''} for &ldquo;{query}&rdquo;
-            {cuisine && (
-              <span> in {cuisine.charAt(0).toUpperCase() + cuisine.slice(1)}</span>
-            )}
+            {cuisine && <span> in {cuisine.charAt(0).toUpperCase() + cuisine.slice(1)}</span>}
           </p>
         )}
         {!query && cuisine && (
           <p className="text-sm text-gray-500">
-            {total} {cuisine.charAt(0).toUpperCase() + cuisine.slice(1)} recipe{total !== 1 ? 's' : ''}
+            {total} {cuisine.charAt(0).toUpperCase() + cuisine.slice(1)} recipe
+            {total !== 1 ? 's' : ''}
           </p>
         )}
       </div>

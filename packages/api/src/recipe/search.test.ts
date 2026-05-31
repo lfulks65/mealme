@@ -5,8 +5,10 @@ import type { RecipeFull, FamilyPreferences } from '@mealme/shared';
 // ── Mock Supabase ────────────────────────────────────────────────────────────
 
 // We mock the supabase client to avoid needing a real database
+const mockRpc = vi.fn();
 const mockClient = {
   from: vi.fn(),
+  rpc: mockRpc,
 };
 
 vi.mock('../lib/supabase', () => ({
@@ -83,6 +85,8 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
     source_url: null,
     created_by: null,
     created_at: '2025-01-01T00:00:00Z',
+    difficulty: 'medium',
+    avg_rating: null,
     ingredients: [
       {
         id: 'i1',
@@ -109,7 +113,7 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
         optional: false,
       },
     ],
-    instructions: [],
+    steps: [],
     tags: [{ id: 't1', recipe_id: 'recipe-1', tag: 'comfort-food' }],
     dietary_info: [
       { id: 'd1', recipe_id: 'recipe-1', restriction: 'gluten-free', is_compliant: false },
@@ -506,43 +510,175 @@ describe('applyAllPreferenceFilters', () => {
   });
 });
 
-// ── Integration: searchRecipes with Supabase mock ────────────────────────────
+// ── Integration: searchRecipes with Supabase RPC mock ─────────────────────────
 
 describe('searchRecipes (integration)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('calls Supabase with correct table and returns result structure', async () => {
-    // Build a minimal chainable mock using `any` to avoid complex Vitest mock typing
-    const chain: Record<string, any> = {};
-    const recipeData = { id: 'r1', title: 'Test' };
-
-    chain.eq = vi.fn(() => chain);
-    chain.ilike = vi.fn(() => chain);
-    chain.in = vi.fn(() => chain);
-    chain.lte = vi.fn(() => chain);
-    chain.gte = vi.fn(() => chain);
-    chain.range = vi.fn(() => chain);
-    chain.order = vi.fn(() => chain);
-    chain.textSearch = vi.fn(() => chain);
-    chain.not = vi.fn(() => chain);
-    chain.single = vi.fn(() => Promise.resolve({ data: null, error: null }));
-
-    // Make the chain thenable
-    chain.then = (resolve: (v: unknown) => void) => {
-      resolve({ data: [recipeData], error: null, count: 1 });
+  it('calls search_recipes_rpc and returns result structure', async () => {
+    const recipeData = {
+      id: 'r1',
+      title: 'Test',
+      total_count: 1,
     };
 
-    mockClient.from.mockReturnValue({ select: vi.fn(() => chain) });
+    mockRpc.mockResolvedValue({ data: [recipeData], error: null });
+
+    // Mock attachRelations by mocking the from() calls
+    // Each from() returns a chain that is thenable
+    const emptyResult = { data: [], error: null };
+    const chain: Record<string, any> = {};
+    chain.select = vi.fn(() => chain);
+    chain.in = vi.fn(() => chain);
+    chain.order = vi.fn(() => chain);
+    // Make the chain thenable so `await` resolves it
+    chain.then = (resolve: (v: unknown) => void) => resolve(emptyResult);
+    mockClient.from.mockReturnValue(chain);
 
     const { searchRecipes } = await import('./search');
-    const result = await searchRecipes(undefined, undefined, 20, 0);
+    const result = await searchRecipes({ query: 'pasta' });
 
-    expect(mockClient.from).toHaveBeenCalledWith('recipes');
+    expect(mockRpc).toHaveBeenCalledWith(
+      'search_recipes_rpc',
+      expect.objectContaining({
+        p_query: 'pasta',
+        p_sort: 'relevance',
+        p_limit: 20,
+        p_offset: 0,
+      }),
+    );
     expect(result).toHaveProperty('recipes');
     expect(result).toHaveProperty('total');
     expect(result).toHaveProperty('limit', 20);
     expect(result).toHaveProperty('offset', 0);
+    expect(result).toHaveProperty('has_more');
+  });
+
+  it('passes all filter params to the RPC', async () => {
+    mockRpc.mockResolvedValue({ data: [], error: null });
+
+    const { searchRecipes } = await import('./search');
+    await searchRecipes({
+      query: 'chicken',
+      cuisine: 'italian',
+      difficulty: 'easy',
+      dietary_restrictions: ['gluten-free'],
+      max_prep_minutes: 30,
+      max_total_minutes: 60,
+      max_calories: 500,
+      tags: ['quick'],
+      sort: 'prep_time',
+      limit: 10,
+      offset: 5,
+    });
+
+    expect(mockRpc).toHaveBeenCalledWith('search_recipes_rpc', {
+      p_query: 'chicken',
+      p_cuisine: 'italian',
+      p_difficulty: 'easy',
+      p_dietary_restrictions: ['gluten-free'],
+      p_max_prep_minutes: 30,
+      p_max_total_minutes: 60,
+      p_max_calories: 500,
+      p_tags: ['quick'],
+      p_sort: 'prep_time',
+      p_limit: 10,
+      p_offset: 5,
+    });
+  });
+
+  it('uses defaults when no filters provided', async () => {
+    mockRpc.mockResolvedValue({ data: [], error: null });
+
+    const { searchRecipes } = await import('./search');
+    await searchRecipes();
+
+    expect(mockRpc).toHaveBeenCalledWith('search_recipes_rpc', {
+      p_query: null,
+      p_cuisine: null,
+      p_difficulty: null,
+      p_dietary_restrictions: [],
+      p_max_prep_minutes: null,
+      p_max_total_minutes: null,
+      p_max_calories: null,
+      p_tags: [],
+      p_sort: 'relevance',
+      p_limit: 20,
+      p_offset: 0,
+    });
+  });
+
+  it('computes has_more correctly', async () => {
+    const recipes = Array.from({ length: 20 }, (_, i) => ({
+      id: `r${i}`,
+      title: `Recipe ${i}`,
+      total_count: 50,
+    }));
+
+    mockRpc.mockResolvedValue({ data: recipes, error: null });
+
+    const emptyResult = { data: [], error: null };
+    const chain: Record<string, any> = {};
+    chain.select = vi.fn(() => chain);
+    chain.in = vi.fn(() => chain);
+    chain.order = vi.fn(() => chain);
+    chain.then = (resolve: (v: unknown) => void) => resolve(emptyResult);
+    mockClient.from.mockReturnValue(chain);
+
+    const { searchRecipes } = await import('./search');
+    const result = await searchRecipes({ limit: 20, offset: 0 });
+
+    expect(result.total).toBe(50);
+    expect(result.has_more).toBe(true); // 0 + 20 < 50
+  });
+
+  it('has_more is false when all results fit in one page', async () => {
+    const recipes = Array.from({ length: 5 }, (_, i) => ({
+      id: `r${i}`,
+      title: `Recipe ${i}`,
+      total_count: 5,
+    }));
+
+    mockRpc.mockResolvedValue({ data: recipes, error: null });
+
+    const emptyResult = { data: [], error: null };
+    const chain: Record<string, any> = {};
+    chain.select = vi.fn(() => chain);
+    chain.in = vi.fn(() => chain);
+    chain.order = vi.fn(() => chain);
+    chain.then = (resolve: (v: unknown) => void) => resolve(emptyResult);
+    mockClient.from.mockReturnValue(chain);
+
+    const { searchRecipes } = await import('./search');
+    const result = await searchRecipes({ limit: 20, offset: 0 });
+
+    expect(result.total).toBe(5);
+    expect(result.has_more).toBe(false); // 0 + 20 >= 5
+  });
+
+  it('throws on RPC error', async () => {
+    mockRpc.mockResolvedValue({
+      data: null,
+      error: { message: 'RPC failed', code: 'PGRST' },
+    });
+
+    const { searchRecipes } = await import('./search');
+
+    await expect(searchRecipes({ query: 'fail' })).rejects.toEqual(
+      expect.objectContaining({ message: 'RPC failed' }),
+    );
+  });
+
+  it('returns total_count = 0 when no results', async () => {
+    mockRpc.mockResolvedValue({ data: [], error: null });
+
+    const { searchRecipes } = await import('./search');
+    const result = await searchRecipes({ query: 'nonexistent' });
+
+    expect(result.total).toBe(0);
+    expect(result.recipes).toEqual([]);
+    expect(result.has_more).toBe(false);
   });
 });
