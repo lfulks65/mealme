@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useCallback } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Session } from '@supabase/supabase-js';
@@ -78,9 +78,6 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
   const signInWithProviderMutation = useSignInWithProviderMutation();
   const resetPasswordMutation = useResetPasswordMutation();
 
-  // Track the most recent mutation error so consumers see a single `error`
-  const activeErrorRef = useRef<string | null>(null);
-
   // Derive the active error from whichever mutation was used last
   const getMutationError = (mutation: { error: Error | null }): string | null =>
     mutation.error?.message ?? null;
@@ -99,60 +96,9 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
   const isAuthenticated = user !== null;
   const isLoading = sessionLoading;
 
-  // ----- Auth actions -----
-
-  const signIn = useCallback(
-    async (email: string, password: string) => {
-      activeErrorRef.current = null;
-      await signInMutation.mutateAsync({ email, password });
-    },
-    [signInMutation],
-  );
-
-  const signUp = useCallback(
-    async (name: string, email: string, password: string) => {
-      activeErrorRef.current = null;
-      await signUpMutation.mutateAsync({ email, password, name });
-    },
-    [signUpMutation],
-  );
-
-  const signOut = useCallback(async () => {
-    activeErrorRef.current = null;
-    await signOutMutation.mutateAsync();
-  }, [signOutMutation]);
-
-  const signInWithProvider = useCallback(
-    async (provider: 'google' | 'apple') => {
-      activeErrorRef.current = null;
-      await signInWithProviderMutation.mutateAsync({ provider });
-    },
-    [signInWithProviderMutation],
-  );
-
-  const signInWithGoogle = useCallback(async () => {
-    activeErrorRef.current = null;
-    await signInWithProviderMutation.mutateAsync({ provider: 'google' });
-  }, [signInWithProviderMutation]);
-
-  const signInWithApple = useCallback(async () => {
-    activeErrorRef.current = null;
-    await signInWithProviderMutation.mutateAsync({ provider: 'apple' });
-  }, [signInWithProviderMutation]);
-
-  const forgotPassword = useCallback(
-    async (email: string) => {
-      if (!email.trim()) {
-        throw new Error('Please enter your email');
-      }
-      activeErrorRef.current = null;
-      await resetPasswordMutation.mutateAsync({ email });
-    },
-    [resetPasswordMutation],
-  );
+  // ----- Reset all mutation state -----
 
   const resetPasswordState = useCallback(() => {
-    activeErrorRef.current = null;
     signUpMutation.reset();
     signInMutation.reset();
     signOutMutation.reset();
@@ -166,15 +112,67 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
     resetPasswordMutation,
   ]);
 
-  // Compute the visible error: prefer the most recent mutation error,
-  // falling back to any error stored in the ref.
+  // ----- Auth actions -----
+  // Each action resets all mutation state first to prevent stale errors
+  // from a different auth flow from leaking into the current screen.
+
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      resetPasswordState();
+      await signInMutation.mutateAsync({ email, password });
+    },
+    [signInMutation, resetPasswordState],
+  );
+
+  const signUp = useCallback(
+    async (name: string, email: string, password: string) => {
+      resetPasswordState();
+      await signUpMutation.mutateAsync({ email, password, name });
+    },
+    [signUpMutation, resetPasswordState],
+  );
+
+  const signOut = useCallback(async () => {
+    resetPasswordState();
+    await signOutMutation.mutateAsync();
+  }, [signOutMutation, resetPasswordState]);
+
+  const signInWithProvider = useCallback(
+    async (provider: 'google' | 'apple') => {
+      resetPasswordState();
+      await signInWithProviderMutation.mutateAsync({ provider });
+    },
+    [signInWithProviderMutation, resetPasswordState],
+  );
+
+  const signInWithGoogle = useCallback(async () => {
+    resetPasswordState();
+    await signInWithProviderMutation.mutateAsync({ provider: 'google' });
+  }, [signInWithProviderMutation, resetPasswordState]);
+
+  const signInWithApple = useCallback(async () => {
+    resetPasswordState();
+    await signInWithProviderMutation.mutateAsync({ provider: 'apple' });
+  }, [signInWithProviderMutation, resetPasswordState]);
+
+  const forgotPassword = useCallback(
+    async (email: string) => {
+      if (!email.trim()) {
+        throw new Error('Please enter your email');
+      }
+      resetPasswordState();
+      await resetPasswordMutation.mutateAsync({ email });
+    },
+    [resetPasswordMutation, resetPasswordState],
+  );
+
+  // Compute the visible error from whichever mutation was used last.
   const error =
     getMutationError(signInMutation) ??
     getMutationError(signUpMutation) ??
     getMutationError(signOutMutation) ??
     getMutationError(signInWithProviderMutation) ??
-    getMutationError(resetPasswordMutation) ??
-    activeErrorRef.current;
+    getMutationError(resetPasswordMutation);
 
   const value: AuthContextType = {
     user,
