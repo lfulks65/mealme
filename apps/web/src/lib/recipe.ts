@@ -6,9 +6,13 @@
  * to fetch recipe data in Server Components. They mirror
  * the client-side API functions from @mealme/api but work
  * without React hooks or client-side auth context.
+ *
+ * Also exports a client-side `searchRecipesClient` that uses
+ * the @mealme/api package for use in React Query hooks.
  */
 
 import { createServerClient } from './supabase-server';
+import { searchRecipes as searchRecipesApi } from '@mealme/api';
 import type {
   RecipeFull,
   RecipeIngredientDB,
@@ -364,4 +368,24 @@ export async function getPopularRecipeIds(limit = 20): Promise<string[]> {
   }
 
   return data.map((row: { id: string }) => row.id);
+}
+
+// ---------------------------------------------------------------------------
+// searchRecipesClient (client-side)
+// ---------------------------------------------------------------------------
+
+/**
+ * Client-side recipe search using the @mealme/api package.
+ *
+ * This function delegates to the @mealme/api searchRecipes,
+ * which uses the Supabase client (anon key) for client-side
+ * data fetching. Used by React Query hooks in the web app.
+ *
+ * @param filters - Search filters including query, cuisine, difficulty, etc.
+ * @returns Search results with total count and has_more.
+ */
+export async function searchRecipesClient(
+  filters: RecipeSearchFilters = {},
+): Promise<RecipeSearchResult> {
+  return searchRecipesApi(filters);
 }
