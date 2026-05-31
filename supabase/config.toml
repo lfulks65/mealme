@@ -49,6 +49,11 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = true
 
+# Custom email templates (paths relative to supabase/ directory)
+[auth.email.template.invite]
+subject = "You've been invited to join MealMe"
+content_path = "./templates/invite.html"
+
 # ----------------------------------------------------------------------------
 # Auth — Google OAuth
 # ----------------------------------------------------------------------------

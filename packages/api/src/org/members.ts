@@ -110,9 +110,61 @@ export async function inviteMember(input: InviteMemberInput): Promise<InviteResu
     return { invite: null, error: mapError(inviteError, 'Failed to create invite') };
   }
 
-  // TODO: Send invite email via Supabase Edge Function or external service.
-  // For now, the invite row is created and can be retrieved by the invitee.
-  // A future task should implement email delivery.
+  // Send invite email via Supabase Edge Function
+  try {
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      process.env.EXPO_PUBLIC_SITE_URL ??
+      process.env.SITE_URL ??
+      '';
+
+    if (siteUrl) {
+      // Fetch inviter's display name
+      const { data: inviterProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', userId)
+        .single();
+      const inviterName = (inviterProfile as any)?.full_name ?? 'Someone';
+
+      // Fetch org name
+      const { data: orgRow } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('id', input.orgId)
+        .single();
+      const orgName = (orgRow as any)?.name ?? 'an organization';
+
+      // Determine the Edge Function URL
+      const supabaseUrl =
+        process.env.EXPO_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+      const functionUrl = `${supabaseUrl}/functions/v1/send-invite-email`;
+
+      if (serviceRoleKey) {
+        // Call the Edge Function (server-side only — requires service role key)
+        await fetch(functionUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            inviteId: inviteData.id,
+            email: inviteData.email,
+            orgName,
+            inviteToken: inviteData.invite_token,
+            inviterName,
+            role: inviteData.role,
+          }),
+        });
+      }
+    }
+  } catch (emailError) {
+    // Email delivery failure should not block the invite creation.
+    // The invite row is still valid and can be accepted via direct link.
+    console.warn('[inviteMember] Failed to send invite email:', emailError);
+  }
 
   const invite: InviteRow = {
     id: inviteData.id,
