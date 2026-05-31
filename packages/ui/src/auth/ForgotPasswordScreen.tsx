@@ -47,7 +47,15 @@ export function ForgotPasswordScreen({ onNavigateToLogin }: ForgotPasswordScreen
       await forgotPassword(email.trim());
       setEmailSent(true);
     } catch {
-      // Error is set in context
+      // Error is set in context from React Query mutation
+    }
+  };
+
+  const handleResendEmail = async () => {
+    try {
+      await forgotPassword(email.trim());
+    } catch {
+      // Error is set in context from React Query mutation
     }
   };
 
@@ -149,6 +157,28 @@ export function ForgotPasswordScreen({ onNavigateToLogin }: ForgotPasswordScreen
             </>
           )}
 
+          {/* Resend Email Button (shown in success state) */}
+          {emailSent && (
+            <VStack space="md" alignItems="center">
+              <Text size="sm" color="$textLight500" textAlign="center">
+                Didn&apos;t receive the email? Check your spam folder or try again.
+              </Text>
+              <Button
+                size="md"
+                variant="outline"
+                action="primary"
+                onPress={handleResendEmail}
+                isDisabled={isLoading}
+                style={styles.resendButton}
+              >
+                {isLoading && <ButtonSpinner mr="$2" />}
+                <ButtonText size="sm" fontWeight="$semibold" color="$primary500">
+                  {isLoading ? 'Resending...' : 'Resend Email'}
+                </ButtonText>
+              </Button>
+            </VStack>
+          )}
+
           {/* Back to Login Link */}
           <HStack justifyContent="center" space="xs" mt="$4">
             <Text size="sm" color="$textLight500">
@@ -180,6 +210,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   primaryButton: {
+    width: '100%',
+  },
+  resendButton: {
     width: '100%',
   },
   scrollContent: {

@@ -7,12 +7,15 @@ import {
   FormControlError,
   FormControlErrorText,
 } from '@gluestack-ui/themed';
-import { Input, InputField } from '@gluestack-ui/themed';
+import { Input, InputField, InputSlot, InputIcon } from '@gluestack-ui/themed';
 import { Button, ButtonText, ButtonSpinner } from '@gluestack-ui/themed';
 import { Text } from '@gluestack-ui/themed';
 import { VStack } from '@gluestack-ui/themed';
 import { HStack } from '@gluestack-ui/themed';
 import { Divider } from '@gluestack-ui/themed';
+import { EyeIcon, EyeOffIcon } from '@gluestack-ui/themed';
+import { Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel } from '@gluestack-ui/themed';
+import { CheckIcon } from '@gluestack-ui/themed';
 import { useAuth } from './AuthContext';
 
 export interface LoginScreenProps {
@@ -31,6 +34,8 @@ export function LoginScreen({
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
@@ -64,7 +69,7 @@ export function LoginScreen({
       await signIn(email, password);
       onLoginSuccess?.();
     } catch {
-      // Error is set in context
+      // Error is set in context from React Query mutation
     }
   };
 
@@ -73,7 +78,7 @@ export function LoginScreen({
       await signInWithGoogle();
       onLoginSuccess?.();
     } catch {
-      // Error is set in context
+      // Error is set in context from React Query mutation
     }
   };
 
@@ -82,7 +87,7 @@ export function LoginScreen({
       await signInWithApple();
       onLoginSuccess?.();
     } catch {
-      // Error is set in context
+      // Error is set in context from React Query mutation
     }
   };
 
@@ -165,11 +170,14 @@ export function LoginScreen({
                   setPasswordError('');
                   resetPasswordState();
                 }}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 editable={!isLoading}
                 aria-label="Password"
               />
+              <InputSlot pr="$3" onPress={() => setShowPassword(!showPassword)}>
+                <InputIcon as={showPassword ? EyeOffIcon : EyeIcon} color="$textLight400" />
+              </InputSlot>
             </Input>
             {passwordError && (
               <FormControlError>
@@ -178,8 +186,25 @@ export function LoginScreen({
             )}
           </FormControl>
 
-          {/* Forgot Password Link */}
-          <HStack justifyContent="flex-end">
+          {/* Remember Me & Forgot Password Row */}
+          <HStack justifyContent="space-between" alignItems="center">
+            <Checkbox
+              size="sm"
+              value="rememberMe"
+              isChecked={rememberMe}
+              onChange={setRememberMe}
+              accessibilityLabel="Remember me"
+            >
+              <CheckboxIndicator mr="$2">
+                <CheckboxIcon as={CheckIcon} />
+              </CheckboxIndicator>
+              <CheckboxLabel>
+                <Text size="sm" color="$textLight700">
+                  Remember me
+                </Text>
+              </CheckboxLabel>
+            </Checkbox>
+
             <Button variant="link" size="sm" onPress={onNavigateToForgotPassword}>
               <ButtonText color="$primary500" size="sm">
                 Forgot Password?
