@@ -22,7 +22,7 @@ export type {
   CreateRecipeInput,
   UpdateRecipeInput,
   RecipeIngredientDB,
-  RecipeInstruction,
+  RecipeStepDB,
   RecipeTag,
   RecipeDietaryInfo,
   RecipeFull,

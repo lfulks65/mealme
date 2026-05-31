@@ -170,8 +170,8 @@ export interface RecipeIngredientDB {
   optional: boolean;
 }
 
-/** A single instruction step for a Supabase-backed recipe. */
-export interface RecipeInstruction {
+/** A single step for a Supabase-backed recipe (from the recipe_steps table). */
+export interface RecipeStepDB {
   id: string;
   recipe_id: string;
   step_number: number;
@@ -230,7 +230,7 @@ export interface RecipeFull {
 
   // ── Nested relations (attached by attachRelations) ─────────────────────
   ingredients: RecipeIngredientDB[];
-  instructions: RecipeInstruction[];
+  steps: RecipeStepDB[];
   tags: RecipeTag[];
   dietary_info: RecipeDietaryInfo[];
 }

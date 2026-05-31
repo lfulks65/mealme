@@ -224,7 +224,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ recipeId
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>👨‍🍳 Instructions</Text>
         <View style={styles.sectionDivider} />
-        {recipe.instructions.map((step) => (
+        {recipe.steps.map((step) => (
           <View key={step.id} style={styles.stepRow}>
             <View style={styles.stepNumberContainer}>
               <Text style={styles.stepNumber}>{step.step_number}</Text>

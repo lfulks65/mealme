@@ -109,7 +109,7 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
         optional: false,
       },
     ],
-    instructions: [],
+    steps: [],
     tags: [{ id: 't1', recipe_id: 'recipe-1', tag: 'comfort-food' }],
     dietary_info: [
       { id: 'd1', recipe_id: 'recipe-1', restriction: 'gluten-free', is_compliant: false },

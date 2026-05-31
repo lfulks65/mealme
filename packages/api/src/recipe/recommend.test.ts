@@ -75,7 +75,7 @@ function makeRecipe(overrides: Partial<RecipeFull> = {}): RecipeFull {
         optional: false,
       },
     ],
-    instructions: [
+    steps: [
       {
         id: 's1',
         recipe_id: 'recipe-1',

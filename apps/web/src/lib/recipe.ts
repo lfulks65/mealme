@@ -12,7 +12,7 @@ import { createServerClient } from './supabase-server';
 import type {
   RecipeFull,
   RecipeIngredientDB,
-  RecipeInstruction,
+  RecipeStepDB,
   RecipeTag,
   RecipeDietaryInfo,
   RecipeSearchFilters,
@@ -73,10 +73,10 @@ async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
   const supabase = createServerClient();
   const recipeIds = recipes.map((r) => r.id);
 
-  const [ingredients, instructions, tags, dietaryInfo] = await Promise.all([
+  const [ingredients, steps, tags, dietaryInfo] = await Promise.all([
     supabase.from('recipe_ingredients').select('*').in('recipe_id', recipeIds),
     supabase
-      .from('recipe_instructions')
+      .from('recipe_steps')
       .select('*')
       .in('recipe_id', recipeIds)
       .order('step_number', { ascending: true }),
@@ -85,7 +85,7 @@ async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
   ]);
 
   if (ingredients.error) throw ingredients.error;
-  if (instructions.error) throw instructions.error;
+  if (steps.error) throw steps.error;
   if (tags.error) throw tags.error;
   if (dietaryInfo.error) throw dietaryInfo.error;
 
@@ -93,10 +93,7 @@ async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
     ingredients.data as RecipeIngredientDB[],
     'recipe_id',
   );
-  const instructionMap = groupBy<RecipeInstruction>(
-    instructions.data as RecipeInstruction[],
-    'recipe_id',
-  );
+  const stepMap = groupBy<RecipeStepDB>(steps.data as RecipeStepDB[], 'recipe_id');
   const tagMap = groupBy<RecipeTag>(tags.data as RecipeTag[], 'recipe_id');
   const dietaryMap = groupBy<RecipeDietaryInfo>(
     dietaryInfo.data as RecipeDietaryInfo[],
@@ -106,7 +103,7 @@ async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull[]> {
   return recipes.map((r) => ({
     ...r,
     ingredients: ingredientMap[r.id] ?? [],
-    instructions: instructionMap[r.id] ?? [],
+    steps: stepMap[r.id] ?? [],
     tags: tagMap[r.id] ?? [],
     dietary_info: dietaryMap[r.id] ?? [],
   }));

@@ -3,7 +3,7 @@ import { passesDietaryFilter, passesAllergenFilter, passesBudgetFilter } from '.
 import type {
   RecipeFull,
   RecipeIngredientDB,
-  RecipeInstruction,
+  RecipeStepDB,
   RecipeTag,
   RecipeDietaryInfo,
   RecipeSearchFilters,
@@ -24,10 +24,10 @@ export async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull
   const sb = getSupabaseClient();
   const recipeIds = recipes.map((r) => r.id);
 
-  const [ingredients, instructions, tags, dietaryInfo] = await Promise.all([
+  const [ingredients, steps, tags, dietaryInfo] = await Promise.all([
     sb.from('recipe_ingredients').select('*').in('recipe_id', recipeIds),
     sb
-      .from('recipe_instructions')
+      .from('recipe_steps')
       .select('*')
       .in('recipe_id', recipeIds)
       .order('step_number', { ascending: true }),
@@ -36,19 +36,19 @@ export async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull
   ]);
 
   if (ingredients.error) throw ingredients.error;
-  if (instructions.error) throw instructions.error;
+  if (steps.error) throw steps.error;
   if (tags.error) throw tags.error;
   if (dietaryInfo.error) throw dietaryInfo.error;
 
   const ingredientMap = groupBy<RecipeIngredientDB>(ingredients.data, 'recipe_id');
-  const instructionMap = groupBy<RecipeInstruction>(instructions.data, 'recipe_id');
+  const stepMap = groupBy<RecipeStepDB>(steps.data, 'recipe_id');
   const tagMap = groupBy<RecipeTag>(tags.data, 'recipe_id');
   const dietaryMap = groupBy<RecipeDietaryInfo>(dietaryInfo.data, 'recipe_id');
 
   return recipes.map((r) => ({
     ...r,
     ingredients: ingredientMap[r.id] ?? [],
-    instructions: instructionMap[r.id] ?? [],
+    steps: stepMap[r.id] ?? [],
     tags: tagMap[r.id] ?? [],
     dietary_info: dietaryMap[r.id] ?? [],
   }));
