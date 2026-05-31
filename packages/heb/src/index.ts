@@ -13,6 +13,21 @@ export { HEBClient } from './client.js';
 export { CartManager } from './cart.js';
 export { OrderManager } from './order.js';
 
+// ── Errors ──────────────────────────────────────────────────────────────────
+export {
+  HEBError,
+  HEBAuthenticationError,
+  HEBRateLimitError,
+  HEBStoreError,
+  HEBCartError,
+  HEBOrderError,
+  HEBNetworkError,
+  retryWithBackoff,
+  classifyHEBError,
+} from './errors.js';
+
+export type { RetryOptions } from './errors.js';
+
 // ── Types ───────────────────────────────────────────────────────────────────
 export type {
   // Configuration
