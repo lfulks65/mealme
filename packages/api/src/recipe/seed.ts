@@ -106,7 +106,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Pour remaining sauce over enchiladas and top with remaining cheese.' },
       { step_number: 5, instruction: 'Bake 20 minutes until bubbly. Top with sour cream and serve.' },
     ],
-    tags: ['mexican', 'baked', 'comfort-food', 'family-friendly'],
+    tags: ['mexican', 'baked', 'comfort-food', 'family-friendly', 'gluten-free'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: false },
@@ -423,7 +423,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Stir in lime juice, chopped cilantro, and salt.' },
       { step_number: 5, instruction: 'Taste and adjust seasoning. Serve immediately with chips or veggie sticks.' },
     ],
-    tags: ['mexican', 'dip', 'whole30', 'vegan', 'gluten-free', 'dairy-free', 'no-cook'],
+    tags: ['mexican', 'dip', 'whole30', 'vegan', 'gluten-free', 'dairy-free', 'no-cook', 'keto'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -530,7 +530,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Rub cut garlic clove across the warm toast surface.' },
       { step_number: 5, instruction: 'Spoon tomato mixture onto each toast and drizzle with remaining olive oil. Serve immediately.' },
     ],
-    tags: ['italian', 'appetizer', 'vegetarian', 'quick', 'no-cook-topping'],
+    tags: ['italian', 'appetizer', 'vegetarian', 'vegan', 'quick', 'no-cook-topping'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: false },
       { restriction: 'dairy-free', is_compliant: true },
@@ -602,7 +602,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Stir in heavy cream and chopped clams; heat through gently for 5 minutes (do not boil).' },
       { step_number: 5, instruction: 'Discard bay leaf. Season with salt and pepper. Top with crumbled bacon and serve with oyster crackers.' },
     ],
-    tags: ['american', 'soup', 'comfort-food', 'seafood', 'new-england'],
+    tags: ['american', 'soup', 'comfort-food', 'seafood', 'new-england', 'gluten-free'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: false },
@@ -638,7 +638,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Fill each mushroom cap with the sausage mixture, pressing gently.' },
       { step_number: 5, instruction: 'Place on a parchment-lined sheet pan, drizzle with olive oil, and bake 18–20 minutes until mushrooms are tender.' },
     ],
-    tags: ['american', 'appetizer', 'whole30', 'gluten-free', 'dairy-free', 'party-food'],
+    tags: ['american', 'appetizer', 'whole30', 'gluten-free', 'dairy-free', 'keto', 'party-food'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -710,7 +710,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Combine vegetables and olives in a large bowl.' },
       { step_number: 5, instruction: 'Drizzle vinaigrette over salad, toss gently, and serve immediately.' },
     ],
-    tags: ['mediterranean', 'salad', 'vegan', 'gluten-free', 'dairy-free', 'whole30', 'no-cook'],
+    tags: ['mediterranean', 'salad', 'vegan', 'gluten-free', 'dairy-free', 'keto', 'whole30', 'no-cook'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -851,7 +851,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Simmer sauce 15 minutes, then stir in heavy cream and return chicken. Cook 10 minutes until chicken is cooked through.' },
       { step_number: 5, instruction: 'Serve over steamed basmati rice, garnished with cilantro.' },
     ],
-    tags: ['indian', 'curry', 'comfort-food', 'family-friendly'],
+    tags: ['indian', 'curry', 'comfort-food', 'family-friendly', 'gluten-free'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: false },
@@ -1096,7 +1096,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Sprinkle with shredded coconut and drizzle with honey.' },
       { step_number: 5, instruction: 'Serve immediately before the bowl softens.' },
     ],
-    tags: ['american', 'breakfast', 'quick', 'vegan', 'dairy-free', 'no-cook', 'healthy'],
+    tags: ['american', 'breakfast', 'quick', 'vegan', 'dairy-free', 'gluten-free', 'no-cook', 'healthy'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
@@ -1638,7 +1638,7 @@ const recipes: SeedRecipe[] = [
       { name: 'Eggs', quantity: '6', unit: 'whole' },
       { name: 'Chorizo', quantity: '0.5', unit: 'lb' },
       { name: 'Yukon gold potatoes', quantity: '2', unit: 'whole' },
-      { name: 'Flour tortillas', quantity: '4', unit: 'piece' },
+      { name: 'Flour tortillas', quantity: '4', unit: 'piece', optional: true },
       { name: 'Salsa', quantity: '0.5', unit: 'cup' },
       { name: 'Avocado', quantity: '1', unit: 'whole' },
       { name: 'Cilantro', quantity: '0.25', unit: 'cup' },
@@ -1648,7 +1648,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 1, instruction: 'Dice potatoes into half-inch cubes. Heat olive oil in a skillet and cook potatoes until crispy and golden, about 10 minutes.' },
       { step_number: 2, instruction: 'Remove chorizo casing and crumble into the skillet with the potatoes; cook 4 minutes until browned.' },
       { step_number: 3, instruction: 'Beat eggs and scramble into the potato-chorizo mixture until just set, about 3 minutes.' },
-      { step_number: 4, instruction: 'Warm flour tortillas in a dry skillet or microwave.' },
+      { step_number: 4, instruction: 'Warm flour tortillas in a dry skillet or microwave (skip the tortilla for strict whole30 compliance and serve as a bowl).' },
       { step_number: 5, instruction: 'Fill each tortilla with the egg mixture, sliced avocado, salsa, and cilantro. Roll into burritos and serve.' },
     ],
     tags: ['mexican', 'breakfast', 'burrito', 'whole30', 'high-protein', 'family-friendly'],
@@ -1758,7 +1758,7 @@ const recipes: SeedRecipe[] = [
       { step_number: 4, instruction: 'Add shrimp and cook 3–4 minutes until pink and curled. Remove from heat.' },
       { step_number: 5, instruction: 'Stir in lime juice and fish sauce. Garnish with cilantro and serve steaming hot.' },
     ],
-    tags: ['thai', 'soup', 'paleo', 'gluten-free', 'dairy-free', 'spicy', 'seafood', 'quick'],
+    tags: ['thai', 'soup', 'paleo', 'gluten-free', 'dairy-free', 'keto', 'spicy', 'seafood', 'quick'],
     dietary_info: [
       { restriction: 'gluten-free', is_compliant: true },
       { restriction: 'dairy-free', is_compliant: true },
