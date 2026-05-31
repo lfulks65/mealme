@@ -20,12 +20,12 @@ URLs, local development, and environment variables.
 
 ## Prerequisites
 
-| Requirement | Install / Verify |
-|---|---|
-| **Supabase CLI** | `brew install supabase/tap/supabase` (macOS) or see [docs](https://supabase.com/docs/guides/cli) |
+| Requirement            | Install / Verify                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Supabase CLI**       | `brew install supabase/tap/supabase` (macOS) or see [docs](https://supabase.com/docs/guides/cli)             |
 | **A Supabase project** | Create at [supabase.com/dashboard](https://supabase.com/dashboard) or via `supabase init` + `supabase start` |
-| **Node.js ≥ 18** | `node -v` |
-| **pnpm** | `corepack enable && corepack prepare pnpm@latest --activate` |
+| **Node.js ≥ 18**       | `node -v`                                                                                                    |
+| **pnpm**               | `corepack enable && corepack prepare pnpm@latest --activate`                                                 |
 
 After creating a project, note your **Project Ref** (found in
 Dashboard → Settings → General). It is used in redirect URIs and API
@@ -41,18 +41,18 @@ URLs.
 2. Toggle **Enable Email Provider** on.
 3. Configure the following options:
 
-| Setting | Recommended Value | Notes |
-|---|---|---|
-| Enable Sign Ups | ✅ | Allows new registrations |
-| Confirm Email | ✅ | Users must verify their email before signing in |
-| Secure Email Change | ✅ | Requires confirmation when changing email |
-| Min Password Length | 8 | Enforced on the Supabase side |
-| Password Requirements | upper + lower + digit + symbol | Recommended for production |
+| Setting               | Recommended Value              | Notes                                           |
+| --------------------- | ------------------------------ | ----------------------------------------------- |
+| Enable Sign Ups       | ✅                             | Allows new registrations                        |
+| Confirm Email         | ✅                             | Users must verify their email before signing in |
+| Secure Email Change   | ✅                             | Requires confirmation when changing email       |
+| Min Password Length   | 8                              | Enforced on the Supabase side                   |
+| Password Requirements | upper + lower + digit + symbol | Recommended for production                      |
 
 ### Email Templates
 
 Custom branded email templates are stored in
-`supabase/templates/auth/`. The `config.toml` references these for
+`supabase/templates/`. The `config.toml` references these for
 confirm signup, invite, and password reset flows. When running locally
 with `supabase start`, the CLI serves the templates automatically.
 
@@ -174,12 +174,12 @@ the Supabase dashboard**, or the auth callback will be rejected.
 
 ### URLs to Register
 
-| Platform | Environment | Redirect URL |
-|---|---|---|
-| Expo (dev) | Development | `mealme://auth/callback` |
-| Expo (prod) | Production | `com.mealme.app://auth/callback` |
-| Next.js (dev) | Development | `http://localhost:3000/auth/callback` |
-| Next.js (prod) | Production | `https://mealme.app/auth/callback` |
+| Platform       | Environment | Redirect URL                          |
+| -------------- | ----------- | ------------------------------------- |
+| Expo (dev)     | Development | `mealme://auth/callback`              |
+| Expo (prod)    | Production  | `com.mealme.app://auth/callback`      |
+| Next.js (dev)  | Development | `http://localhost:3000/auth/callback` |
+| Next.js (prod) | Production  | `https://mealme.app/auth/callback`    |
 
 ### How to Add Redirect URLs
 
@@ -196,9 +196,10 @@ The `supabase/config.toml` already includes these redirect URLs in the
 ```toml
 [auth]
 additional_redirect_urls = [
-  "http://localhost:3000/**",
-  "mealme://",
-  "https://mealme.app/**",
+  "http://localhost:3000/auth/callback",
+  "mealme://auth/callback",
+  "com.mealme.app://auth/callback",
+  "https://mealme.app/auth/callback",
 ]
 ```
 
@@ -249,22 +250,22 @@ supabase db push
 
 ### Test Auth Flows Locally
 
-| Flow | How to Test |
-|---|---|
-| **Email signup** | Use the app's signup form; check Inbucket at `http://localhost:54324` for the confirmation email |
-| **Email login** | After confirming via Inbucket, sign in with credentials |
-| **Google OAuth** | Requires a publicly accessible callback URL — use `supabase login` + a hosted project, or tunnel with `ngrok http 3000` |
-| **Apple OAuth** | Same as Google — requires a public callback URL |
-| **Password reset** | Trigger from the app; check Inbucket for the reset email |
+| Flow               | How to Test                                                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Email signup**   | Use the app's signup form; check Inbucket at `http://localhost:54324` for the confirmation email                        |
+| **Email login**    | After confirming via Inbucket, sign in with credentials                                                                 |
+| **Google OAuth**   | Requires a publicly accessible callback URL — use `supabase login` + a hosted project, or tunnel with `ngrok http 3000` |
+| **Apple OAuth**    | Same as Google — requires a public callback URL                                                                         |
+| **Password reset** | Trigger from the app; check Inbucket for the reset email                                                                |
 
 ### Useful Local Endpoints
 
-| Service | URL |
-|---|---|
-| API (PostgREST) | `http://localhost:54321` |
-| Studio | `http://localhost:54323` |
+| Service           | URL                      |
+| ----------------- | ------------------------ |
+| API (PostgREST)   | `http://localhost:54321` |
+| Studio            | `http://localhost:54323` |
 | Inbucket (emails) | `http://localhost:54324` |
-| Auth | `http://localhost:9999` |
+| Auth              | `http://localhost:9999`  |
 
 ---
 
@@ -274,47 +275,47 @@ All auth-related environment variables used across the MealMe monorepo.
 
 ### Root `.env.local`
 
-| Variable | Required | Description |
-|---|---|---|
-| `SUPABASE_URL` | ✅ | Supabase project URL (used server-side) |
-| `SUPABASE_ANON_KEY` | ✅ | Public anon key (used server-side) |
-| `SUPABASE_SERVICE_ROLE_KEY` | ⚠️ | Service role key — **never expose to the client** |
-| `GOOGLE_CLIENT_ID` | For OAuth | Google OAuth 2.0 client ID |
-| `GOOGLE_CLIENT_SECRET` | For OAuth | Google OAuth 2.0 client secret |
-| `APPLE_CLIENT_ID` | For OAuth | Apple Services ID (OAuth client ID) |
-| `APPLE_CLIENT_SECRET` | For OAuth | Apple-generated JWT client secret |
+| Variable                    | Required  | Description                                       |
+| --------------------------- | --------- | ------------------------------------------------- |
+| `SUPABASE_URL`              | ✅        | Supabase project URL (used server-side)           |
+| `SUPABASE_ANON_KEY`         | ✅        | Public anon key (used server-side)                |
+| `SUPABASE_SERVICE_ROLE_KEY` | ⚠️        | Service role key — **never expose to the client** |
+| `GOOGLE_CLIENT_ID`          | For OAuth | Google OAuth 2.0 client ID                        |
+| `GOOGLE_CLIENT_SECRET`      | For OAuth | Google OAuth 2.0 client secret                    |
+| `APPLE_CLIENT_ID`           | For OAuth | Apple Services ID (OAuth client ID)               |
+| `APPLE_CLIENT_SECRET`       | For OAuth | Apple-generated JWT client secret                 |
 
 ### Expo (React Native) — `EXPO_PUBLIC_*` prefix
 
 These are bundled into the Expo client at build time and must use the
 `EXPO_PUBLIC_` prefix so Metro can inline them.
 
-| Variable | Required | Description |
-|---|---|---|
-| `EXPO_PUBLIC_SUPABASE_URL` | ✅ | Same as `SUPABASE_URL` (for Expo) |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Same as `SUPABASE_ANON_KEY` (for Expo) |
-| `EXPO_PUBLIC_SUPABASE_REDIRECT_URL` | ⬜ | Override the default redirect URL (`mealme://auth/callback`). Set to `com.mealme.app://auth/callback` for production builds. |
+| Variable                            | Required | Description                                                                                                                  |
+| ----------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`          | ✅       | Same as `SUPABASE_URL` (for Expo)                                                                                            |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`     | ✅       | Same as `SUPABASE_ANON_KEY` (for Expo)                                                                                       |
+| `EXPO_PUBLIC_SUPABASE_REDIRECT_URL` | ⬜       | Override the default redirect URL (`mealme://auth/callback`). Set to `com.mealme.app://auth/callback` for production builds. |
 
 ### Next.js — `NEXT_PUBLIC_*` prefix
 
 These are inlined by Next.js at build time.
 
-| Variable | Required | Description |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Same as `SUPABASE_URL` (for Next.js) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Same as `SUPABASE_ANON_KEY` (for Next.js) |
+| Variable                        | Required | Description                               |
+| ------------------------------- | -------- | ----------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | ✅       | Same as `SUPABASE_URL` (for Next.js)      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅       | Same as `SUPABASE_ANON_KEY` (for Next.js) |
 
 ### Supabase CLI — `supabase/.env.local`
 
 Read by `supabase/config.toml` via `env()` references. Only needed for
 local development with OAuth providers.
 
-| Variable | Required | Description |
-|---|---|---|
-| `GOOGLE_CLIENT_ID` | For OAuth | Same Google client ID |
+| Variable               | Required  | Description               |
+| ---------------------- | --------- | ------------------------- |
+| `GOOGLE_CLIENT_ID`     | For OAuth | Same Google client ID     |
 | `GOOGLE_CLIENT_SECRET` | For OAuth | Same Google client secret |
-| `APPLE_CLIENT_ID` | For OAuth | Same Apple client ID |
-| `APPLE_CLIENT_SECRET` | For OAuth | Same Apple client secret |
+| `APPLE_CLIENT_ID`      | For OAuth | Same Apple client ID      |
+| `APPLE_CLIENT_SECRET`  | For OAuth | Same Apple client secret  |
 
 ### Quick Start
 
