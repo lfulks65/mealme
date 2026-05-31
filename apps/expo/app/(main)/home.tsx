@@ -12,19 +12,18 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <VStack space="lg" alignItems="center" style={styles.content}>
-        <Text size="2xl" fontWeight="$bold" color="$textLight900">
+      <VStack alignItems="center" style={styles.content}>
+        <Text style={styles.title}>
           Welcome to MealMe
         </Text>
         {user && (
-          <Text size="md" color="$textLight500">
+          <Text style={styles.subtitle}>
             Hello, {user.name}!
           </Text>
         )}
 
-        <HStack space="md" flexWrap="wrap" justifyContent="center">
+        <HStack style={styles.buttonRow}>
           <Button
-            size="md"
             variant="solid"
             action="primary"
             onPress={() => router.push('/families/index')}
@@ -33,7 +32,6 @@ export default function HomeScreen() {
           </Button>
 
           <Button
-            size="md"
             variant="outline"
             action="secondary"
             onPress={signOut}
@@ -56,5 +54,20 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
+    gap: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1a1a2e',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  buttonRow: {
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
   },
 });

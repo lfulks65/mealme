@@ -1,8 +1,6 @@
-import { Redirect, Stack, Link } from 'expo-router';
+import { Redirect } from 'expo-router';
 import { useAuth } from '@mealme/ui';
 import { LoginScreen as SharedLoginScreen } from '@mealme/ui';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import React from 'react';
 
 export default function LoginScreen() {
   const { isAuthenticated } = useAuth();
