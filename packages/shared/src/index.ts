@@ -27,6 +27,8 @@ export type {
   RecipeInstruction,
   RecipeTag,
   RecipeDietaryInfo,
+  RecipeNutrition,
+  RecipeWithNutrition,
   RecipeFull,
   RecipeSearchFilters,
   RecipeSearchParams,

@@ -6,6 +6,7 @@ import type {
   RecipeStepDB,
   RecipeTag,
   RecipeDietaryInfo,
+  RecipeNutrition,
   RecipeSearchFilters,
   RecipeSearchResult,
   FamilyPreferences,
@@ -24,7 +25,7 @@ export async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull
   const sb = getSupabaseClient();
   const recipeIds = recipes.map((r) => r.id);
 
-  const [ingredients, steps, tags, dietaryInfo] = await Promise.all([
+  const [ingredients, steps, tags, dietaryInfo, nutrition] = await Promise.all([
     sb.from('recipe_ingredients').select('*').in('recipe_id', recipeIds),
     sb
       .from('recipe_steps')
@@ -33,17 +34,20 @@ export async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull
       .order('step_number', { ascending: true }),
     sb.from('recipe_tags').select('*').in('recipe_id', recipeIds),
     sb.from('recipe_dietary_info').select('*').in('recipe_id', recipeIds),
+    sb.from('recipe_nutrition').select('*').in('recipe_id', recipeIds),
   ]);
 
   if (ingredients.error) throw ingredients.error;
   if (steps.error) throw steps.error;
   if (tags.error) throw tags.error;
   if (dietaryInfo.error) throw dietaryInfo.error;
+  if (nutrition.error) throw nutrition.error;
 
   const ingredientMap = groupBy<RecipeIngredientDB>(ingredients.data, 'recipe_id');
   const stepMap = groupBy<RecipeStepDB>(steps.data, 'recipe_id');
   const tagMap = groupBy<RecipeTag>(tags.data, 'recipe_id');
   const dietaryMap = groupBy<RecipeDietaryInfo>(dietaryInfo.data, 'recipe_id');
+  const nutritionMap = groupBy<RecipeNutrition>(nutrition.data, 'recipe_id');
 
   return recipes.map((r) => ({
     ...r,
@@ -51,6 +55,7 @@ export async function attachRelations(recipes: RecipeFull[]): Promise<RecipeFull
     steps: stepMap[r.id] ?? [],
     tags: tagMap[r.id] ?? [],
     dietary_info: dietaryMap[r.id] ?? [],
+    nutrition: nutritionMap[r.id]?.[0] ?? null,
   }));
 }
 

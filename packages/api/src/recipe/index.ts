@@ -17,4 +17,7 @@ export {
   applyHardFilters,
 } from './recommend';
 export type { RecipeFilterResult, ScoreBreakdown } from './recommend';
-export { seedRecipes } from './seed';
+export { getRecipeNutrition, getRecipesByNutritionRange } from './nutrition';
+export type { NutritionRangeFilters } from './nutrition';
+export { seedRecipes } from './seed/index';
+export type { SeedRecipe } from './seed/index';
