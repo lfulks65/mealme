@@ -9,7 +9,12 @@ import { britishRecipes } from './british';
 import { greekRecipes } from './greek';
 import { scandinavianRecipes, scandinavianAdditionalRecipes } from './scandinavian';
 import { asianRecipes, asianAdditionalRecipes } from './asian';
-import { indianRecipes, indianAdditionalRecipes } from './indian';
+import {
+  indianRecipes,
+  indianAdditionalRecipes,
+  indianBatch3Recipes,
+  indianBatch4Recipes,
+} from './indian';
 import { frenchRecipes, frenchAdditionalRecipes } from './french';
 import { middleEasternRecipes } from './middle-eastern';
 import { americanRecipes, americanAdditionalRecipes } from './american';
@@ -48,6 +53,8 @@ const recipes: SeedRecipe[] = [
   ...asianAdditionalRecipes,
   ...indianRecipes,
   ...indianAdditionalRecipes,
+  ...indianBatch3Recipes,
+  ...indianBatch4Recipes,
   ...frenchRecipes,
   ...frenchAdditionalRecipes,
   ...middleEasternRecipes,
