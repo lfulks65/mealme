@@ -34,6 +34,7 @@ import { brazilianRecipes } from './brazilian';
 import { persianRecipes } from './persian';
 import { filipinoRecipes } from './filipino';
 import { chineseRecipes } from './chinese';
+import { southernUsRecipes } from './southern-us';
 
 import { getSupabaseClient } from '../../lib/supabase';
 
@@ -77,6 +78,7 @@ const recipes: SeedRecipe[] = [
   ...persianRecipes,
   ...filipinoRecipes,
   ...chineseRecipes,
+  ...southernUsRecipes,
 ];
 
 // ── Seed function ────────────────────────────────────────────────────────────
